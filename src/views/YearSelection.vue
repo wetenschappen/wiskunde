@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { PhPi, PhStudent, PhGraduationCap, PhBackpack, PhBooks } from '@phosphor-icons/vue'
+import { PhPi } from '@phosphor-icons/vue'
 
 const router = useRouter()
 
@@ -8,68 +8,48 @@ const years = [
   {
     id: 1,
     title: '1ste Jaar',
-    subtitle: 'A-stroom',
-    icon: PhBackpack,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(59,130,246,0.15)]'
+    accentColor: 'text-amber-500',
+    hoverBorder: 'hover:border-amber-500/50'
   },
   {
     id: 2,
     title: '2de Jaar',
-    subtitle: 'A-stroom',
-    icon: PhBooks,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(168,85,247,0.15)]'
+    accentColor: 'text-amber-500',
+    hoverBorder: 'hover:border-amber-500/50'
   },
   {
     id: 3,
     title: '3de Jaar',
-    subtitle: 'Doorstroom',
-    icon: PhStudent,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(234,88,12,0.15)]'
+    accentColor: 'text-brand-dark', // Navy
+    hoverBorder: 'hover:border-slate-800/50'
   },
   {
     id: 4,
     title: '4de Jaar',
-    subtitle: 'Doorstroom',
-    icon: PhGraduationCap,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(16,185,129,0.15)]'
+    accentColor: 'text-brand-dark', // Navy
+    hoverBorder: 'hover:border-slate-800/50'
   }
 ]
 </script>
 
 <template>
-  <div class="min-h-screen pt-20 px-6 max-w-4xl mx-auto relative z-10 font-sans">
-    <div class="mb-20 text-center">
-      <div class="w-24 h-24 mx-auto bg-white/70 backdrop-blur-md rounded-[24px_8px_24px_8px] border border-white/50 shadow-[0_12px_40px_rgba(0,0,0,0.06)] flex items-center justify-center mb-8 transform hover:scale-105 transition-transform duration-500">
-        <PhPi weight="duotone" class="text-[4rem] text-brand-dark" />
+  <div class="min-h-screen flex flex-col items-center justify-center p-6 relative z-10 font-sans">
+    <div class="mb-12 text-center">
+      <div class="w-16 h-16 mx-auto bg-slate-100/80 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm flex items-center justify-center mb-6 transform hover:scale-105 transition-transform duration-500">
+        <PhPi weight="duotone" class="text-[2.5rem] text-brand-dark" />
       </div>
-      <h1 class="text-[4.5rem] font-bold text-slate-800 tracking-tight leading-tight mb-4">Digitaal Leerpad</h1>
-      <p class="text-[1.8rem] text-slate-500 font-light max-w-2xl mx-auto leading-relaxed">Kies je leerjaar om aan de slag te gaan met interactieve theorie en oefeningen.</p>
+      <h1 class="text-[3rem] md:text-[4rem] font-bold text-slate-800 tracking-tight leading-tight mb-2">Digitaal Leerpad</h1>
+      <p class="text-[1.2rem] md:text-[1.5rem] text-slate-500 font-light max-w-2xl mx-auto leading-relaxed">Kies je leerjaar om aan de slag te gaan.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-3xl mx-auto">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl mx-auto">
       <div v-for="year in years" :key="year.id" 
            @click="router.push('/year/' + year.id + '/class')"
-           :class="['group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-10 rounded-[32px_12px_32px_12px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500', year.hover]">
-        <div class="flex items-center gap-6 mb-8">
-          <div :class="['w-20 h-20 rounded-[18px_8px_18px_8px] flex items-center justify-center shadow-sm', year.bg]">
-            <component :is="year.icon" weight="fill" :class="['text-[3rem]', year.color]" />
-          </div>
+           :class="['group cursor-pointer bg-white border border-slate-200 p-8 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 flex flex-col items-center text-center hover:shadow-xl', year.hoverBorder]">
+        <div class="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center shadow-inner mb-6 group-hover:bg-slate-200 transition-colors duration-300">
+          <span class="text-[2.5rem] font-black text-slate-500 group-hover:text-slate-700 transition-colors">{{ year.id }}</span>
         </div>
-        <h3 class="text-[3rem] font-bold text-slate-800 leading-tight transition-colors">{{ year.title }}</h3>
-        <p class="text-[1.5rem] text-slate-500 mt-2 font-medium tracking-wide uppercase">{{ year.subtitle }}</p>
-        
-        <div :class="['mt-10 flex items-center font-bold text-[1.6rem] opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300', year.color]">
-          <span>Kies Jaar</span>
-          <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-        </div>
+        <h3 :class="['text-[1.8rem] font-extrabold transition-colors', year.accentColor]">{{ year.title }}</h3>
       </div>
     </div>
   </div>
