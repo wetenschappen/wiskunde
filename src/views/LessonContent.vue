@@ -18,6 +18,7 @@ import { useLesson, normalizeLesson } from '../composables/useLesson.js'
 // import lessonData from '../lessons/elektriciteit-veiligheid-1.js'
 const props = defineProps({ lessonData: { type: Object, required: true } })
 
+const router = useRouter()
 const lessonData = normalizeLesson(props.lessonData)
 // --- COMPONENTS ---
 import LessonHeader from '../components/LessonHeader.vue'
