@@ -427,7 +427,7 @@ function resolveImageUrl(url) {
                                 
                                 
                                 <component 
-                                    v-if="layoutComponentMap[slides[currentSlide].layout]"
+                                    v-if="slides[currentSlide] && layoutComponentMap[slides[currentSlide].layout]"
                                     :is="layoutComponentMap[slides[currentSlide].layout]" 
                                     :slide="slides[currentSlide]"
                                     :revealedSteps="revealedSteps"
@@ -438,8 +438,11 @@ function resolveImageUrl(url) {
                                     @copyLink="copyLink"
                                     @showConfetti="() => { showConfetti = true; setTimeout(() => showConfetti = false, 2000) }"
                                 />
-                                <div v-else class="flex items-center justify-center w-full h-full bg-white text-3xl text-red-500">
+                                <div v-else-if="slides[currentSlide]" class="flex items-center justify-center w-full h-full bg-white text-3xl text-red-500">
                                     Unknown Slide Layout: {{ slides[currentSlide].layout }}
+                                </div>
+                                <div v-else class="flex items-center justify-center w-full h-full bg-slate-50 text-2xl text-slate-400">
+                                    Geen slides beschikbaar.
                                 </div>
 
 
