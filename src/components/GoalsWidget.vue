@@ -10,6 +10,10 @@ const props = defineProps({
   subject: {
     type: String,
     default: 'math'
+  },
+  lessonId: {
+    type: String,
+    required: true
   }
 })
 
@@ -24,8 +28,10 @@ const isOpen = ref(false)
 const hasInteracted = ref(false)
 const completedGoals = ref([])
 
+const storageKey = computed(() => `planner-goals-${props.lessonId}`)
+
 onMounted(() => {
-    const stored = localStorage.getItem('planner-goals-newton')
+    const stored = localStorage.getItem(storageKey.value)
     if (stored) {
         completedGoals.value = JSON.parse(stored)
         // If user has completed goals or interacted before, we can assume they've seen the pulse
@@ -49,7 +55,7 @@ watch(isOpen, (val) => {
 })
 
 watch(completedGoals, (val) => {
-    localStorage.setItem('planner-goals-newton', JSON.stringify(val))
+    localStorage.setItem(storageKey.value, JSON.stringify(val))
 }, { deep: true })
 
 

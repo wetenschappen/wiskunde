@@ -403,9 +403,20 @@ function resolveImageUrl(url) {
 <template>
 <Teleport to="body">
     <Transition name="fade">
-        <div v-if="isOpen" class="fixed inset-0 z-[9999] bg-surface-200 text-ink flex flex-col font-sans overflow-hidden w-screen h-screen">
+        <div v-if="isOpen" class="fixed inset-0 z-[9999] bg-black text-slate-900 flex flex-col font-sans overflow-hidden w-screen h-screen">
             
+            <!-- PROGRESS BAR -->
+            <!-- Position absolute at top of viewport so it overlays -->
+            <div class="absolute top-0 left-0 right-0 h-2 bg-slate-900 z-[70]">
+                <div class="h-full bg-amber-500 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(245,158,11,0.6)]" :style="{ width: progressPercentage + '%' }"></div>
+            </div>
 
+            <!-- HEADER (Close Btn) -->
+            <div class="absolute top-6 right-6 z-50">
+                <button @click="emit('close')" class="bg-black/50 hover:bg-black/80 text-white/80 hover:text-white p-3 rounded-full transition-all hover:rotate-90 backdrop-blur-md border border-white/10 group">
+                    <PhX class="text-xl group-hover:scale-110 transition-transform" />
+                </button>
+            </div>
 
             <!-- Success Popup - Simplified -->
             <div v-if="showConfetti" class="fixed inset-0 z-[150] pointer-events-none flex items-center justify-center bg-black/30">
@@ -417,14 +428,13 @@ function resolveImageUrl(url) {
                 </div>
             </div>
             
-                <div ref="containerRef" class="slide-viewport">
+            <div ref="containerRef" class="slide-viewport">
                 <div ref="stageRef" class="ppt-stage" :style="{ transform: `scale(${scale})` }">
                     
                     <Transition :name="transitionName">
                         <div :key="currentSlide" class="absolute inset-0 w-full h-full">
                             
                             <div class="w-full h-full relative">
-                                
                                 
                                 <component 
                                     v-if="slides[currentSlide] && layoutComponentMap[slides[currentSlide].layout]"
@@ -445,41 +455,24 @@ function resolveImageUrl(url) {
                                     Geen slides beschikbaar.
                                 </div>
 
-
                             </div>
                         </div>
                     </Transition>
                 </div>
 
-                <!-- Footer Navigation -->
-                <div class="absolute bottom-0 left-0 right-0 h-11 bg-chrome-dark border-t border-chrome-border z-[80] flex items-center justify-between px-6">
-                    <!-- Left: Slide counter -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-white/60 text-[1.2rem] font-mono">
-                            {{ currentSlide + 1 }} <span class="opacity-40">/ {{ totalSlides }}</span>
-                        </span>
-                    </div>
+                <!-- FOOTER CONTROLS (Floating in black space) -->
+                <div class="absolute bottom-6 left-6 flex items-center gap-2 z-[80] bg-slate-900/90 text-white/50 p-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-2xl hover:text-white transition-colors">
+                    <button @click.stop="prevSlide" class="hover:bg-white/10 rounded-full p-1.5 transition-colors disabled:opacity-30 disabled:hover:bg-transparent" :disabled="currentSlide === 0">
+                        <PhCaretLeft class="text-lg" />
+                    </button>
                     
-                    <!-- Center: Navigation arrows -->
-                    <div class="flex items-center gap-2">
-                        <button @click.stop="prevSlide" 
-                                class="text-white/60 hover:text-white hover:bg-white/10 w-10 h-10 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed" 
-                                :disabled="currentSlide === 0">
-                            <PhCaretLeft weight="bold" class="text-[1.4rem]" />
-                        </button>
-                        
-                        <button @click.stop="advancePresentation" 
-                                class="text-white/60 hover:text-white hover:bg-white/10 w-10 h-10 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed" 
-                                :disabled="currentSlide === totalSlides - 1 && (!slides[currentSlide]?.steps || slides[currentSlide].layout === 'exercise' || revealedSteps === slides[currentSlide].steps.length) && (!slides[currentSlide]?.revealText || answerRevealed)">
-                            <PhCaretRight weight="bold" class="text-[1.4rem]" />
-                        </button>
-                    </div>
-                    
-                    <!-- Right: Progress bar -->
-                    <div class="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 transition-all duration-300" :style="{ width: progressPercentage + '%' }"></div>
-                    </div>
-                </div>            
+                    <span class="text-xs font-mono tracking-widest min-w-[2.5rem] text-center select-none">{{ currentSlide + 1 }} / {{ totalSlides }}</span>
+
+                    <button @click.stop="advancePresentation" class="hover:bg-white/10 rounded-full p-1.5 transition-colors disabled:opacity-30 disabled:hover:bg-transparent" 
+                            :disabled="currentSlide === totalSlides - 1 && (!slides[currentSlide]?.steps || slides[currentSlide].layout === 'exercise' || revealedSteps === slides[currentSlide].steps.length) && (!slides[currentSlide]?.revealText || answerRevealed)">
+                        <PhCaretRight class="text-lg" />
+                    </button>
+                </div>
             </div>
         </div>
     </Transition>

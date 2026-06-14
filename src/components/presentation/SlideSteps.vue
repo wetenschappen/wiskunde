@@ -1,6 +1,6 @@
 <script setup>
 import { inject } from 'vue'
-import MathSlideWrapper from './shared/MathSlideWrapper.vue'
+import { PhArrowsOutSimple } from '@phosphor-icons/vue'
 
 const props = defineProps({
     slide: { type: Object, required: true },
@@ -16,37 +16,25 @@ const iconMap = inject('iconMap', {})
 </script>
 
 <template>
-<MathSlideWrapper :title="slide.title" badge="STAPPENPLAN">
-    
-    <div class="flex-1 mt-4 pb-8">
-        <div class="grid gap-6" :class="slide.steps.length > 4 ? 'grid-cols-3' : 'grid-cols-2'">
-            
-            <div v-for="(step, idx) in slide.steps" :key="idx"
-                 class="relative transition-all duration-300"
-                 :class="idx < revealedSteps ? 'opacity-100' : 'opacity-40 scale-[0.98] grayscale-[0.5]'">
-                 
-                <div class="relative flex flex-col h-full p-8 rounded-xl border bg-white overflow-hidden shadow-sm"
-                     :class="idx < revealedSteps ? 'border-amber-250 bg-amber-50/10' : 'border-slate-200 bg-white'">
-                     
-                    <div class="flex items-center gap-4 mb-5 relative z-10">
-                      <!-- Step badge (Navy/Amber styled) -->
-                      <div class="w-11 h-11 rounded-lg flex items-center justify-center text-[1.4rem] font-bold shrink-0 shadow-sm"
-                           :class="idx < revealedSteps ? 'bg-amber-500 text-slate-900 border border-amber-400' : 'bg-slate-100 text-slate-500'">
-                          <component v-if="step.icon && iconMap[step.icon]" :is="iconMap[step.icon]" weight="bold" class="text-[1.6rem]" />
-                          <span v-else>{{ idx + 1 }}</span>
-                      </div>
-                      <div v-if="step.title" class="text-[1.4rem] font-extrabold uppercase tracking-wider" :class="idx < revealedSteps ? 'text-amber-850' : 'text-slate-400'" v-html="step.title"></div>
-                    </div>
-
-                    <p class="text-[1.6rem] font-medium text-slate-700 leading-relaxed relative z-10" v-html="step.text"></p>
+<div class="w-full h-full flex flex-col items-center justify-center p-20 bg-white relative">
+    <div class="w-full max-w-7xl">
+        <div class="flex items-center gap-8 mb-20">
+            <div class="h-24 w-2 bg-amber-500"></div>
+            <h3 class="text-7xl font-bold text-slate-900 tracking-tight" v-html="slide.title"></h3>
+        </div>
+        <div class="grid grid-cols-1 gap-8">
+            <div v-for="(step, idx) in slide.steps" :key="idx" 
+                 class="flex items-center gap-12 p-10 bg-slate-50 rounded-2xl border border-slate-100 transition-all duration-700"
+                 :class="idx < revealedSteps ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'">
+                <div class="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-lg shadow-slate-900/10">
+                    <component :is="iconMap[step.icon] || PhArrowsOutSimple" class="text-4xl text-amber-300" weight="thin" />
                 </div>
-            </div>
-
-            <!-- Optional Image Box -->
-            <div v-if="slide.image" class="rounded-xl overflow-hidden flex items-center justify-center bg-white border border-slate-200 shadow-sm p-4 relative group min-h-[220px]">
-                <img :src="resolveImageUrl(slide.image)" class="max-w-full max-h-full object-contain transition-transform duration-500">
+                <p class="text-4xl font-medium text-slate-800 leading-tight" v-html="step.text || step.title"></p>
             </div>
         </div>
     </div>
-</MathSlideWrapper>
+</div>
 </template>
+
+<style scoped>
+</style>

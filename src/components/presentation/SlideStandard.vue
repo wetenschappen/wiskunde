@@ -1,8 +1,4 @@
 <script setup>
-import { inject } from 'vue'
-import MathSlideWrapper from './shared/MathSlideWrapper.vue'
-import PedagogyPanel from './shared/PedagogyPanel.vue'
-
 const props = defineProps({
     slide: { type: Object, required: true },
     revealedSteps: { type: Number, default: 0 },
@@ -14,9 +10,15 @@ const emit = defineEmits(['revealNext', 'selectAnswer', 'checkAnswer', 'copyLink
 </script>
 
 <template>
-<MathSlideWrapper :title="slide.title" badge="UITLEG">
-    <PedagogyPanel variant="theory" :title="slide.subtitle || 'Concept'" icon="info">
-        <div class="text-[1.8rem] leading-[1.7] text-ink" v-html="slide.content || slide.text"></div>
-    </PedagogyPanel>
-</MathSlideWrapper>
+<div class="w-full h-full flex flex-col items-center justify-center p-20 bg-white">
+    <div class="w-full max-w-6xl">
+        <h3 class="text-6xl font-bold text-slate-900 mb-16 tracking-tight border-b-4 border-slate-100 pb-8" v-html="slide.title"></h3>
+        <div class="text-5xl leading-relaxed text-slate-600 font-serif italic">
+            <div v-html="slide.content || slide.text"></div>
+        </div>
+    </div>
+</div>
 </template>
+
+<style scoped>
+</style>

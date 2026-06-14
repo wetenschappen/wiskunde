@@ -1,6 +1,17 @@
 import { PhMathOperations, PhGraph, PhCalculator } from '@phosphor-icons/vue'
 
 export const modules = [
+  // Nando 1 (Year 1)
+  {
+    id: 'nando1-demo',
+    title: 'Demo Lecture',
+    year: 1,
+    grade: '1ste Jaar Wiskunde',
+    icon: PhMathOperations,
+    color: 'text-brand-orange',
+    bg: 'bg-orange-50'
+  },
+  
   // Nando 3 (Year 3)
   {
     id: 'nando3-m01-l01-symbolen',

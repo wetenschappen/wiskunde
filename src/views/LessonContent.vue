@@ -363,7 +363,7 @@ const isTimelineComplete = computed(() => {
      @close="showNamePicker = false" 
   />
 
-  <GoalsWidget :goals="lesson.goals" :prerequisites="lesson.config.prerequisites" :equipment="lesson.config.equipment" :textbook="lesson.config.textbook" :subject="lesson.config.subject" />
+  <GoalsWidget :lessonId="lessonData.id" :goals="lesson.goals" :prerequisites="lesson.config.prerequisites" :equipment="lesson.config.equipment" :textbook="lesson.config.textbook" :subject="lesson.config.subject" />
 
   </div>
 </template>

@@ -44,23 +44,25 @@ const resolvedIcon = computed(() => {
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col bg-white relative">
-    <!-- Thinner, High-Contrast Navy Header Bar with Amber Icon Badge -->
-    <div class="h-[80px] shrink-0 flex items-center px-16 bg-slate-900 border-b-4 border-amber-500 text-white relative z-10">
-      <div class="flex items-center gap-4">
-        <!-- Premium Icon Badge -->
-        <div v-if="badge" class="w-10 h-10 rounded-lg bg-amber-500 text-slate-900 border border-amber-400 flex items-center justify-center shrink-0 shadow-sm">
-          <component :is="resolvedIcon" weight="bold" class="text-[1.6rem]" />
-        </div>
-        <h2 v-if="title" class="text-[2.4rem] font-bold text-white tracking-tight" v-html="title"></h2>
+  <div class="w-full h-full flex flex-col items-center justify-center p-20 bg-white relative">
+    <div class="w-full max-w-7xl flex flex-col h-full">
+      <!-- Planner Academic Header -->
+      <div v-if="title" class="flex items-center gap-8 mb-16 shrink-0">
+          <div class="h-24 w-2 bg-amber-500 shrink-0"></div>
+          <h3 class="text-7xl font-bold text-slate-900 tracking-tight" v-html="title"></h3>
+          
+          <!-- Badge -->
+          <div v-if="badge" class="ml-auto flex items-center gap-4 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+             <component :is="resolvedIcon" weight="duotone" class="text-3xl text-amber-500" />
+             <span class="text-xl font-bold uppercase tracking-widest text-slate-500">{{ badge }}</span>
+          </div>
       </div>
-    </div>
-    
-    <!-- Scrollable Content Area -->
-    <div class="flex-1 overflow-y-auto relative z-10 exercise-scroll bg-white" :class="padding">
-      <div class="h-6 w-full shrink-0"></div> <!-- Top spacing -->
-      <slot />
-      <div class="h-20 w-full shrink-0"></div> <!-- Bottom spacer to avoid overlap with navigation footer -->
+      
+      <!-- Scrollable Content Area -->
+      <div class="flex-1 w-full exercise-scroll overflow-y-auto relative z-10" :class="padding">
+        <slot />
+        <div class="h-20 w-full shrink-0"></div> <!-- Bottom spacer -->
+      </div>
     </div>
   </div>
 </template>

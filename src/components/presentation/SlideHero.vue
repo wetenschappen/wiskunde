@@ -14,26 +14,26 @@ const resolveImageUrl = inject('resolveImageUrl')
 </script>
 
 <template>
-<div class="absolute inset-0 w-full h-full bg-slate-950 flex flex-col select-none">
-    <div class="flex-1 relative">
-        <img :src="resolveImageUrl(slide.image)" class="w-full h-full object-cover opacity-50" />
-        <!-- Soft solid dimming overlay -->
-        <div class="absolute inset-0 bg-slate-950/30"></div>
-        
-        <!-- Content Box -->
-        <div class="absolute bottom-20 left-16 right-16">
-            <h2 class="text-[4rem] leading-tight font-extrabold text-white mb-4 tracking-tight" v-html="slide.title"></h2>
-            <p class="text-[2rem] text-amber-400 max-w-4xl leading-relaxed font-light" v-html="slide.subtitle"></p>
-        </div>
-    </div>
-    <div v-if="slide.credit" class="h-12 bg-slate-900 border-t border-slate-800 flex items-center px-16 shrink-0">
-        <span class="text-white/40 text-[1.1rem]">Afbeelding: {{ slide.credit }}</span>
-    </div>
+<div class="absolute inset-0 bg-slate-900 flex items-center justify-center select-none">
+     <div class="relative w-full h-full overflow-hidden group">
+         <img :src="resolveImageUrl(slide.image)" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110 opacity-60" />
+         
+         <!-- Content Overlay -->
+         <div class="absolute inset-0 flex flex-col items-center justify-center p-20 text-center z-10">
+             <div class="bg-amber-500 w-16 h-1 mb-8"></div>
+             <h3 class="text-8xl font-serif italic text-white mb-6 tracking-tight drop-shadow-2xl" v-html="slide.title"></h3>
+             <p v-if="slide.subtitle" class="text-4xl text-amber-100 font-light max-w-4xl leading-relaxed drop-shadow-lg" v-html="slide.subtitle"></p>
+         </div>
+         
+         <!-- Subtle Gradient Bottom -->
+         <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+         
+         <div v-if="slide.credit" class="absolute bottom-10 right-10 text-white/40 text-sm font-mono uppercase tracking-[0.2em] z-20">
+             {{ slide.credit }}
+         </div>
+     </div>
 </div>
 </template>
 
 <style scoped>
-h2, p {
-  font-family: 'Open Sans', sans-serif;
-}
 </style>
