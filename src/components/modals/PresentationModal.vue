@@ -161,15 +161,15 @@ const slidesCopy = computed(() => {
     const processedSlides = props.slides.map(slide => {
         if (slide.layout === 'recap' && slide.questions) {
             return {
-                ...processSlides(slide),
-                questions: slide.questions.map(q => ({ ...processSlides(q), revealed: false }))
+                ...slide,
+                questions: slide.questions.map(q => ({ ...q, revealed: false }))
             }
         }
-        return processSlides(slide)
+        return slide
     })
     // Only prepend discipline slide for first/default deck
     if (props.showDisciplineSlide && props.config) {
-        return [processSlides(disciplineSlide.value), ...processedSlides]
+        return [disciplineSlide.value, ...processedSlides]
     }
     return processedSlides
 })
@@ -397,31 +397,6 @@ function resolveImageUrl(url) {
     if (normalizedUrl.startsWith('./')) normalizedUrl = normalizedUrl.substring(2)
     if (normalizedUrl.startsWith('/')) normalizedUrl = normalizedUrl.substring(1)
     return baseUrl.endsWith('/') ? baseUrl + normalizedUrl : baseUrl + '/' + normalizedUrl
-}
-
-function k(text) {
-    // Math is now globally rendered via useMathEngine during useLesson initialization.
-    // We just return the text as-is, ensuring it handles nulls gracefully.
-    return text || ''
-}
-
-function kAll(str) {
-    if (typeof str !== 'string') return str
-    return k(str)
-}
-
-function processSlides(obj) {
-    if (obj === null || obj === undefined) return obj
-    if (Array.isArray(obj)) return obj.map(processSlides)
-    if (typeof obj === 'object') {
-        const result = {}
-        for (const key of Object.keys(obj)) {
-            result[key] = processSlides(obj[key])
-        }
-        return result
-    }
-    if (typeof obj === 'string') return k(obj)
-    return obj
 }
 </script>
 
