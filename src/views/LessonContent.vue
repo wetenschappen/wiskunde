@@ -1,5 +1,6 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, watch, defineAsyncComponent, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
     PhPresentationChart, PhInfo, PhGameController, PhFlask, PhPlanet, PhTextAa, 
     PhArrowsDownUp, PhThumbsUp, PhListBullets, PhDiamondsFour, PhTrophy, PhTarget, 
@@ -243,9 +244,9 @@ const isTimelineComplete = computed(() => {
                 </span>
                 <span class="text-slate-700 text-xl font-bold">|</span>
                 
-                <div class="flex items-center gap-2 font-mono font-bold tracking-widest text-xl text-slate-200">
+                <button @click="router.back()" class="flex items-center gap-2 font-mono font-bold tracking-widest text-xl text-slate-200 hover:text-amber-500 transition-colors cursor-pointer">
                     {{ lesson.config.className }}
-                </div>
+                </button>
 
             </div>
             <TimerWidget :isOpen="showTimer" :start-duration="timerStartDuration" @close="showTimer = false" />
