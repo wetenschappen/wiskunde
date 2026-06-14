@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import YearSelection from '../views/YearSelection.vue'
+import ClassSelection from '../views/ClassSelection.vue'
 import ModuleSelection from '../views/ModuleSelection.vue'
 import LessonView from '../views/LessonView.vue'
 
@@ -10,8 +11,14 @@ const routes = [
     component: YearSelection
   },
   {
-    path: '/year/:id',
-    name: 'Year',
+    path: '/year/:id/class',
+    name: 'ClassSelection',
+    component: ClassSelection,
+    props: true
+  },
+  {
+    path: '/year/:id/class/:classId',
+    name: 'YearClass',
     component: ModuleSelection,
     props: true
   },

@@ -8,10 +8,11 @@ const router = useRouter()
 const route = useRoute()
 
 const yearId = computed(() => parseInt(route.params.id))
-const filteredModules = computed(() => modules.filter(m => m.year === yearId.value))
+const classId = computed(() => route.params.classId)
+const filteredModules = computed(() => modules.filter(m => m.year === yearId.value)) // Optionally filter by classId later
 
 const goBack = () => {
-  router.push('/')
+  router.push('/year/' + yearId.value + '/class')
 }
 </script>
 
@@ -20,7 +21,7 @@ const goBack = () => {
     <div class="mb-12">
       <button @click="goBack" class="flex items-center text-slate-500 hover:text-slate-800 transition-colors font-semibold text-[1.4rem]">
         <PhArrowLeft weight="bold" class="mr-2" />
-        Terug naar Jaar Keuze
+        Terug naar Klas Keuze
       </button>
     </div>
 
@@ -28,7 +29,7 @@ const goBack = () => {
       <div class="w-24 h-24 mx-auto bg-white/70 backdrop-blur-md rounded-[24px_8px_24px_8px] border border-white/50 shadow-[0_12px_40px_rgba(0,0,0,0.06)] flex items-center justify-center mb-8 transform hover:scale-105 transition-transform duration-500">
         <PhPi weight="duotone" class="text-[4rem] text-brand-dark" />
       </div>
-      <h1 class="text-[4.5rem] font-bold text-slate-800 tracking-tight leading-tight mb-4">{{ yearId }}de Jaar Wiskunde</h1>
+      <h1 class="text-[4.5rem] font-bold text-slate-800 tracking-tight leading-tight mb-4">Wiskunde {{ classId }}</h1>
       <p class="text-[1.8rem] text-slate-500 font-light max-w-2xl mx-auto leading-relaxed">Kies een module om aan de slag te gaan met interactieve theorie en oefeningen.</p>
     </div>
 

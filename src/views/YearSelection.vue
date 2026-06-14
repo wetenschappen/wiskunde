@@ -1,14 +1,32 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { PhPi, PhStudent, PhGraduationCap } from '@phosphor-icons/vue'
+import { PhPi, PhStudent, PhGraduationCap, PhBackpack, PhBooks } from '@phosphor-icons/vue'
 
 const router = useRouter()
 
 const years = [
   {
+    id: 1,
+    title: '1ste Jaar',
+    subtitle: 'A-stroom',
+    icon: PhBackpack,
+    color: 'text-blue-500',
+    bg: 'bg-blue-50',
+    hover: 'hover:shadow-[0_20px_40px_rgb(59,130,246,0.15)]'
+  },
+  {
+    id: 2,
+    title: '2de Jaar',
+    subtitle: 'A-stroom',
+    icon: PhBooks,
+    color: 'text-purple-500',
+    bg: 'bg-purple-50',
+    hover: 'hover:shadow-[0_20px_40px_rgb(168,85,247,0.15)]'
+  },
+  {
     id: 3,
     title: '3de Jaar',
-    subtitle: 'Wiskunde (D5)',
+    subtitle: 'Doorstroom',
     icon: PhStudent,
     color: 'text-brand-orange',
     bg: 'bg-orange-50',
@@ -17,7 +35,7 @@ const years = [
   {
     id: 4,
     title: '4de Jaar',
-    subtitle: 'Wiskunde (D5)',
+    subtitle: 'Doorstroom',
     icon: PhGraduationCap,
     color: 'text-emerald-500',
     bg: 'bg-emerald-50',
@@ -32,13 +50,13 @@ const years = [
       <div class="w-24 h-24 mx-auto bg-white/70 backdrop-blur-md rounded-[24px_8px_24px_8px] border border-white/50 shadow-[0_12px_40px_rgba(0,0,0,0.06)] flex items-center justify-center mb-8 transform hover:scale-105 transition-transform duration-500">
         <PhPi weight="duotone" class="text-[4rem] text-brand-dark" />
       </div>
-      <h1 class="text-[4.5rem] font-bold text-slate-800 tracking-tight leading-tight mb-4">Wiskunde Leren</h1>
+      <h1 class="text-[4.5rem] font-bold text-slate-800 tracking-tight leading-tight mb-4">Digitaal Leerpad</h1>
       <p class="text-[1.8rem] text-slate-500 font-light max-w-2xl mx-auto leading-relaxed">Kies je leerjaar om aan de slag te gaan met interactieve theorie en oefeningen.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-3xl mx-auto">
       <div v-for="year in years" :key="year.id" 
-           @click="router.push('/year/' + year.id)"
+           @click="router.push('/year/' + year.id + '/class')"
            :class="['group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-10 rounded-[32px_12px_32px_12px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500', year.hover]">
         <div class="flex items-center gap-6 mb-8">
           <div :class="['w-20 h-20 rounded-[18px_8px_18px_8px] flex items-center justify-center shadow-sm', year.bg]">
