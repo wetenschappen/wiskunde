@@ -244,7 +244,7 @@ const isTimelineComplete = computed(() => {
                 </span>
                 <span class="text-slate-700 text-xl font-bold">|</span>
                 
-                <button @click="router.back()" class="flex items-center gap-2 font-mono font-bold tracking-widest text-xl text-slate-200 hover:text-amber-500 transition-colors cursor-pointer">
+                <button @click="router.push('/')" class="flex items-center gap-2 font-mono font-bold tracking-widest text-xl text-slate-200 hover:text-amber-500 transition-colors cursor-pointer">
                     {{ lesson.config.className }}
                 </button>
 
