@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { evaluateExpression } from '../../composables/useMathEngine.js'
 
 const props = defineProps({
   config: {
@@ -99,17 +100,49 @@ function generateFunctionPath(funcDef) {
   const step = viewBoxWidth.value / 1000 // 1000 points for smoothness
   for (let x = domainX.value[0]; x <= domainX.value[1]; x += step) {
     try {
-      const y = funcDef.fn(x)
+      let y;
+      if (funcDef.expr) {
+        y = evaluateExpression(funcDef.expr, { x })
+      } else if (funcDef.fn) {
+        y = funcDef.fn(x)
+      } else {
+        continue;
+      }
+      
       // Check if y is within sensible bounds to prevent SVG explosion
       if (y === null || isNaN(y) || !isFinite(y)) {
-        path += '' // break the path visually if undefined? SVG path M could be used.
+        path += '' // break the path visually
         continue;
       }
       
       const svgX = toSvgX(x)
       const svgY = toSvgY(y)
-      if (path === '' || isNaN(svgY)) {
-        if (!isNaN(svgY)) path += `M ${svgX} ${svgY}`
+
+      // Clamping logic for extreme Y values
+      const padding = 100 // pixels outside viewBox allowed
+      const isOutOfBounds = svgY < -padding || svgY > svgHeight + padding
+
+      // If previous point was also out of bounds and we crossed the graph (asymptote), break the path
+      const pathsSplit = path.split('M').filter(Boolean)
+      const lastSegment = pathsSplit.length > 0 ? pathsSplit[pathsSplit.length - 1] : ''
+      const lastL = lastSegment.lastIndexOf('L')
+      let lastSvgY = null;
+      if (lastL !== -1) {
+        lastSvgY = parseFloat(lastSegment.substring(lastL + 1).split(' ')[1])
+      }
+      
+      const isAsymptote = lastSvgY !== null && Math.abs(svgY - lastSvgY) > svgHeight
+
+      if (isOutOfBounds || isAsymptote) {
+        if (!isNaN(svgY)) {
+           // We just break the path, next valid point will start a new M
+           path += ` M ${svgX} ${svgY}`
+        }
+        continue;
+      }
+
+      if (path === '' || isNaN(svgY) || path.endsWith('M ')) {
+        if (!isNaN(svgY)) path += ` M ${svgX} ${svgY}`
       } else {
         path += ` L ${svgX} ${svgY}`
       }

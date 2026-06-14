@@ -12,8 +12,7 @@ const years = [
     icon: PhStudent,
     color: 'text-brand-orange',
     bg: 'bg-orange-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(234,88,12,0.15)]',
-    hoverText: 'group-hover:text-brand-orange'
+    hover: 'hover:shadow-[0_20px_40px_rgb(234,88,12,0.15)]'
   },
   {
     id: 4,
@@ -22,8 +21,7 @@ const years = [
     icon: PhGraduationCap,
     color: 'text-emerald-500',
     bg: 'bg-emerald-50',
-    hover: 'hover:shadow-[0_20px_40px_rgb(16,185,129,0.15)]',
-    hoverText: 'group-hover:text-emerald-500'
+    hover: 'hover:shadow-[0_20px_40px_rgb(16,185,129,0.15)]'
   }
 ]
 </script>
@@ -41,13 +39,13 @@ const years = [
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-3xl mx-auto">
       <div v-for="year in years" :key="year.id" 
            @click="router.push('/year/' + year.id)"
-           :class="['group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-10 rounded-[32px_12px_32px_12px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:-translate-y-2', year.hover]">
+           :class="['group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-10 rounded-[32px_12px_32px_12px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500', year.hover]">
         <div class="flex items-center gap-6 mb-8">
           <div :class="['w-20 h-20 rounded-[18px_8px_18px_8px] flex items-center justify-center shadow-sm', year.bg]">
             <component :is="year.icon" weight="fill" :class="['text-[3rem]', year.color]" />
           </div>
         </div>
-        <h3 :class="['text-[3rem] font-bold text-slate-800 leading-tight transition-colors', year.hoverText]">{{ year.title }}</h3>
+        <h3 class="text-[3rem] font-bold text-slate-800 leading-tight transition-colors">{{ year.title }}</h3>
         <p class="text-[1.5rem] text-slate-500 mt-2 font-medium tracking-wide uppercase">{{ year.subtitle }}</p>
         
         <div :class="['mt-10 flex items-center font-bold text-[1.6rem] opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300', year.color]">

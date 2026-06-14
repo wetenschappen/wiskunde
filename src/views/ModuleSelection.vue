@@ -39,7 +39,7 @@ const goBack = () => {
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div v-for="chapter in filteredModules" :key="chapter.id" 
            @click="router.push('/les/' + chapter.id)"
-           class="group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-8 rounded-[24px_8px_24px_8px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:-translate-y-2"
+           class="group cursor-pointer bg-white/70 backdrop-blur-md border border-white/60 p-8 rounded-[24px_8px_24px_8px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500"
            :class="[yearId === 3 ? 'hover:shadow-[0_20px_40px_rgb(234,88,12,0.15)]' : 'hover:shadow-[0_20px_40px_rgb(16,185,129,0.15)]']">
         <div class="flex items-center gap-4 mb-8">
           <div :class="['w-16 h-16 rounded-[14px_6px_14px_6px] flex items-center justify-center shadow-sm', chapter.bg]">
@@ -47,7 +47,7 @@ const goBack = () => {
           </div>
           <span class="text-[1.2rem] font-bold text-slate-400 uppercase tracking-widest">{{ chapter.grade }}</span>
         </div>
-        <h3 :class="['text-[2.2rem] font-bold text-slate-800 leading-tight transition-colors', yearId === 3 ? 'group-hover:text-brand-orange' : 'group-hover:text-emerald-500']">{{ chapter.title }}</h3>
+        <h3 class="text-[2.2rem] font-bold text-slate-800 leading-tight transition-colors">{{ chapter.title }}</h3>
         
         <div :class="['mt-8 flex items-center font-bold text-[1.4rem] opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300', yearId === 3 ? 'text-brand-orange' : 'text-emerald-500']">
           <span>Start Les</span>

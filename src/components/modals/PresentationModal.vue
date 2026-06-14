@@ -56,8 +56,6 @@ const layoutComponentMap = {
     'theorem-proof': SlideTheoremProof
 }
 
-import katex from 'katex'
-import 'katex/dist/katex.min.css'
 import {
   PhX, PhCaretLeft, PhCaretRight,
   PhCheckCircle, PhPlayCircle, PhQuestion,
@@ -402,24 +400,9 @@ function resolveImageUrl(url) {
 }
 
 function k(text) {
-    if (!text) return ''
-    return String(text).replace(/\\\((.+?)\\\)/gs, (_, formula) => {
-        try {
-            return katex.renderToString(formula.trim(), { 
-                throwOnError: false, 
-                displayMode: false,
-                macros: {
-                    "\\R": "\\mathbb{R}",
-                    "\\N": "\\mathbb{N}",
-                    "\\Z": "\\mathbb{Z}",
-                    "\\Q": "\\mathbb{Q}",
-                    "\\limt": "\\lim_{#1 \\to #2}"
-                }
-            })
-        } catch {
-            return text
-        }
-    })
+    // Math is now globally rendered via useMathEngine during useLesson initialization.
+    // We just return the text as-is, ensuring it handles nulls gracefully.
+    return text || ''
 }
 
 function kAll(str) {

@@ -1,4 +1,26 @@
 import { computed } from 'vue'
+import { processMathText } from './useMathEngine.js'
+
+export function deepProcessMathText(obj) {
+    if (typeof obj === 'string') {
+        return processMathText(obj)
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(deepProcessMathText)
+    }
+    if (obj !== null && typeof obj === 'object') {
+        const newObj = {}
+        for (const [key, value] of Object.entries(obj)) {
+            if (typeof value === 'function') {
+                newObj[key] = value
+            } else {
+                newObj[key] = deepProcessMathText(value)
+            }
+        }
+        return newObj
+    }
+    return obj
+}
 
 function normalizeGoals(raw) {
     if (!Array.isArray(raw)) return []
@@ -38,16 +60,19 @@ function normalizeTicket(raw) {
 }
 
 export function normalizeLesson(lessonData) {
+    // Process math text globally
+    const processedData = deepProcessMathText(lessonData)
     return {
-        ...lessonData,
-        goals: normalizeGoals(lessonData.goals),
-        exitTicket: normalizeTicket(lessonData.exitTicket),
-        entryTicket: normalizeTicket(lessonData.entryTicket),
-        spotCheck: normalizeTicket(lessonData.spotCheck)
+        ...processedData,
+        goals: normalizeGoals(processedData.goals),
+        exitTicket: normalizeTicket(processedData.exitTicket),
+        entryTicket: normalizeTicket(processedData.entryTicket),
+        spotCheck: normalizeTicket(processedData.spotCheck)
     }
 }
 
 export function useLesson(rawLessonData) {
+    // normalizeLesson already processes everything, so we just call it
     const lessonData = normalizeLesson(rawLessonData)
 
     const lessonConfig = {

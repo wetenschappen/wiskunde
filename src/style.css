@@ -38,11 +38,7 @@
     }
 
     .card-interactive {
-        @apply hover:border-white hover:-translate-y-1 cursor-pointer;
-    }
-    
-    .card-interactive:hover {
-        box-shadow: 0 20px 40px rgba(234,88,12,0.15);
+        @apply hover:border-white cursor-pointer;
     }
 
     .card-locked {
