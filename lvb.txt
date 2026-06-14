@@ -1,0 +1,153 @@
+Verkorte lesvoorbereiding schoolstage/stage studieduuromvangvermindering/extra onderwijsbevoegdheid - lessenreeks
+
+FASE 1
+FASE 2
+FASE 3
+Instapstage
+Doorgroeistage 1
+Arbeidsmarktgerichte stage
+
+Doorgroeistage 2
+Keuzestage
+
+
+Schoolstage
+
+STAGEPLAATS
+KOHa Sint-Jozef
+NAAM STUDENT
+Albert Shalaj
+ONDERWIJSVAK
+Fysica
+MAIL STUDENT
+Albert.shalaj@student.odisee.be
+NAAM DOCENT 
+C. Balck
+DATUM
+7/05/2026
+NAAM VAKMENTOR
+C. Van Avermaet
+MAIL VAKMENTOR
+ca.vanavermaet@kohamme.be
+KLAS (AANTAL LLN)
+4NW
+LOKAAL
+
+ONDERWERP
+Schakelingen: Analyse van gemengde circuits
+
+REFLECTIE VOORAF
+Mijn werkpunten/aandachtspunten:
+Heldere en visuele bordinstructies geven. Activerende werkvormen integreren zodat leerlingen niet louter passief luisteren. Het tempo bewaken bij complexere rekensommen.
+Hoe ga ik deze werkpunten aanpakken?
+Ik maak gebruik van de interactieve 'Circuit Verkenner' web-applicatie om abstracte concepten (stroom- en spanningsverdeling) visueel en dynamisch voor te stellen. Ik laat leerlingen actief meedenken door stapsgewijs tussenstappen en eenheden op te vragen tijdens de opbouw van een oplossing op het bord.
+
+
+LEERPLAN
+VVKSO Fysica 4 D-finaliteit.
+Doel: Het analyseren en berekenen van stroom- en spanningsverdeling in serie-, parallel- en gemengde schakelingen (minimaal 3 weerstanden). Correct toepassen van de wetten van Kirchhoff en de wet van Ohm.
+
+BEGINSITUATIE
+Leerlingen kennen de basisgrootheden (stroom I, spanning U, weerstand R) en de wet van Ohm (U = I*R). Ze hebben in de voorgaande lessen al verkennende kennis opgedaan over de eigenschappen van pure serie- en parallelschakelingen. Het systematisch oplossen van gemengde schakelingen is nog een nieuwe vaardigheid.
+
+
+DOELSTELLINGEN
+1. Leerlingen kunnen de substitutieweerstand (R_tot) correct berekenen van een gemengde schakeling met drie weerstanden.
+2. Leerlingen kunnen de wetten van Kirchhoff en de wet van Ohm systematisch inzetten om de stroom (I) en spanning (U) voor elke deeltak te berekenen.
+3. Leerlingen letten consistent op de correcte notatie van eenheden (A, V, Ω) bij alle tussenstappen van hun berekeningen.
+
+
+MATERIAAL
+- Laptop met projectie (digibord) voor de 'Circuit Verkenner' applicatie.
+- Cursus/Handboek: ISAAC Fysica 4 (Module 5: Elektrische systemen deel 2).
+- Rekenmachine en notitiemateriaal.
+
+GERAADPLEEGDE WERKEN
+- Handboek ISAAC Fysica 4, Module 5: Elektrische systemen (deel 2).
+- Leerplan Fysica D-finaliteit.
+
+				
+LESFASE A: BEGIN (Instap en activering voorkennis) - 10 min
+
+DOELSTELLINGEN
+De reeds geziene eigenschappen van pure serie- en parallelschakelingen correct opdiepen en herformuleren.
+
+AANPAK
+We starten de les klassikaal waarbij ik de "Circuit Verkenner" projecteer op het bord. Eerst laat ik de pure serie- en parallelscènes zien om de voorkennis te activeren. Ik stel gerichte vragen aan de groep om te verifiëren hoe de stroom en spanning zich in deze uiterste situaties gedragen. Door via de applicatie de weerstandswaarden live te verschuiven, laat ik de theorie direct visueel tot leven komen ter verduidelijking. Vanuit die heldere basis introduceer ik vervolgens het concept van een 'gemengde schakeling' als een samenvoeging van de twee gekende structuren.
+
+
+LESFASE B: MIDDEN (Verwerking en inoefening) - 30 min
+
+DOELSTELLINGEN
+Stapsgewijs de stroom en spanning in elke tak van een gemengde schakeling berekenen met behoud van de rekensystematiek en correcte eenheden.
+
+AANPAK
+Samen overlopen we de eerste representatieve oefening rond een gemengde schakeling (bijvoorbeeld R1 in serie met R2||R3) op het bord. Ik demonstreer heel expliciet het stappenplan: eerst de parallelgroep vereenvoudigen en dan de hoofdschakeling als een serieschakeling oplossen, waarbij tussenstappen en eenheden consequent genoteerd worden. Hierna laat ik de leerlingen zelfstandig of in kleine groepjes gelijkaardige oefeningen uit het handboek maken. Ik loop continu rond in de klas om het werkproces te stroomlijnen, fouten in denkpistes snel op te sporen en individueel in te grijpen waar leerlingen dreigen vast te lopen op de wiskundige bewerkingen.
+
+
+LESFASE C: SLOT (Evaluatie en synthese) - 10 min
+
+DOELSTELLINGEN
+Kerninzichten samenvatten en het bereikte beheersingsniveau van de leerlingen evalueren ter afronding van de les.
+
+AANPAK
+We verzamelen klassikaal de aandacht opnieuw richting het bord om de meest uitdagende oefening van de reeks gezamenlijk na te bespreken. Ik vraag de leerlingen om de opeenvolgende stappen die we moeten ondernemen hardop te formuleren, om te kijken of de opgesplitste redeneerwijze verankerd is. Op het digibord vat ik de kernstappen voor een gemengde schakeling nog een laatste keer helder samen (als stappenplan). Ten slotte schets ik kort de koppeling met de volgende les over elektrische veiligheid en geef ik aan welke opdrachten thuis verder afgewerkt moeten worden.
+
+
+BORDSCHEMA
+
+Titel: Analyse van Gemengde Schakelingen
+
+[Digitaal] Projectie van "Circuit Verkenner"
+
+Stappenplan probleemoplossing:
+1. Bepaal de substitutieweerstand van de parallelgroep (Rp).
+   1/Rp = 1/R2 + 1/R3
+2. Bereken de totale weerstand van de hele kring (R_tot).
+   R_tot = R1 + Rp
+3. Gebruik de bronspanning (U_bron) om de hoofdstroom (I_tot) te berekenen.
+   I_tot = U_bron / R_tot
+4. Bepaal de spanningsverdeling in de serietak.
+   U_bron = U_R1 + U_parallelgroep
+5. Bereken de verdeelde deelstromen in de parallelgroep.
+   I2 = U_parallelgroep / R2
+
+Let op: Schrijf bij élke tussenstap de correcte eenheden (A, V, Ω)!
+
+
+	
+Campus SINT-NIKLAAS
+Lerarenopleiding Secundair Onderwijs 
+Hospitaalstraat 23 
+9100 Sint-Niklaas
+) 0032 (0)3 780 89 04
+
+
+Verkorte lesvoorbereiding schoolstage	2
+	
+
+LESFASE A: BEGIN (Herhaling en uitbreiding) - 10 min
+
+DOELSTELLINGEN
+De systematiek van de vorige les (substitutieweerstand en spanningsdeling) kort herhalen en toepassen op een uitdagender startprobleem.
+
+AANPAK
+We starten de les door direct een 'mysterie-schakeling' op de Circuit Verkenner te projecteren. Ik vraag de leerlingen om zonder berekening te voorspellen welke weerstand de hoogste spanning zal hebben als we de waarde van één weerstand dynamisch veranderen. Dit zet hen meteen in een actieve denkmodus en daagt hen uit om hun fysisch inzicht te gebruiken. Na de voorspelling voeren we een snelle controleberekening op het bord uit, waarbij we de regels van Kirchhoff van de vorige les herhalen. Dit vormt de natuurlijke brug naar de complexere oefeningen van vandaag.
+
+
+LESFASE B: MIDDEN (Zelfstandige verdieping en probleemoplossend denken) - 30 min
+
+DOELSTELLINGEN
+Zelfstandig complexere gemengde schakelingen kunnen analyseren en berekenen, met blijvende aandacht voor eenheden en nauwkeurige notatie.
+
+AANPAK
+De leerlingen gaan aan de slag met een reeks 'expert-oefeningen' waarbij de configuraties net iets uitdagender zijn dan die uit de eerste les. Ik moedig hen aan om bij twijfel hun resultaten zelfstandig te toetsen aan de simulator die op het bord openstaat, wat hun autonomie vergroot. Tijdens dit halfuur circuleer ik door de klas om individuele knelpunten weg te werken en leerlingen te stimuleren om hun tussenstappen nog explicieter te motiveren. Voor de snelle leerlingen is er een extra uitdaging waarbij ze zelf waarden moeten bepalen om aan een vooropgesteld stroom-doel te voldoen.
+
+
+LESFASE C: SLOT (Synthese en overgang naar veiligheid) - 10 min
+
+DOELSTELLINGEN
+Het volledige blok rond gemengde schakelingen afronden en de link leggen naar de gevaren van elektriciteit.
+
+AANPAK
+We sluiten de reeks oefeningen af door gezamenlijk de belangrijkste 'valkuilen' bij gemengde schakelingen te bespreken die we vandaag zijn tegengekomen. Ik gebruik de Circuit Verkenner om kort te tonen wat er gebeurt als een weerstand wegvalt of kortsluit, wat een directe brug slaat naar de volgende les over elektrische veiligheid en zekeringen. Ik peil naar het algemene gevoel van beheersing binnen de groep en beantwoord de laatste prangende vragen. De les eindigt met een heldere instructie over de zelfstandige verwerking ter voorbereiding op het nieuwe hoofdstuk.

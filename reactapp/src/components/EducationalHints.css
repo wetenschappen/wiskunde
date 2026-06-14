@@ -1,0 +1,297 @@
+/* Educational Hints */
+.hints-toggle {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  transition: background var(--transition-fast);
+}
+
+.hints-toggle:hover {
+  background: #fef3c7;
+}
+
+.hints-hint-text {
+  margin-top: var(--space-3);
+  margin-bottom: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  text-align: center;
+}
+
+.hints-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+}
+
+.hints-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+
+.hints-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hints-close {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.hints-close:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+/* Instructions Section */
+.instructions-section {
+  background: var(--color-primary-subtle);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.instructions-title {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.instructions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.instruction-item {
+  margin-bottom: var(--space-3);
+}
+
+.instruction-item:last-child {
+  margin-bottom: 0;
+}
+
+.instruction-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.instruction-icon {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 20px;
+  text-align: center;
+}
+
+.instruction-text {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.instruction-arrow {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.instruction-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.instruction-hint {
+  margin-top: var(--space-2);
+  margin-left: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  /* Fix text spacing issues - explicit normal values */
+  line-height: 1.6;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  white-space: normal;
+  /* Prevent text compression */
+  text-rendering: optimizeLegibility;
+}
+
+/* Steps */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.step-card {
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.step-card:hover {
+  border-color: var(--color-border-hover);
+}
+
+.step-card.active {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.step-badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.step-badge.series {
+  background: var(--color-success);
+  color: white;
+}
+
+.step-badge.parallel {
+  background: var(--color-primary);
+  color: white;
+}
+
+.step-number {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.step-content {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.step-content p {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.step-formula {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-base);
+}
+
+/* KaTeX spacing fixes */
+.step-formula .katex {
+  font-size: 1.1em;
+}
+
+.step-formula .katex-display {
+  margin: 0;
+  padding: 0;
+}
+
+.instruction-hint .katex {
+  font-size: 1em;
+  /* Add space around math blocks */
+  display: inline-block;
+  margin: 0 0.15em;
+  vertical-align: middle;
+}
+
+/* Ensure proper spacing between text and math in hints */
+.instruction-hint {
+  /* Allow natural text flow with proper spacing */
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Add spacing between consecutive KaTeX elements */
+.instruction-hint .katex + .katex {
+  margin-left: 0.25em;
+}
+
+/* Ensure plain text in hints has proper spacing */
+.instruction-hint {
+  /* Force normal text rendering */
+  font-feature-settings: normal;
+  -webkit-font-feature-settings: normal;
+}
+
+/* Fix for Safari/iOS text rendering */
+.instruction-hint * {
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
+/* Memory Aid */
+.memory-aid {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid #a7f3d0;
+}
+
+.memory-aid h4 {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.memory-aid ul {
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  line-height: 1.8;
+}
+
+/* Empty State */
+.empty-state {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+}

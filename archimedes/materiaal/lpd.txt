@@ -1,0 +1,25 @@
+II-NatS-d F7
+De leerlingen stellen een krachtenbalans op van een systeem om het effect van de resultante te bepalen.
+🡒
+II-WisS-d 13
+II-WisS-d 14
+I-NAT-a 21
+
+Archimedeskracht
+Wrijvingskracht met inbegrip van statische wrijvingscoëfficiënt
+Samenstellen en ontbinden van vectoren
+Wenk
+Je kan volgende concrete situaties behandelen:
+een voorwerp op een tafel (normaalkracht), een voorwerp hangt aan een kabel (spankracht);
+een voorwerp dat een eenparig rechtlijnige beweging uitvoert (zie leerplandoel over het verband tussen een eenparig rechtlijnige beweging en evenwicht van krachten bij inwerking van aandrijfkracht en wrijvingskracht);
+het effect van een resulterende kracht in een context met de wet van Archimedes: dalen/zinken, zweven, stijgen/drijven.
+Wenk
+Je kan de maximale statische wrijvingscoëfficiënt bepalen bij een lichaam op een variabele helling.
+Wenk
+Het is niet de bedoeling om complexe systemen te analyseren. Het oplossen van eenvoudige vraagstukken komt aan bod op grafische manier en via berekening. Je kan berekeningen beperken tot krachten die volgens dezelfde richting werken of loodrecht op elkaar staan.
+Wenk
+Om een krachtenbalans op te stellen moet je soms het lichaam vrijmaken. De invloed van de omgeving wordt vervangen door een kracht. Bij het benoemen van deze krachten kan je de notatie FAB gebruiken: de kracht van object A op object B.
+Wenk
+Je kan de wet van Archimedes theoretisch afleiden vanuit de hydrostatische druk of je kan deze experimenteel aantonen. Je kan de wet van Archimedes ook bij gassen beschouwen zoals bij een luchtballon.
+Wenk
+Als de resulterende kracht nul is kunnen we spreken van een translatie-evenwicht.

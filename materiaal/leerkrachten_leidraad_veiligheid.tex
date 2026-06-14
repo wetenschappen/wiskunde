@@ -1,0 +1,172 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[dutch]{babel}
+\usepackage[margin=2cm, top=1.8cm, bottom=2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{helvet}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+
+% --- FONT CONFIGURATION ---
+\renewcommand{\familydefault}{\sfdefault} % Clean sans-serif look
+
+% --- COLORS (Koha Colors) ---
+\definecolor{kohagreen}{HTML}{B2D235}
+\definecolor{kohagrey}{HTML}{414042}
+\definecolor{lightgrey}{HTML}{F3F4F6}
+\definecolor{accentred}{HTML}{DC2626}
+\definecolor{accentblue}{HTML}{2563EB}
+
+% --- SECTION STYLING ---
+\titleformat{\section}
+  {\normalfont\large\bfseries\color{kohagrey}}
+  {\thesection.}
+  {0.5em}
+  {}
+[\vspace{-0.2cm}\rule{\textwidth}{1pt}]
+
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries\color{kohagrey}}
+  {\thesubsection}
+  {0.5em}
+  {}
+
+\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus .2ex}{1.5ex plus 1ex minus .2ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus 0.8ex minus .2ex}{1.2ex plus 0.5ex minus .2ex}
+
+\begin{document}
+
+% --- HEADER ---
+\noindent
+\begin{minipage}[b]{0.3\textwidth}
+    \begin{tikzpicture}[yscale=0.7, xscale=0.7]
+        % Koha Logo
+        \node[kohagrey, font=\sffamily\bfseries\Huge] at (0.8,0.4) {Koha};
+        \fill[kohagreen] (0.6,-0.4) -- (2.3,-0.4) -- (2.3,-0.8) -- (0.8,-0.8) -- cycle;
+        \node[white, font=\sffamily\bfseries\tiny] at (1.6,-0.6) {Sint-Jozef};
+    \end{tikzpicture}
+\end{minipage}
+\begin{minipage}[b]{0.45\textwidth}
+    \centering
+    {\LARGE \textbf{Didactische Leidraad}} \\[0.15cm]
+    {\small \textbf{Elektriciteit \& Veiligheid} --- Spiekbrief Leerkracht}
+\end{minipage}
+\begin{minipage}[b]{0.25\textwidth}
+    \flushright
+    \small
+    \textbf{Vak:} Fysica / Techniek \\
+    \textbf{Doelgroep:} 2e graad SO \\
+    \textbf{Versie:} Mei 2026
+\end{minipage}
+
+\vspace{0.3cm}
+\hrule height 1.5pt
+\vspace{0.5cm}
+
+\noindent Dit document dient als leidraad en spiekbrief voor de leerkracht bij het presenteren van de interactieve les \textbf{Circuit Verkenner --- Elektriciteit \& Veiligheid}. Het bevat achtergrondfysica, getallenvoorbeelden, didactische tips en leuke weetjes om tijdens de les te delen.
+
+% ==========================================
+\section{Lichaamsweerstand \& Gevaarlijke Stroomsterktes (Fase 1)}
+% ==========================================
+In deze fase staat de \textbf{Wet van Ohm ($I = \frac{U}{R}$)} centraal om aan te tonen wanneer een stroom doorgang vindt in het menselijk lichaam.
+
+\subsection{1. De weerstand van de huid ($R$)}
+De elektrische weerstand van het menselijk lichaam is sterk variabel en hangt bijna volledig af van de toestand van de \textbf{opperhuid}:
+\begin{itemize}
+    \item \textbf{Natte / beschadigde huid ($R \approx 1\text{ k}\Omega$):} Water (vooral met zouten/zweet) geleidt uitstekend. De beschermende werking van de opperhuid valt nagenoeg weg.
+    \item \textbf{Droge huid ($R \approx 50\text{ k}\Omega$ tot $100\text{ k}\Omega$):} Biedt een behoorlijke barrière.
+    \item \textbf{Zeer droge huid / eelt ($R \approx 1500\text{ k}\Omega$ of $1,5\text{ M}\Omega$):} Biedt extreem hoge weerstand.
+\end{itemize}
+
+\subsection{2. Effecten van stroomsterkte ($I$) op het lichaam}
+Niet de spanning ($U$), maar de \textbf{stroomsterkte ($I$)} door het lichaam bepaalt de schade:
+\begin{itemize}
+    \item \textbf{Vanaf 0,5 mA:} De waarnemingsdrempel. Men voelt een lichte kriebel of tinteling.
+    \item \textbf{Vanaf 10 mA:} De \textbf{loslaatgrens} (tetanisatie). Spieren trekken onwillekeurig samen. Als je een stroomdraad vasthebt, verkrampen je vingers waardoor je de draad \textit{niet meer kunt loslaten}.
+    \item \textbf{Vanaf 30 mA:} Ademhalingsproblemen en verstikking door verkramping van de ademhalingsspieren (bij langdurige blootstelling).
+    \item \textbf{Vanaf 50 mA:} \textbf{Hartkamervibratie} (fibrillatie) binnen 1 seconde. Het hart klopt chaotisch en pompt geen bloed meer rond. Dit is binnen enkele minuten dodelijk zonder defibrillator (AED).
+\end{itemize}
+
+\subsection{3. Netspanning vs. Veiligheidsspanning}
+\begin{itemize}
+    \item \textbf{Netspanning (230 V wisselspanning):} 
+    Bij natte handen ($R = 1\text{ k}\Omega$) levert dit: $I = \frac{230\text{ V}}{1000\ \Omega} = 230\text{ mA}$ ($4,6 \times$ de dodelijke grens). Zelfs bij droge handen ($R = 50\text{ k}\Omega$) loopt er nog $4,6\text{ mA}$, wat duidelijk voelbaar en pijnlijk is.
+    \item \textbf{Veiligheidsspanning (9 V DC / multimeter):} 
+    Bij natte handen ($1\text{ k}\Omega$) levert dit: $I = \frac{9\text{ V}}{1000\ \Omega} = 9\text{ mA}$ (onder de loslaatgrens, volkomen veilig). 
+\end{itemize}
+
+\noindent\colorbox{lightgrey}{
+\begin{minipage}{0.96\textwidth}
+    \small \textbf{💡 Leuk Weetje (De Action Multimeter Meting):} 
+    Als je met een goedkope multimeter (zoals die van de Action, werkend op een 9V-blokbatterij) de weerstand tussen je twee handen meet bij een zeer droge huid, meet je al snel zo'n \textbf{1500 k$\Omega$} ($1,5\text{ M}\Omega$). 
+    De stroomsterkte die de multimeter door je lichaam stuurt om de weerstand te bepalen is dan verwaarloosbaar klein:
+    \[ I = \frac{9\text{ V}}{1.500.000\ \Omega} = 0,000006\text{ A} = 0,006\text{ mA} \]
+    Dit is $80\times$ kleiner dan de waarnemingsdrempel van 0,5 mA. Je voelt hier dus absoluut niets van!
+\end{minipage}
+}
+
+\newpage
+
+% ==========================================
+\section{Gevaren: Kortsluiting vs. Overbelasting (Fase 2)}
+% ==========================================
+Het is essentieel dat leerlingen het verschil begrijpen in oorzaak en gevolg tussen deze twee gevaren.
+
+\begin{table}[h]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|p{3.5cm}|X|X|}
+\hline
+\rowcolor{kohagrey}
+\textbf{\textcolor{white}{Aspect}} & \textbf{\textcolor{white}{Kortsluiting}} & \textbf{\textcolor{white}{Overbelasting}} \\ \hline
+\textbf{Oorzaak} & Rechtstreeks contact tussen fasedraad en nuldraad (door defect, water of beschadiging) \textbf{zonder verbruiker}. & Te veel zware apparaten (friteuse, oven, droogkast) \textbf{parallel} aangesloten op één groep/kring. \\ \hline
+\textbf{Weerstandsverloop} & De weerstand $R$ zakt plotseling naar nagenoeg nul: $R \approx 0\ \Omega$. & De vervangingsweerstand van de parallelle kring daalt geleidelijk bij elk aangesloten apparaat. \\ \hline
+\textbf{Stroomverloop} & De stroomsterkte explodeert onmiddellijk tot een gigantische waarde (honderden/duizenden Ampère). & De stroomsterkte door de toevoerkabels stijgt cumulatief ($I_{tot} = I_1 + I_2 + ...$) en overschrijdt de kabelcapaciteit. \\ \hline
+\textbf{Gevaar / Gevolg} & \textbf{Direct brandgevaar} door vonken, een vlamboog (vluchtige ontlading) en directe smelting. & \textbf{Sluipend brandgevaar} door geleidelijke opwarming van de draden in de muur (\textbf{Joule-effect}). \\ \hline
+\end{tabularx}
+\end{table}
+
+\noindent\colorbox{lightgrey}{
+\begin{minipage}{0.96\textwidth}
+    \small \textbf{🔥 Het Joule-effect uitgelegd:} 
+    Als er stroom door een geleider vloeit, botsen de elektronen tegen de metaalionen van het koper. Dit wekt warmte op. Het elektrisch vermogen dat in warmte wordt omgezet is gelijk aan:
+    \[ P_W = I^2 \cdot R \]
+    Omdat de stroomsterkte ($I$) in het kwadraat staat, zorgt een verdubbeling van de stroomsterkte voor een \textbf{verviervoudiging} van de warmteontwikkeling! Dit verklaart waarom overbelasting snel leidt tot het smelten van PVC-isolatie rondom kabels.
+\end{minipage}
+}
+
+% ==========================================
+\section{De 4 Beschermers van de Huisinstallatie (Fase 3)}
+% ==========================================
+De differentieel en de zekering worden vaak door elkaar gehaald. Gebruik deze definities als spiekbrief:
+
+\subsection{1. Elektrische Isolatie (De passieve barrière)}
+\begin{itemize}
+    \item \textbf{Functie:} Fysieke scheiding tussen stroomvoerende delen en de buitenwereld.
+    \item \textbf{Didactisch detail:} Koperdraden zijn omhuld met PVC. Klasse II-apparaten (zoals haardrogers) hebben dubbele isolatie (herkenbaar aan het dubbele vierkant-symbool $\square$) en hebben daarom geen aarding nodig.
+\end{itemize}
+
+\subsection{2. Aarding (De veiligheidsafvoer)}
+\begin{itemize}
+    \item \textbf{Functie:} Een groengele koperdraad die de metalen buitenkant van apparaten (klasse I, bv. wasmachine) verbindt met een metalen staaf (aardpen) in de grond.
+    \item \textbf{Werking:} Als een fasedraad loskomt en de metalen behuizing raakt, vloeit de stroom via de aarding naar de grond in plaats van door de persoon die het toestel aanraakt.
+\end{itemize}
+
+\subsection{3. Verliesstroomschakelaar / Differentieel (Beschermt de MENS)}
+\begin{itemize}
+    \item \textbf{Functie:} Schakelt de stroom direct uit bij een stroomlek (verliesstroom naar de aarding of een mens).
+    \item \textbf{Werking:} Meet continu het verschil tussen heengaande stroom ($I_{fase}$) en terugkerende stroom ($I_{nul}$). Als er meer dan \textbf{30 mA} (of 300 mA voor droge kringen) weglekt, slaat de schakelaar binnen milliseconden af.
+    \item \textbf{Opmerking:} Werkt nauw samen met de aarding. Dankzij de aarding lekt de stroom direct weg naar de grond zodra het defect optreedt, waardoor de differentieel \textit{al afslaat voordat} iemand het apparaat aanraakt.
+\end{itemize}
+
+\subsection{4. Zekering / Automaat (Beschermt de INSTALLATIE)}
+\begin{itemize}
+    \item \textbf{Functie:} Schakelt uit bij een te hoge stroomsterkte (overbelasting of kortsluiting) om brand te voorkomen.
+    \item \textbf{Werking:} Er gaat \textbf{slechts één kabel (de fasedraad)} door de zekering. Bij een klassieke zekering smelt een dun draadje (smeltveiligheid). Bij een moderne installatieautomaat reageert een elektromagneet (direct bij kortsluiting) of een bimetal-strip (vertraagd bij overbelasting) om de kring te onderbreken.
+\end{itemize}
+
+\end{document}

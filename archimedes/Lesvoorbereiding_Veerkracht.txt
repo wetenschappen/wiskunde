@@ -1,0 +1,198 @@
+Verkorte lesvoorbereiding keuzestage - lessenreeks
+
+--------------------------------------------------------------------------------
+ALGEMENE INFORMATIE
+--------------------------------------------------------------------------------
+NAAM STUDENT:         Albert Shalaj
+ONDERWIJSVAK:         Fysica / Natuurwetenschappen
+MAIL STUDENT:         albert.shalaj@student.odisee.be
+DATUM:                [Datum invullen]
+KLAS:                 3HW
+LOKAAL:               Klaslokaal
+ONDERWERP:            De Veerkracht: Van aanvoelen tot formule (Wet van Hooke)
+
+REFLECTIE VOORAF
+----------------
+Mijn werkpunten:      Meer in het boek werken en stapsgewijze samenvattingen aanbieden zodat de leerlingen
+                      actief meeschrijven en de leerstof structureren.
+Aanpak:               De slides zijn opgebouwd als een geleid onderwijsleergesprek (OLG): eerst voelen en
+                      observeren (tastbare veren, dynamometers), dan simulatie, dan formule afleiden via de
+                      tabel. De samenvattingsstappen verschijnen letterlijk op het scherm zodat leerlingen
+                      weten wat ze woordelijk moeten noteren. Oefeningen worden klassikaal gedaan met
+                      stap-voor-stap antwoord-onthulling. De formule wordt niet opgelegd maar samen
+                      opgebouwd vanuit het recht-evenredig verband dat ze zelf al kennen (labo zwaartekracht).
+
+LEERPLAN DOELSTELLINGEN (LPD)
+-----------------------------
+Fysica:
+- Ik kan uitleggen wat de veerkracht (Fv) is en wie deze uitoefent op wat.
+- Ik ken het aangrijpingspunt van de veerkracht en kan deze correct intekenen.
+- Ik begrijp wat de veerconstante k uitdrukt en ken de SI-eenheid ervan (N/m).
+- Ik kan de Wet van Hooke (Fv = k · Δℓ) toepassen om onbekende grootheden te berekenen.
+- Ik kan in een grafiek (Fv t.o.v. Δℓ) de helling aflezen en koppelen aan de veerconstante.
+
+BEGINSITUATIE
+-------------
+De leerlingen zijn vertrouwd met krachten als vectoren (aangrijpingspunt, richting, zin, grootte).
+Ze kennen de zwaartekracht (Fz = m · g) en de normaalkracht uit vorige lessen, en hebben eerder
+het labo "zwaartekracht" uitgevoerd waarbij ze een recht-evenredig verband al herkend en beschreven
+hebben. Het begrip "veerconstante" is nieuw; het concept stugheid hebben ze al intuïtief ervaren.
+
+MATERIAAL
+---------
+- Per leerling: Thema 5: Krachten (Boek p. 217-225), werkboek, schrijfgerief, rekenmachine.
+- Klasmateriaal: 2 sets van 2 kleine veren met verschillende veerconstante (uitdelen rondgang),
+  2 dynamometers met dezelfde massa.
+- Digitaal: Laptop met de interactieve module (Krachtenlab + Veerkrachtsimulatie), digibord.
+
+GERAADPLEEGDE WERKEN
+--------------------
+- Handboek Fysica 3HW, Thema 5: Krachten (p. 217-225)
+- Phet Interactive Simulations: "Masses and Springs" (for spring force concepts)
+
+--------------------------------------------------------------------------------
+LESVERLOOP (80 min: 1 lesuur + 1 half lesuur)
+--------------------------------------------------------------------------------
+
+FASE 1: Opstart & Herhaling Normaalkracht (10 min)
+---------------------------------------------------
+DOELSTELLINGEN:
+- Leerlingen frissen het concept normaalkracht op als brug naar de veerkracht.
+- Leerlingen activeren voorkennis via een korte quiz (fill-in-the-blanks).
+
+AANPAK:
+- LKR (Doceren & Instrueren):
+  * Projecteert de tuchtsslide (Welkom & Opstart): leerlingen komen in stilte binnen, jassen uit,
+    cursus op de bank.
+  * Toont de flashback-slide: "Wie kan nog 2 dingen vertellen over de normaalkracht?" —
+    richt zich op (1) loodrecht op het vlak en (2) wie oefent uit op wat.
+  * Onthult het correcte antwoord en plaatst het in de context van de nieuwe les:
+    "Vandaag ontdekken we een nieuwe soort steunkracht: de veerkracht."
+  * Laat leerlingen die vroeg klaar zijn zelfstandig de Krachtenlab simulator verkennen
+    (fill-in-the-blanks activiteit: krachten benoemen).
+- LLN (Activeren & Participeren):
+  * Beantwoorden mondeling de flashback-vraag.
+  * Werken eventueel zelfstandig de digitale quiz af.
+- WERKVORM: Klassikaal onderwijsleergesprek / begeleid zelfstandig werken.
+
+FASE 2: OLG — Observatie & Definitie Veerkracht (25 min)
+---------------------------------------------------------
+DOELSTELLINGEN:
+- Leerlingen ervaren intuïtief dat veren een terugduwende kracht uitoefenen en dat de stijfheid
+  verschilt per veer (veerconstante).
+- Leerlingen kennen de definitie van veerkracht, het aangrijpingspunt en de richting.
+
+AANPAK:
+- LKR (Instrueren, Prikkelen & OLG begeleiden):
+  * Deelt 2 sets van 2 kleine veren uit (rondgang). Laat leerlingen 1 minuut voelen: "Trek ze uit.
+    Zijn ze identiek?" — Onthult: nee, de ene is stugger.
+  * Pakt 2 dynamometers. Hangt dezelfde massa aan beide. Vraagt: "Vergelijk de uitrekking —
+    wat merk je?" — Onthult: zelfde kracht, andere uitrekking. Stijfheid van de veer bepaalt dit.
+  * Opent het Krachtenlab (Scenario 4: massa hangt stil aan een veer). Doorloopt dit klassikaal:
+    tekent Fv en Fz in, bespreekt aangrijpingspunt (massamiddelpunt), richting (omhoog), zin.
+  * Projecteert de "Schrijf mee"-slide (3 stappen, 1 per toetsslag):
+      1. Definitie veerkracht (Fv): kracht DOOR veer OP lichaam.
+      2. Fv is even groot maar tegengesteld aan de inspannende kracht.
+      3. Aangrijpingspunt = massamiddelpunt van het lichaam.
+  * Doet klassikaal oefening 1 (p. 217) — alleen dynamometer-deel. Onthult antwoorden
+    stap per stap (deelvraag a, b, c, d, kruisvraag).
+- LLN (Luisteren, Noteren & Participeren):
+  * Schrijven de 3 samenvatting-punten letterlijk over in hun cursus.
+  * Beantwoorden mondeling de vragen bij oefening 1.
+- WERKVORM: Klassikaal OLG / directe instructie.
+
+FASE 3: OLG — Simulatie & Formuleafleiding (20 min)
+----------------------------------------------------
+DOELSTELLINGEN:
+- Leerlingen leiden samen met de leerkracht de formule Fv = k · Δℓ af vanuit een tabel.
+- Leerlingen kennen de veerconstante k, haar eenheid (N/m) en haar grafische betekenis.
+
+AANPAK:
+- LKR (OLG begeleiden & Formuleren):
+  * Opent de Veerkrachtsimulatie, Tab 1: hangt lichtere en zwaardere massa. Vraag:
+    "Wat merk je aan de uitrekking?" — Onthult: recht evenredig verband (ze kennen dit al).
+  * Vraag evenwicht: "Welke twee krachten heffen elkaar op?" — Onthult: Fv = Fz bij rust.
+  * Opent Tab 2 (Tabel). Laat leerlingen zelf Fv / Δℓ berekenen (dit deden ze al bij labo Fz = m·g).
+    Vraag: "Wat stel je vast?" — Onthult: constant! → veerconstante k. Eenheid: N/m.
+  * Projecteert de "Schrijf mee"-slide (Wet van Hooke, 3 stappen):
+      1. Veerconstante k: maat voor sterkte/stugheid. Eenheid N/m.
+      2. Formule: Fv = k · Δℓ.
+      3. Steilere grafiek = grotere k.
+  * Doet klassikaal oefening 3 (p. 219): tabel eerst laten invullen, dan onthullen, dan deelvragen
+    a/b/c+d één voor één. Leerlingen berekenen mee op hun rekenmachine.
+  * Doet klassikaal oefening 7 (p. 222): stap voor stap (Gegeven → Gevraagd → Formule →
+    Invullen → Antwoord). Nadruk op: eenheden cm/cm vallen weg, antwoord in N.
+  * Toont eventueel Tab 3 (slider k): "Stel k laag in — wat zie je?" — Onthult: grotere uitrekking,
+    minder steile grafiek. Visueel erg krachtig.
+  * Tab 4 (helling aflezen): optioneel, enkel als er tijd is. Koppeling aan oefening 15.
+- LLN (Meerekenen, Noteren & Participeren):
+  * Schrijven de formule en definitie van k over.
+  * Rekenen mee bij oefening 3 en 7.
+- WERKVORM: Klassikaal OLG / geleide ontdekking.
+
+FASE 4: Zelfstandig Rekenwerk (30 min)
+---------------------------------------
+DOELSTELLINGEN:
+- Leerlingen passen de Wet van Hooke zelfstandig toe op gevarieerde opgaven.
+- Leerlingen leren de formule omvormen (k vinden, Δℓ vinden, Fv vinden).
+
+AANPAK:
+- LKR (Coachen & Differentiëren):
+  * Vraagt leerlingen werkboek open te slaan op p. 222.
+  * Wijst op de "Aan de slag!"-slide: oefening 5 als start, daarna 10, 12 en 13.
+  * Loopt rond, geeft gerichte bijsturing bij rekenfouten (eenheden, omvormen formule).
+  * Leerlingen die vastlopen mogen de werkboek-modal openen (formulehint: Fv = k · Δℓ).
+  * Bij vroege klaarheid: oefening 15 (helling aflezen uit grafiek) of verdieping via simulatie.
+- LLN (Zelfstandig oefenen):
+  * Maken oefeningen 5, 10, 12, 13 in stilte.
+  * Leerlingen die klaar zijn, gaan naar oefening 15 of de simulatie (Tab 4).
+- WERKVORM: Stille verwerking / individueel maatwerk.
+
+FASE 5: Afronding & Exit Ticket (5 min)
+-----------------------------------------
+DOELSTELLINGEN:
+- Lesdoelen evalueren: definitie Fv, toepassing Fv = k · Δℓ.
+
+AANPAK:
+- LKR (Afsluiten):
+  * Stopt leerlingen: "Leg je pen neer. Weet jij nog wat veerkracht is? En wat k uitdrukt?"
+  * Start het Exit Ticket (digitaal, 2 vragen):
+      1. MC: Wat is het aangrijpingspunt van Fv?
+      2. MC: k = 20 N/cm, Δℓ = 3 cm → Fv = ? (= 60 N)
+- LLN (Verwerken & Opruimen):
+  * Maken het exit ticket individueel en in stilte via de applicatie.
+  * Ruimen werkplek op.
+- WERKVORM: Zelfreflectie / Evaluatie.
+
+--------------------------------------------------------------------------------
+BORDSCHEMA
+--------------------------------------------------------------------------------
+[Titel]   De Veerkracht (Wet van Hooke)
+
+[Definitie]
+- De veerkracht (Fv) = kracht uitgeoefend DOOR de veer OP het lichaam dat de veer vervormt.
+- Fv is even groot maar tegengesteld aan de kracht die op de veer wordt uitgeoefend.
+- Aangrijpingspunt Fv = massamiddelpunt van het lichaam.
+
+[Tekening] (massa hangend aan veer)
+  - Fv : Vanuit massamiddelpunt → Omhoog (uitgeoefend door veer op massa)
+  - Fz : Vanuit massamiddelpunt → Omlaag (door aarde op massa)
+  - Bij rust: Fv = Fz
+
+[Tabel]    Fv (N) | Δℓ (m) | Fv / Δℓ (N/m)
+           1,0    | 0,10   | 10  → constant = k (veerconstante)
+           2,0    | 0,20   | 10
+           3,0    | 0,30   | 10
+
+[Formule]  Fv = k · Δℓ    (Wet van Hooke)
+           k = Fv / Δℓ    Eenheid: N/m
+
+[Grafiek]  Fv (N) t.o.v. Δℓ (m) = rechte door de oorsprong
+           Steilere helling = grotere k = stugger/sterker veer
+
+[Timing]
+1. Opstart & Herhaling Normaalkracht        (10')
+2. OLG Observatie & Definitie Veerkracht    (25')
+3. OLG Simulatie & Formuleafleiding         (20')
+4. Zelfstandig Rekenwerk                    (30')
+5. Exit Ticket                              (5')

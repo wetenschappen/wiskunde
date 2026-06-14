@@ -1,0 +1,170 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[dutch]{babel}
+\usepackage[margin=2cm, top=1.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{helvet}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage[european]{circuitikz}
+
+% --- FONT CONFIGURATION ---
+\renewcommand{\familydefault}{\sfdefault} % Clean sans-serif look
+
+% --- COLORS ---
+\definecolor{kohagreen}{HTML}{B2D235}
+\definecolor{kohagrey}{HTML}{414042}
+
+% --- SECTION STYLING ---
+\titleformat{\section}
+  {\normalfont\large\bfseries}
+  {\thesection.}
+  {0.5em}
+  {}
+[\vspace{-0.3cm}\rule{\textwidth}{0.4pt}]
+
+\titleformat{name=\section,numberless}
+  {\normalfont\large\bfseries}
+  {}
+  {0em}
+  {}
+[\vspace{-0.3cm}\rule{\textwidth}{0.4pt}]
+
+\titlespacing*{\section}{0pt}{1.5ex plus 1ex minus .2ex}{1.5ex plus 1ex minus .2ex}
+
+\begin{document}
+
+% --- HEADER ---
+\noindent
+\begin{minipage}[b]{0.35\textwidth}
+    \begin{tikzpicture}[yscale=0.8, xscale=0.8]
+        % Simplified Koha Logo
+        \node[kohagrey, font=\sffamily\bfseries\Huge] at (0.8,0.4) {Koha};
+        
+        % Bottom bar badge
+        \fill[kohagreen] (0.6,-0.4) -- (2.3,-0.4) -- (2.3,-0.8) -- (0.8,-0.8) -- cycle;
+        \node[white, font=\sffamily\bfseries\tiny] at (1.6,-0.6) {Sint-Jozef};
+    \end{tikzpicture}
+\end{minipage}
+\begin{minipage}[b]{0.4\textwidth}
+    \centering
+    {\LARGE \textbf{Taak Fysica}} \\[0.2cm]
+    {\small \textit{Elektrische Schakelingen}}
+\end{minipage}
+\begin{minipage}[b]{0.3\textwidth}
+    \flushright
+    \small
+    \textbf{Naam:} \makebox[3cm][r]{\dotfill} \\
+    \textbf{Klas:} \makebox[3cm][r]{\dotfill} \\
+    \textbf{Datum:} \makebox[3cm][r]{\dotfill}
+\end{minipage}
+
+\vspace{0.4cm}
+\hrule height 1pt
+\vspace{0.8cm}
+
+\noindent\fbox{
+    \begin{minipage}{\textwidth}
+    \vspace{0.2cm}
+    \textbf{Tip: Oplossingsstrategie voor complexe schakelingen}
+    \begin{enumerate}[leftmargin=*]
+        \item \textbf{Hertekenen:} Herteken de schakeling eventueel op je kladpapier zodat het eenvoudiger is te volgen hoe de componenten precies geschakeld staan.
+        \item \textbf{Symbolen noteren:} Noteer bij elke component de symbolen $U$, $I$ en $R$. Vul de bekende waarden uit de opgave onmiddellijk in op je schema.
+        \item \textbf{De '2 van de 3' regel:} Als van een component twee van de drie grootheden gekend zijn, bereken je de derde via de wet van Ohm ($U = I \cdot R$).
+        \item \textbf{Vereenvoudigen:} Vervang stukken die zuiver in serie of in parallel staan door hun substitutieweerstand. Herhaal dit tot je de totale weerstand vindt.
+        \item \textbf{Spanning en stroom verdelen:} 
+        \begin{itemize}
+            \item \textbf{Serie:} de stroom $I$ is overal gelijk. De spanning $U$ verdeelt zich: \textit{de grootste spanning staat over de grootste weerstand.}
+            \item \textbf{Parallel:} de spanning $U$ is overal gelijk. De stroom $I$ verdeelt zich over de takken: \textit{de grootste stroom gaat door de tak met de laagste weerstand.}
+        \end{itemize}
+    \end{enumerate}
+    \vspace{0.2cm}
+    \end{minipage}
+}
+
+\vspace{0.8cm}
+
+% --- Oefening 1 ---
+\section*{Oefening 1}
+Een stroomkring bevat een spanningsbron van $12\text{ V}$. De schakeling bestaat uit een weerstand $R_1 = 20\,\Omega$ in serie met een parallelblok van $R_2 = 30\,\Omega$ en $R_3 = 60\,\Omega$.
+
+\begin{enumerate}[label=\alph*)]
+    \item Teken het elektrisch schema en benoem alle componenten en de bronspanning.
+    \vspace{8cm}
+    \item Bereken de substitutieweerstand van de volledige schakeling.
+    \vspace{6cm}
+    \item Bereken de totale stroomsterkte die de bron levert.
+    \vfill
+\end{enumerate}
+
+\newpage
+% --- Oefening 2 ---
+\section*{Oefening 2}
+In de onderstaande schakeling levert de bron een spanning $U = 24\text{ V}$. De weerstandswaarden zijn: $R_1 = 10\,\Omega$, $R_2 = 30\,\Omega$ en $R_3 = 20\,\Omega$.
+
+\vspace{0.5cm}
+\begin{center}
+    \begin{circuitikz}[scale=1.4]
+        \draw (0,0) to[battery1, l=$U{=}24\text{ V}$] (0,3)
+              to[short] (2,3)
+              to[R, l=$R_1$, a=$10\,\Omega$] (4,3)
+              to[R, l=$R_2$, a=$30\,\Omega$] (6,3)
+              to[short] (8,3)
+              to[short] (8,0)
+              to[short] (0,0);
+        \draw (2,3) to[short, *-] (2,1.5)
+              to[R, l=$R_3$, a=$20\,\Omega$] (6,1.5)
+              to[short, -*] (8,1.5);
+    \end{circuitikz}
+\end{center}
+\vspace{0.5cm}
+
+\begin{enumerate}[label=\alph*)]
+    \item Bepaal de stroomsterkte door weerstand $R_3$.
+    \vspace{9.5cm}
+    \item Bereken de spanning over weerstand $R_1$ en de spanning over weerstand $R_2$.
+    \vfill
+\end{enumerate}
+
+\newpage
+% --- Oefening 3 ---
+\section*{Oefening 3}
+Gegeven is de onderstaande gemengde schakeling met $R_1 = 20\,\Omega$, $R_2 = 30\,\Omega$, $R_3 = 8\,\Omega$, $R_4 = 60\,\Omega$ en een bronspanning $U = 60\text{ V}$.
+
+\vspace{0.3cm}
+\begin{center}
+    \begin{circuitikz}[scale=1.1]
+        \draw (0,0) to[battery1, l=$U{=}60\text{ V}$] (0,4)
+              to[short] (1,4)
+              to[short, *-] (1,5)
+              to[R, l=$R_1$, a=$20\,\Omega$] (4,5)
+              to[short, -*] (4,4)
+              to[R, l=$R_3$, a=$8\,\Omega$] (7,4)
+              to[short] (9,4)
+              to[short] (9,0)
+              to[short] (0,0);
+        \draw (1,4) to[short] (1,3)
+              to[R, l=$R_2$, a=$30\,\Omega$] (4,3)
+              to[short] (4,4);
+        \draw (1,4) to[short, *-] (1,1.5)
+              to[R, l=$R_4$, a=$60\,\Omega$] (7,1.5)
+              to[short, -*] (9,1.5);
+    \end{circuitikz}
+\end{center}
+\vspace{0.3cm}
+
+\begin{enumerate}[label=\alph*)]
+    \item Bereken de totale substitutieweerstand.
+    \vspace{4.5cm}
+    \item Bepaal de totale stroomsterkte die de bron verlaat.
+    \vspace{4.5cm}
+    \item Bereken de stroomsterkte door $R_4$.
+    \vspace{4.5cm}
+    \item Bereken de stroomsterkte door $R_1$ en door $R_2$.
+    \vfill
+\end{enumerate}
+
+\end{document}

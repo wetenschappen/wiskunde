@@ -1,0 +1,1 @@
+Kan het bestand niet converteren: de bestandsgrootte van nando3\N3_D5_M7_CS_BB.pdf (24.76MB) overschrijdt de maximale limiet van 20MB waardoor ik het niet kan inlezen.

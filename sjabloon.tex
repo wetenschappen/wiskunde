@@ -1,0 +1,178 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[dutch]{babel}
+\usepackage[margin=2cm, top=1.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{helvet}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+
+% --- FONT CONFIGURATION ---
+\renewcommand{\familydefault}{\sfdefault} % Clean sans-serif look
+
+% --- COLORS ---
+\definecolor{kohagreen}{HTML}{B2D235}
+\definecolor{kohagrey}{HTML}{414042}
+
+% --- SECTION STYLING ---
+% Custom section style: Numbered title with a horizontal rule below (no short underline)
+\titleformat{\section}
+  {\normalfont\large\bfseries}
+  {\thesection.}
+  {0.5em}
+  {}
+[\vspace{-0.3cm}\rule{\textwidth}{0.4pt}]
+
+\titlespacing*{\section}{0pt}{1.5ex plus 1ex minus .2ex}{1.5ex plus 1ex minus .2ex}
+
+\begin{document}
+
+% --- HEADER ---
+\noindent
+\begin{minipage}[b]{0.35\textwidth}
+    \begin{tikzpicture}[yscale=0.8, xscale=0.8]
+        % Simplified Koha Logo
+        \node[kohagrey, font=\sffamily\bfseries\Huge] at (0.8,0.4) {Koha};
+        
+        % Bottom bar badge
+        \fill[kohagreen] (0.6,-0.4) -- (2.3,-0.4) -- (2.3,-0.8) -- (0.8,-0.8) -- cycle;
+        \node[white, font=\sffamily\bfseries\tiny] at (1.6,-0.6) {Sint-Jozef};
+    \end{tikzpicture}
+\end{minipage}
+\begin{minipage}[b]{0.4\textwidth}
+    \centering
+    {\LARGE \textbf{Laboverslag}} \\[0.2cm]
+    {\small \textit{Introductie tot reactiesoorten}}
+\end{minipage}
+\begin{minipage}[b]{0.3\textwidth}
+    \flushright
+    \small
+    \textbf{Naam:} \makebox[3cm][r]{\dotfill} \\
+    \textbf{Klas:} \makebox[3cm][r]{\dotfill} \\
+    \textbf{Datum:} \\
+    24 april 2026
+\end{minipage}
+
+\vspace{0.4cm}
+\hrule height 1pt
+\vspace{0.8cm}
+
+% --- 1. PROBLEEMSTELLING ---
+\section{Probleemstelling}
+We hebben in het vorige thema gezien hoe stoffen oplossen in water. Nu gaan we onderzoeken wat er gebeurt als we verschillende stoffen met elkaar mengen. Soms reageren stoffen met elkaar en ontstaan er nieuwe stoffen. Dit noemen we een chemische reactie.
+
+% --- 2. ONDERZOEKSVRAAG ---
+\section{Onderzoeksvraag}
+Aan welke zintuiglijk waarneembare verschijnselen kunnen we zien dat er een chemische reactie (neerslag, gasontwikkeling of neutralisatie) optreedt?
+
+% --- 3. HYPOTHESE ---
+\section{Hypothese}
+\textbf{Verwachting:} Geef aan wat je denkt te zullen zien bij een gasontwikkelingsreactie, een neerslagreactie of een neutralisatiereactie.
+
+\vspace{0.3cm}
+\noindent Gasontwikkeling: \dotfill \\
+\vspace{0.3cm}
+\noindent Neerslag: \dotfill \\
+\vspace{0.3cm}
+\noindent Neutralisatie: \dotfill 
+
+% --- 4. EXPERIMENT: OPSTELLING ---
+\section{Experiment: opstelling}
+\textbf{Materiaal:} Proefbuizen, proefbuisrek, druppelpipetten, universeelindicator.
+
+\vspace{0.2cm}
+\noindent \textbf{Stoffen:}
+\begin{itemize}[label=--, noitemsep, leftmargin=1.5cm]
+    \item Calciumchloride-oplossing ($CaCl_2$) en natriumcarbonaat-oplossing ($Na_2CO_3$)
+    \item Krijt/marmerstukjes ($CaCO_3$) en verdund zoutzuur ($HCl$)
+    \item Verdund natriumhydroxide ($NaOH$), verdund zoutzuur ($HCl$) en indicator
+    \item Magnesiumlint ($Mg$) en verdund zoutzuur ($HCl$)
+\end{itemize}
+
+\vspace{0.3cm}
+\noindent \textbf{Onderzoeksteam:}
+\begin{itemize}[label=--, noitemsep, leftmargin=1.5cm]
+    \item Uitvoerder \& veiligheidschef: \dotfill
+    \item Materiaalmeester \& verslaggever: \dotfill
+\end{itemize}
+
+% --- 5. EXPERIMENT: WAARNEMINGEN ---
+\section{Experiment: waarnemingen en metingen}
+Voer de proefjes zorgvuldig uit. Noteer in de tabel exact wat je ziet. \\
+\textit{\textbf{Let op:} Gebruik vaktaal én staving (bijv. "neerslagvorming, want de vloeistof wordt troebel").}
+
+\vspace{0.6cm}
+\renewcommand{\arraystretch}{2.2}
+\begin{tabularx}{\textwidth}{|c|X|X|X|}
+\hline
+\rowcolor{gray!15} \textbf{\#} & \textbf{Samenstelling} & \textbf{Waarneming (vaktaal)} & \textbf{Staving (wat zie je?)} \\
+\hline
+1 & Calciumchloride + natriumcarbonaat & & \\
+\hline
+2 & Krijtstukjes + zoutzuur & & \\
+\hline
+3 & Natriumhydroxide + indicator + zoutzuur & & \\
+\hline
+4 & Magnesiumlint + zoutzuur & & \\
+\hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+
+% --- 6. BESLUIT ---
+\vspace{0.8cm}
+\section{Besluit: verwerking van de metingen}
+Vul aan over welk type reactie het gaat (kies uit: neutralisatiereactie, gasontwikkelingsreactie, neerslagreactie).
+
+\vspace{0.4cm}
+\begin{itemize}[label=--, itemsep=0.4cm, leftmargin=1.5cm]
+    \item Proef 1 is een \makebox[5cm]{\dotfill} omdat \dotfill
+    \item Proef 2 is een \makebox[5cm]{\dotfill} omdat \dotfill
+    \item Proef 3 is een \makebox[5cm]{\dotfill} omdat \dotfill
+    \item Proef 4 is een \makebox[5cm]{\dotfill} omdat \dotfill
+\end{itemize}
+
+% --- 7. ZELFBEOORDELING ---
+\vspace{0.4cm}
+\section{Zelfbeoordeling}
+Evalueer je eigen werk. Omcirkel per categorie het niveau dat het meest overeenkomt met je werk.
+
+\vspace{0.3cm}
+{\small
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{|p{2cm}|X|X|X|X|}
+\hline
+\rowcolor{gray!15}
+\textbf{Categorie}
+  & \cellcolor{red!20}{\scriptsize Onvoldoende}
+  & \cellcolor{orange!20}{\scriptsize Te verbeteren}
+  & \cellcolor{yellow!20}{\scriptsize Naar behoren}
+  & \cellcolor{green!20}{\scriptsize Uitstekend} \\
+\hline
+\textbf{Veiligheid en orde}
+  & Geen PBM; onveilig gedrag; rommelige bank.
+  & PBM soms vergeten; af en toe onvoorzichtig; bank laat opgeruimd.
+  & PBM gedragen; veilig gewerkt; ordelijke bank.
+  & PBM consequent; voorbeeldig veilig gedrag; bank altijd netjes. \\
+\hline
+\textbf{Samen\-werking}
+  & Geen taakverdeling; veel afleiding.
+  & Onduidelijke rolverdeling; soms afgeleid.
+  & Goede taakverdeling; focus op eigen experiment.
+  & Vlotte samenwerking; vullen elkaar spontaan aan. \\
+\hline
+\textbf{Verslag}
+  & Onvolledig; geen vaktaal of staving.
+  & Beperkt; vaktaal en staving deels aanwezig.
+  & Volledig; correcte vaktaal en duidelijke staving.
+  & Gedetailleerd; vlotte vaktaal; overtuigende staving. \\
+\hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+}
+
+
+\end{document}

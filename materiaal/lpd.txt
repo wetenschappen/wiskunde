@@ -1,0 +1,31 @@
+1.1.1	Elektrodynamica
+Minimumdoelen, cesuurdoelen of doelen die leiden naar BK
+MD 06.48 	De leerlingen analyseren verbanden tussen stroomsterkte, spanning en weerstand in een gelijkstroomkring. (LPD 16F)
+MD 06.49 	De leerlingen gebruiken de grootheid vermogen en het Joule-effect om fenomenen in elektrische systemen te verklaren. (LPD 17F)
+CD 11.01.05	De leerlingen kwantificeren grootheden in serie-, parallel- en gemengde elektrische gelijkstroomkringen met twee of drie weerstanden. (LPD 16F, 18F)
+ De wet van Ohm, het Joule-effect
+LPD 1 F	De leerlingen analyseren en kwantificeren verbanden tussen stroomsterkte, spanning en weerstand in een gelijkstroomkring met de wet van Ohm. 
+1ste graad:	analyse van energiesystemen (I-Tec-a LPD 9)
+Wenk:	Je kan de link leggen met het STEM-concept systemen en hun modellen. Als model kan je het ‘stroommodel van vloeistoffen’ gebruiken.
+Wenk:	Je kan de link leggen met het begrip lading en het atoommodel uit Chemie. Je geeft aan dat Coulomb de eenheid van elektrische lading is. Geleiders en isolatoren kan je ook koppelen aan het concept bindingstype uit Chemie.
+Wenk:	Je kan de conventionele elektrische stroom beschouwen als positieve ladingen die een ‘energieberg’ aflopen en zo de link maken met de gravitationele potentiële energie. In die zin kan je het ‘waterstroommodel’ als analogie gebruiken.
+Wenk:	Elektrische energie is een vorm van potentiële energie van het elektrisch veld naar analogie met de potentiële energie van het zwaarteveld.
+Wenk:	De spanning is het verschil in elektrische potentiële energie per eenheid van lading. Of anders gezegd: de spanning over een kring is de hoeveelheid potentiële energie die een lading van + 1C verliest bij het doorlopen van de stroomkring. De lading ontvangt die potentiële energie in de spanningsbron.
+Wenk:	Je kan de nadruk leggen op het verschilkarakter van spanning (als elektrisch potentiaalverschil); denk aan het belang ervan in veiligheidssystemen zoals een massaverbinding, een aarding of een equipotentiaalverbinding.
+Wenk:	Je kan het verband tussen spanning en stroom I=f(U) onderzoeken door dit leerplandoel te koppelen aan het STEM- doel over onderzoek. Je kan dan vanuit de trendlijn een wiskundig model opstellen voor een gegeven weerstand. Het omgekeerde van de weerstand manifesteert zich als richtingscoëfficiënt in het lineair verband tussen spanning en stroom bij constante temperatuur.
+Wenk:	In het Nederlands heeft men één woord voor concept en fysieke component daar waar andere talen dat verschil in naamgeving wel maken zoals bijvoorbeeld in het Engels: resistance (concept) versus resistor (fysieke component).
+Wenk:	Je kan de formules ook hanteren om eenvoudige numerieke vraagstukken op te lossen.
+Wenk:	Je kan je beperken tot ohmse weerstanden en niet-lineaire weerstanden (halfgeleider zoals LED, gloeilamp) buiten beschouwing laten.
+LPD 2 F	De leerlingen gebruiken de grootheid vermogen en het Joule-effect om fenomenen in elektrische systemen te verklaren.
+Wenk:	Je kan het joule-effect verklaren met het deeltjesmodel: bijvoorbeeld de stroom van elektronen in een geleider veroorzaakt meer botsingen met de roosterionen waardoor ze meer gaan trillen. Je legt dan de link naar het STEM-concept systemen en hun modellen.
+Wenk:	Je kan vanuit het kwadratisch verband met de grootte van de stroom wijzen op het belang van hoogspanning om verliezen door joule-effect te beperken bij het transport van een gegeven vermogen.
+Wenk:	Elektrische zekeringen beveiligen een kring tegen te hoge stromen bij overbelasting of kortsluiting.
+Wenk:	Je kan toepassingen van het joule-effect bespreken, bv. de bliksem, elektrische toestellen. Soms is het joule-effect gewenst (bv. bij verwarmingstoestellen), soms is het ongewenst (bv. bij verlichtingstoestellen, computers, elektrische leidingen in bijvoorbeeld een huisinstallatie).
+LPD 3 F	De leerlingen kwantificeren grootheden in serie-, parallel- en gemengde elektrische gelijkstroomkringen met twee of drie weerstanden. 
+Wenk:	Je kan leerlingen laten redeneren met schema’s en formules. Je kan dit koppelen aan betekenisvolle contexten zoals de stroom door het menselijk lichaam berekenen bij contact met een bepaalde spanning. 
+Wenk:	Je kan de eigenschappen van een serie- en parallelschakeling met elkaar vergelijken en in verband brengen met toepassingen in het dagelijks leven. Je kan benadrukken dat we in elektrische huisinstallaties overwegend parallelschakelingen van verbruikers terugvinden.
+Wenk:	Leerlingen hoeven geen problemen met een kunstmatige complexiteit op te lossen.
+LPD 4 F	+ Leerlingen verklaren de werking en het belang van veiligheidssystemen in een elektrische installatie. 
+Wenk:	Voor de risico’s elektrocutie, brand door kortsluiting en overbelasting is het aangewezen om in te gaan op deze veiligheidssystemen: zekering, verliesstroomschakelaar, aarding en elektrische isolatie.
+Wenk:	Je kan wijzen op het belang van veiligheidsspanning en isolatie om eventuele stromen door het menselijk lichaam (vooral deze door het hart) te beperken in gevaarsituaties (bv. in de auto, bij speelgoed ...).
+Wenk:	Je kan dit koppelen aan het STEM-concept oorzaak-gevolg.
