@@ -84,9 +84,9 @@ function close() {
                     <p class="text-xs text-slate-500 m-0">{{ workbook.title || 'Werkboek' }}</p>
                 </div>
             </div>
-            <button @click="close" class="text-slate-400 hover:text-slate-700 p-2 rounded-full h-10 w-10 flex items-center justify-center">
-                <PhX class="text-2xl" />
-            </button>
+             <button @click="close" class="btn-close">
+                 <PhX class="text-2xl" />
+             </button>
        </div>
 
        <div class="p-8 prose max-w-none">

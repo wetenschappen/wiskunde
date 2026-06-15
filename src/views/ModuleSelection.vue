@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { PhPi, PhArrowLeft } from '@phosphor-icons/vue'
+import { PhPi, PhArrowLeft, PhCaretRight } from '@phosphor-icons/vue'
 import { modules } from '../data/modules'
 
 const router = useRouter()
@@ -40,15 +40,20 @@ const goBack = () => {
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
       <div v-for="chapter in filteredModules" :key="chapter.id" 
            @click="router.push('/les/' + chapter.id)"
-           class="group cursor-pointer bg-white border border-slate-200 p-6 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 hover:shadow-xl hover:border-amber-500/50"
+           class="group cursor-pointer bg-white border border-slate-200 p-6 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 hover:shadow-xl hover:border-amber-500/50 hover:-translate-y-0.5"
            >
-        <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-slate-200 transition-colors">
-            <component :is="chapter.icon" weight="fill" class="text-[1.8rem] text-slate-500" />
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center shadow-inner transition-all duration-300"
+                 :class="[chapter.bg || 'bg-slate-100', 'group-hover:scale-110']">
+              <component :is="chapter.icon" weight="fill" class="text-[1.8rem] transition-colors"
+                         :class="chapter.color || 'text-slate-500'" />
+            </div>
+            <span class="text-[1rem] font-bold text-slate-400 uppercase tracking-widest">{{ chapter.grade }}</span>
           </div>
-          <span class="text-[1rem] font-bold text-slate-400 uppercase tracking-widest">{{ chapter.grade }}</span>
+          <PhCaretRight class="text-slate-300 group-hover:text-amber-500 text-xl transition-all group-hover:translate-x-0.5" />
         </div>
-        <h3 class="text-[1.8rem] font-extrabold text-brand-dark leading-tight transition-colors">{{ chapter.title }}</h3>
+        <h3 class="text-[1.6rem] font-extrabold text-brand-dark leading-tight transition-colors group-hover:text-slate-700">{{ chapter.title }}</h3>
       </div>
     </div>
   </div>

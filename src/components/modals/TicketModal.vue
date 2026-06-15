@@ -171,11 +171,17 @@ function getGraphConfig(part) {
     return baseConfig
 }
 
+const accentBorder   = computed(() => isEntry.value ? 'border-amber-500'   : 'border-indigo-600')
+const accentBorderHover = computed(() => isEntry.value ? 'hover:border-amber-400' : 'hover:border-indigo-300')
+const accentBgSelected = computed(() => isEntry.value ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-indigo-600 bg-indigo-50 text-indigo-900')
+const accentBgHover  = computed(() => isEntry.value ? 'hover:border-amber-300 hover:bg-slate-50' : 'hover:border-indigo-300 hover:bg-slate-50')
+const accentDot      = computed(() => isEntry.value ? 'border-amber-500 bg-amber-500' : 'border-indigo-600 bg-indigo-600')
+const accentDotHover = computed(() => isEntry.value ? 'group-hover:border-amber-300' : 'group-hover:border-indigo-300')
+const accentNavBtn   = computed(() => isEntry.value ? 'hover:bg-amber-500 hover:shadow-amber-200' : 'hover:bg-indigo-600 hover:shadow-indigo-200')
+const accentSubmitBtn = computed(() => isEntry.value ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-200' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-200')
+// These are still used in the template header / progress bar
 const title = computed(() => isEntry.value ? 'Toegangsticket' : 'Exit Ticket')
-const accentColor = computed(() => isEntry.value ? 'amber' : 'indigo')
 const accentBg = computed(() => isEntry.value ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 text-indigo-600')
-const accentBgLight = computed(() => isEntry.value ? 'bg-amber-50 border-amber-200' : 'bg-indigo-50 border-indigo-200')
-const accentText = computed(() => isEntry.value ? 'text-amber-600' : 'text-indigo-600')
 const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-indigo-500')
 </script>
 
@@ -197,7 +203,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
           </div>
         </div>
       </div>
-      <button @click="close" class="text-slate-400 hover:text-slate-700 p-2 hover:bg-slate-100 rounded-full transition-colors">
+      <button @click="close" class="btn-close">
         <PhX weight="bold" class="text-xl" />
       </button>
     </div>
@@ -215,17 +221,19 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
         <!-- MULTIPLE CHOICE -->
         <div v-if="currentPart.type === 'mc'" :key="'mc-'+currentPart.id" class="flex-1 flex flex-col max-w-3xl mx-auto w-full">
           <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8">{{ currentPart.question }}</h4>
-          <div class="space-y-4">
+            <div class="space-y-4">
             <button 
               v-for="(opt, idx) in currentPart.options" 
               :key="idx"
               @click="selectOption(idx)"
-              class="w-full text-left p-5 md:p-6 rounded-2xl border-2 transition-all flex items-center justify-between group"
-              :class="answers[currentPart.id] === idx ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-600'"
+              class="w-full text-left p-5 md:p-6 rounded-2xl border-2 transition-all flex items-center justify-between group text-slate-600"
+              :class="answers[currentPart.id] === idx
+                ? accentBgSelected
+                : ['border-slate-200 text-slate-600', accentBgHover]"
             >
               <span class="text-base md:text-lg font-medium">{{ opt }}</span>
               <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-4"
-                   :class="answers[currentPart.id] === idx ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 group-hover:border-indigo-300'">
+                   :class="answers[currentPart.id] === idx ? accentDot : ['border-slate-300', accentDotHover]">
                 <div v-if="answers[currentPart.id] === idx" class="w-3 h-3 bg-white rounded-full"></div>
               </div>
             </button>
@@ -359,7 +367,8 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
           v-if="currentPart.type !== 'mood'"
           @click="nextStep" 
           :disabled="!canProceed"
-          class="px-8 py-3 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-slate-200 hover:shadow-indigo-200 disabled:opacity-20 disabled:cursor-not-allowed transition-all flex items-center gap-2 group text-base"
+          class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg shadow-slate-200 disabled:opacity-20 disabled:cursor-not-allowed transition-all flex items-center gap-2 group text-base"
+          :class="accentNavBtn"
         >
           Volgende <PhArrowRight weight="bold" class="group-hover:translate-x-1 transition-transform"/>
         </button>
@@ -367,7 +376,8 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
           v-else
           @click="submit"
           :disabled="!canProceed"
-          class="px-10 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 disabled:opacity-50 transition-all flex items-center gap-2 text-base"
+          class="px-10 py-3 text-white font-bold rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center gap-2 text-base"
+          :class="accentSubmitBtn"
         >
           Afronden <PhPaperPlaneRight weight="bold"/>
         </button>

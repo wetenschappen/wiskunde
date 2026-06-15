@@ -255,7 +255,7 @@ function enforceTwoDigits(type) {
                       @focus="$event.target.select()"
                       @blur="padInput('min')" 
                       @input="enforceTwoDigits('min')"
-                      class="w-16 text-4xl text-center font-bold text-slate-800 border-b-2 border-slate-200 focus:border-indigo-500 outline-none bg-transparent p-1 font-mono selection:bg-indigo-100 placeholder:text-slate-200" 
+                      class="w-16 text-4xl text-center font-bold text-slate-800 border-b-2 border-slate-200 focus:border-amber-500 outline-none bg-transparent p-1 font-mono selection:bg-amber-100 placeholder:text-slate-200" 
                       placeholder="00" 
                     />
                     <span class="text-2xl text-slate-300 font-light pb-2 select-none">:</span>
@@ -267,7 +267,7 @@ function enforceTwoDigits(type) {
                       @focus="$event.target.select()"
                       @blur="padInput('sec')" 
                       @input="enforceTwoDigits('sec')"
-                      class="w-16 text-4xl text-center font-bold text-slate-800 border-b-2 border-slate-200 focus:border-indigo-500 outline-none bg-transparent p-1 font-mono selection:bg-indigo-100 placeholder:text-slate-200" 
+                      class="w-16 text-4xl text-center font-bold text-slate-800 border-b-2 border-slate-200 focus:border-amber-500 outline-none bg-transparent p-1 font-mono selection:bg-amber-100 placeholder:text-slate-200" 
                       placeholder="00" 
                     />
               </div>
@@ -275,7 +275,7 @@ function enforceTwoDigits(type) {
               <!-- Start Button -->
               <button 
                   @click="applySetup" 
-                  class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-indigo-600/20"
+                  class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-amber-500/20"
               >
                     <PhPlay weight="fill" />
                     Start Timer

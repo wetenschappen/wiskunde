@@ -100,7 +100,7 @@ onUnmounted(() => {
             <div v-if="isOpen" class="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-900/90 backdrop-blur-sm">
                 
                 <!-- Close button -->
-                <button @click="close" class="absolute top-6 right-6 p-2 text-white/50 hover:text-white transition-colors">
+                <button @click="close" class="absolute top-6 right-6 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                     <PhX class="text-2xl" />
                 </button>
 
@@ -126,6 +126,18 @@ onUnmounted(() => {
                         ]">
                             {{ displayName || '...' }}
                         </h1>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mt-10 flex flex-col items-center gap-3">
+                        <button
+                            @click="pickRandomName"
+                            :disabled="isSpinning"
+                            class="px-8 py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-900 font-black rounded-xl text-base uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/30"
+                        >
+                            {{ isSpinning ? 'Kiezen...' : 'Opnieuw' }}
+                        </button>
+                        <p class="text-white/30 text-xs font-medium tracking-wider uppercase">Spatie of Enter om opnieuw te kiezen &nbsp;&bull;&nbsp; Esc om te sluiten</p>
                     </div>
                 </div>
             </div>

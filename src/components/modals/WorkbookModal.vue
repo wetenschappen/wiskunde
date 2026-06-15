@@ -1,6 +1,5 @@
 <script setup>
-import { ref } from 'vue'
-import { PhBookOpen, PhX, PhLightbulb, PhLockKey, PhWarning, PhQuestion, PhListNumbers, PhMathOperations, PhCheckSquare, PhCaretDown, PhCaretUp, PhCheckCircle, PhArrowsClockwise } from '@phosphor-icons/vue'
+import { PhBookOpen, PhX, PhCheckCircle } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -20,52 +19,84 @@ function completeAndClose() {
 function close() {
     emit('close')
 }
+
+const placeholderExercises = [
+    { nr: 'Oef 1', title: 'Oefening over breuken',  page: 'p19' },
+    { nr: 'Oef 2', title: 'Vermenigvuldiging',       page: 'p21' },
+    { nr: 'Oef 3', title: 'Deling met rest',         page: 'p23' },
+]
+
+const exercises = (props.workbook?.exercises?.length) ? props.workbook.exercises : null
 </script>
 
 <template>
   <div v-if="isOpen" class="modal-backdrop open" @click="close">
-    <div class="modal-content" @click.stop>
-       <!-- Header -->
-       <div class="sticky top-0 bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center z-10">
-            <div class="flex items-center gap-3">
-                <div class="bg-emerald-100 text-emerald-700 p-2 rounded-lg"><PhBookOpen weight="fill" class="text-xl"/></div>
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900 m-0">{{ workbook.title || 'Werkboek' }}</h3>
-                    <p class="text-xs text-slate-500 m-0">{{ workbook.subtitle || '' }}</p>
-                </div>
-            </div>
-            <button @click="close" class="text-slate-400 hover:text-slate-700 p-2 rounded-full">
-                <PhX class="text-2xl" />
-            </button>
-       </div>
+    <div class="modal-content max-w-md" @click.stop>
 
-       <div class="p-8 prose max-w-none overflow-y-auto">
-            
-            <!-- MAIN INSTRUCTION: What to do -->
-            <div class="bg-white border-2 border-emerald-200 rounded-xl p-6 mb-6">
-                <div class="flex items-start gap-4">
-                    <div class="bg-emerald-100 text-emerald-600 p-3 rounded-xl flex-shrink-0">
-                        <PhBookOpen weight="fill" class="text-2xl"/>
-                    </div>
-                    <div>
-                        <h4 class="text-slate-900 font-bold text-lg mt-0 mb-2">Opdracht</h4>
-                        <p class="text-slate-700 text-base m-0" v-html="workbook.instruction || 'Maak de oefeningen in je werkboek.'">
-                        </p>
-                        <p v-if="workbook.formulaHint" class="text-slate-500 text-sm mt-2 mb-0">
-                            {{ workbook.formulaHint }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+      <!-- Header -->
+      <div class="px-6 pt-5 pb-4 flex justify-between items-start border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="bg-emerald-100 text-emerald-700 p-2 rounded-lg flex-shrink-0">
+            <PhBookOpen weight="fill" class="text-lg" />
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 leading-tight">{{ workbook.title || 'Werkboek' }}</h3>
+            <p v-if="workbook.subtitle" class="text-xs text-slate-500 mt-0.5">{{ workbook.subtitle }}</p>
+          </div>
+        </div>
+        <button @click="close" class="btn-close -mr-1 -mt-1">
+          <PhX class="text-lg" />
+        </button>
+      </div>
 
-            <!-- Completion Action -->
-            <div class="mt-8 flex justify-center">
-                 <button @click="completeAndClose" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg transition-all flex items-center gap-3">
-                    <PhCheckCircle weight="bold" class="text-xl"/>
-                    Ik ben klaar met de opdrachten
-                 </button>
-            </div>
-       </div>
+      <!-- Exercise list -->
+      <div class="px-6 py-5">
+
+        <!-- Column labels -->
+        <div class="grid grid-cols-[3rem_1fr_4rem] gap-4 pb-2 border-b-2 border-slate-300">
+          <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">#</span>
+          <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Oefening</span>
+          <span class="text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Pagina</span>
+        </div>
+
+        <!-- Real exercises -->
+        <template v-if="exercises">
+          <div
+            v-for="(ex, idx) in exercises"
+            :key="idx"
+            class="grid grid-cols-[3rem_1fr_4rem] gap-4 py-3.5 border-b border-slate-100 last:border-0 items-baseline"
+          >
+            <span class="text-sm font-bold text-emerald-700 tabular-nums">{{ ex.nr }}</span>
+            <span class="text-sm font-semibold text-slate-900">{{ ex.title }}</span>
+            <span class="text-sm font-bold text-slate-700 text-right tabular-nums">{{ ex.page }}</span>
+          </div>
+        </template>
+
+        <!-- Placeholder rows -->
+        <template v-else>
+          <div
+            v-for="(ex, idx) in placeholderExercises"
+            :key="idx"
+            class="grid grid-cols-[3rem_1fr_4rem] gap-4 py-3.5 border-b border-slate-100 last:border-0 items-baseline"
+          >
+            <span class="text-sm font-bold text-emerald-600 tabular-nums">{{ ex.nr }}</span>
+            <span class="text-sm font-medium text-slate-500">{{ ex.title }}</span>
+            <span class="text-sm font-semibold text-slate-400 text-right tabular-nums">{{ ex.page }}</span>
+          </div>
+        </template>
+
+        <!-- Done button -->
+        <div class="mt-6 flex justify-center">
+          <button
+            @click="completeAndClose"
+            class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-lg py-3 px-14 rounded-2xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2.5"
+          >
+            <PhCheckCircle weight="bold" class="text-xl" />
+            Sluiten
+          </button>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>

@@ -20,14 +20,14 @@ const years = [
   {
     id: 3,
     title: '3de Jaar',
-    accentColor: 'text-brand-dark', // Navy
-    hoverBorder: 'hover:border-slate-800/50'
+    accentColor: 'text-slate-900',
+    hoverBorder: 'hover:border-amber-500/50'
   },
   {
     id: 4,
     title: '4de Jaar',
-    accentColor: 'text-brand-dark', // Navy
-    hoverBorder: 'hover:border-slate-800/50'
+    accentColor: 'text-slate-900',
+    hoverBorder: 'hover:border-amber-500/50'
   }
 ]
 </script>

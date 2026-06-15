@@ -60,8 +60,14 @@ export default {
     workbook: {
         title: 'Werkboek: [ONDERWERP]',
         subtitle: '[VAK] • [THEMA]',
-        instruction: 'Maak <strong>oefeningen 1 tot 10</strong> op <strong>pagina 20-25</strong> in je werkboek.',
-        formulaHint: 'Tip: Denk aan de formule [X = Y * Z]' // Optioneel
+        instruction: 'Maak de oefeningen hieronder in je werkboek.', // Optioneel — korte instructie boven de tabel
+        formulaHint: 'Tip: Denk aan de formule [X = Y * Z]', // Optioneel
+        exercises: [
+            // Elke rij = één oefening in de inhoudstafel
+            // { nr: 'Oef 1', title: 'Oefening over breuken',   page: 'p19' },
+            // { nr: 'Oef 2', title: 'Vermenigvuldiging',        page: 'p21' },
+            // { nr: 'Oef 3', title: 'Deling met rest',          page: 'p23' },
+        ]
     },
 
     // 5. ============================================
@@ -302,8 +308,7 @@ export default {
         }
     ],
 
-    // 8. ============================================
-    // 8. ============================================
+    // 9. ============================================
     // ENTRY TICKET (Diagnostische toets — start van de les)
     // ============================================
     entryTicket: {

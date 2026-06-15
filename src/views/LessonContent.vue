@@ -39,7 +39,6 @@ const ExtraChallengeBranch = defineAsyncComponent(() => import('../components/Ex
 const SolutionsModal = defineAsyncComponent(() => import('../components/modals/SolutionsModal.vue'))
 
 import TimerWidget from '../components/widgets/TimerWidget.vue'
-const CalculatorWidget = defineAsyncComponent(() => import('../components/widgets/CalculatorWidget.vue'))
 const NamePickerOverlay = defineAsyncComponent(() => import('../components/NamePickerOverlay.vue'))
 
 // ============================================
@@ -67,7 +66,6 @@ const currentTicketMode = ref('exit')
 const showSpotCheck = ref(false)
 
 const showTimer = ref(true)
-const showCalculator = ref(false)
 const showNamePicker = ref(false)
 const showWatermark = ref(localStorage.getItem('planner-show-watermark') !== 'false')
 
@@ -110,7 +108,7 @@ function handleGlobalKeydown(e) {
         e.preventDefault()
         showNamePicker.value = !showNamePicker.value
     }
-    if ((e.key === 'r' || e.key === 'R')) progress.resetProgress('planner-progress-combined-elektriciteit')
+    if ((e.key === 'r' || e.key === 'R')) progress.resetProgress(lessonData.id)
     if (e.key === 'c' || e.key === 'C') {
         showWatermark.value = !showWatermark.value
         localStorage.setItem('planner-show-watermark', showWatermark.value)
@@ -277,11 +275,12 @@ const isTimelineComplete = computed(() => {
                 :meta="getCardMeta(card)"
                 :title="card.title"
                 :description="card.description"
-                :actionText="getActionText(card)"
                 :icon="iconMap[card.icon] || PhInfo"
                 :isDone="progress.isDone(card.id)"
                 @click="handleCardAction(card)"
-            />
+            >
+                <template #action>{{ getActionText(card) }}</template>
+            </ActivityCard>
             
             <!-- EXTRA BRANCH -->
             <ExtraChallengeBranch 
@@ -309,7 +308,7 @@ const isTimelineComplete = computed(() => {
 
   <!-- WORKSPACE TOOLS -->
   <Toolbox 
-    @open-tool="(t) => { if(t==='calc') showCalculator=true; if(t==='names') showNamePicker=true; if(t==='solutions') showSolutions=true; }" 
+    @open-tool="(t) => { if(t==='names') showNamePicker=true; if(t==='solutions') showSolutions=true; }" 
     @open-pdf="window.open(lesson.config.cursusLink, '_blank')" 
     :subject="lesson.config.subject"
     :extra-tools="lesson.config.extraTools"
@@ -356,7 +355,6 @@ const isTimelineComplete = computed(() => {
   />
   
   <!-- WIDGETS -->
-  <CalculatorWidget :isOpen="showCalculator" @close="showCalculator = false"/>
   <NamePickerOverlay 
      :isOpen="showNamePicker" 
      :names="studentLists[lesson.config.classId] || studentLists['3NWb'] || []" 

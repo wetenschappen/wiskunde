@@ -61,7 +61,7 @@ function close() {
             <p class="text-xs text-rose-100 m-0 opacity-80 uppercase tracking-widest font-medium">Klassikale Begripscheck</p>
           </div>
         </div>
-        <button @click="close" class="text-white/70 hover:text-white p-2 rounded-full transition-colors">
+        <button @click="close" class="btn-close-dark">
           <PhX class="text-2xl" />
         </button>
       </div>

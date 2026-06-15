@@ -50,7 +50,9 @@ const goBack = () => {
       <div class="w-16 h-16 mx-auto bg-slate-100/80 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm flex items-center justify-center mb-6 transform hover:scale-105 transition-transform duration-500">
         <PhPi weight="duotone" class="text-[2.5rem] text-brand-dark" />
       </div>
-      <h1 class="text-[3rem] md:text-[4rem] font-bold text-slate-800 tracking-tight leading-tight mb-2">{{ yearId }}de Jaar</h1>
+      <h1 class="text-[3rem] md:text-[4rem] font-bold text-slate-800 tracking-tight leading-tight mb-2">
+        {{ { 1: '1ste', 2: '2de', 3: '3de', 4: '4de' }[yearId] || yearId + 'de' }} Jaar
+      </h1>
       <p class="text-[1.2rem] md:text-[1.5rem] text-slate-500 font-light max-w-2xl mx-auto leading-relaxed">Kies je klas om verder te gaan.</p>
     </div>
 

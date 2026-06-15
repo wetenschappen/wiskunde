@@ -16,7 +16,7 @@ defineProps({
       {{ badge }}
     </div>
     <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4 tracking-tight">{{ title }}</h1>
-    <p class="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed mb-8">
+    <p v-if="description" class="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed mb-8">
       {{ description }}
     </p>
 
