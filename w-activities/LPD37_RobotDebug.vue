@@ -1,0 +1,333 @@
+<script setup>
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { 
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhRobot, PhArrowClockwise, PhCaretUp, PhCaretRight, PhCaretDown, PhCaretLeft, PhBackspace
+} from '@phosphor-icons/vue'
+
+const props = defineProps({
+  isOpen: Boolean,
+  title: { type: String, default: 'Computationeel Denken: De Robot Debuggen' },
+  instruction: { 
+    type: String, 
+    default: 'Een algoritme is een stappenplan. Als er een fout in zit (een "bug"), crasht het programma!<br/><br/><strong>Opdracht:</strong> Schrijf een algoritme (een reeks pijltjes) om de robot naar het groene doel te sturen zonder de rode muren te raken. Klik op "Voer uit" om je code te testen.' 
+  },
+  currentStep: { type: Number, default: 1 },
+  totalSteps: { type: Number, default: 2 },
+  fullscreen: { type: Boolean, default: true },
+  icon: { type: Object, default: () => PhRobot }
+})
+
+const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const shouldPulse = ref(false)
+const isCorrect = ref(false)
+const isChecked = ref(false)
+const feedback = ref({ type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' })
+
+// Domain Logic
+// Grid 4x4. (0,0) is bottom left. (3,3) is top right.
+// SVG coordinates: Top-left is (0,0). So (x,y) -> (x, 3-y).
+const gridSize = 4
+
+const startX = 0
+const startY = 0
+
+const goalX = 3
+const goalY = 3
+
+// Walls at (1,0), (1,1), (3,1), (2,3)
+const walls = [
+    {x: 1, y: 0}, {x: 1, y: 1}, {x: 3, y: 1}, {x: 2, y: 3}
+]
+
+const robotX = ref(startX)
+const robotY = ref(startY)
+
+const algorithm = ref([]) // array of 'up', 'down', 'left', 'right'
+const isRunning = ref(false)
+const crashStatus = ref(false)
+
+function addCommand(cmd) {
+    if (isRunning.value || isCorrect.value || algorithm.value.length >= 10) return
+    algorithm.value.push(cmd)
+    isChecked.value = false
+}
+
+function removeLast() {
+    if (isRunning.value || isCorrect.value) return
+    algorithm.value.pop()
+    isChecked.value = false
+}
+
+function hasWall(x, y) {
+    return walls.some(w => w.x === x && w.y === y)
+}
+
+function runAlgorithm() {
+    if (algorithm.value.length === 0) {
+        feedback.value = { type: 'error', text: 'Je algoritme is leeg! Voeg instructies toe.'}
+        return
+    }
+
+    isRunning.value = true
+    isChecked.value = true
+    crashStatus.value = false
+    robotX.value = startX
+    robotY.value = startY
+    
+    feedback.value = { type: 'info', text: 'Programma wordt uitgevoerd...' }
+
+    let step = 0;
+    
+    const interval = setInterval(() => {
+        if (step >= algorithm.value.length) {
+            clearInterval(interval)
+            finishRun()
+            return
+        }
+
+        const cmd = algorithm.value[step]
+        let nx = robotX.value
+        let ny = robotY.value
+
+        if (cmd === 'up') ny++
+        if (cmd === 'down') ny--
+        if (cmd === 'right') nx++
+        if (cmd === 'left') nx--
+
+        // Bounds check
+        if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) {
+            crashStatus.value = true
+            clearInterval(interval)
+            finishRun(true)
+            return
+        }
+
+        // Wall check
+        if (hasWall(nx, ny)) {
+            crashStatus.value = true
+            clearInterval(interval)
+            finishRun(true)
+            return
+        }
+
+        // Move
+        robotX.value = nx
+        robotY.value = ny
+        step++
+
+    }, 500) // half second per step
+}
+
+function finishRun(crashed = false) {
+    isRunning.value = false
+    
+    if (crashed) {
+        isCorrect.value = false
+        feedback.value = { type: 'error', text: 'BAM! Je robot is gecrasht. Er zit een "bug" in je code. Druk op de reset-knop, pas je code aan en probeer opnieuw.'}
+    } else if (robotX.value === goalX && robotY.value === goalY) {
+        isCorrect.value = true
+        feedback.value = { type: 'success', text: 'Programma succesvol afgerond! Je algoritme is bug-vrij en heeft het doel bereikt.'}
+    } else {
+        isCorrect.value = false
+        feedback.value = { type: 'error', text: 'Je programma is gestopt, maar je hebt het doel niet bereikt. Je mist nog instructies in je algoritme.'}
+    }
+}
+
+function resetActivityState() {
+    isCorrect.value = false;
+    isChecked.value = false;
+    feedback.value = { type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' };
+    algorithm.value = [];
+    robotX.value = startX;
+    robotY.value = startY;
+    isRunning.value = false;
+    crashStatus.value = false;
+}
+
+function goToNextStep() {
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
+    else emit('complete');
+}
+
+// Lifecycle
+watch(() => props.isOpen, (val) => {
+  if (val) {
+    resetActivityState();
+    window.addEventListener('keydown', handleKeydown)
+    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
+    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else {
+    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+    window.removeEventListener('keydown', handleKeydown)
+    shouldPulse.value = false
+  }
+}, { immediate: true })
+
+function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
+const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
+onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+})
+</script>
+
+<template>
+<div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
+    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+      
+      <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-500/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
+            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
+          </div>
+        </div>
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }">
+          <PhX class="w-6 h-6" />
+        </button>
+      </header>
+
+      <main class="flex flex-1 overflow-hidden">
+        <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
+          <div class="flex-1 p-6 overflow-y-auto">
+            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
+            <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="instruction"></div>
+            
+            <div class="p-4 mt-6 border border-slate-600 bg-slate-700/50 rounded-xl shadow-inner flex flex-col gap-4">
+               
+               <label class="block text-sm font-bold text-slate-300">Bouw je Algoritme:</label>
+               
+               <div class="grid grid-cols-3 gap-2 w-32 mx-auto">
+                   <div></div>
+                   <button @click="addCommand('up')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretUp weight="bold" class="w-6 h-6 text-white" /></button>
+                   <div></div>
+                   
+                   <button @click="addCommand('left')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretLeft weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('down')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretDown weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('right')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretRight weight="bold" class="w-6 h-6 text-white" /></button>
+               </div>
+
+               <div class="min-h-[60px] bg-slate-900 border-2 border-slate-600 rounded-xl p-3 flex flex-wrap gap-2 items-center">
+                   <span v-if="algorithm.length === 0" class="text-slate-500 text-sm italic">Code is leeg...</span>
+                   
+                   <div v-for="(cmd, idx) in algorithm" :key="idx" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold shadow-sm animate-fadeIn">
+                       <PhCaretUp v-if="cmd==='up'" weight="bold" />
+                       <PhCaretDown v-if="cmd==='down'" weight="bold" />
+                       <PhCaretLeft v-if="cmd==='left'" weight="bold" />
+                       <PhCaretRight v-if="cmd==='right'" weight="bold" />
+                   </div>
+               </div>
+               
+               <button @click="removeLast" :disabled="isRunning || isCorrect || algorithm.length === 0" class="self-end flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors">
+                   <PhBackspace weight="fill" /> Wis laatste
+               </button>
+
+            </div>
+          </div>
+
+          <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug">{{ feedback.text }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- Custom reset that just resets position but keeps code so they can debug -->
+              <button @click="() => { robotX = startX; robotY = startY; isChecked = false; crashStatus = false; feedback = {type:'info', text:'Pas je code aan en probeer opnieuw.'} }" :disabled="isRunning" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              
+              <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Voer Uit</button>
+              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+                <PhArrowRight weight="bold" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col flex-1 overflow-hidden bg-slate-900">
+          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative bg-circuit-pattern">
+              
+              <div class="w-full max-w-2xl flex flex-col items-center">
+                  
+                  <div class="relative bg-slate-800 shadow-2xl rounded-xl overflow-hidden border-8 border-slate-700 p-2" style="width: 400px; height: 400px;">
+                      
+                      <!-- Grid Layout -->
+                      <div class="absolute inset-2 grid grid-cols-4 grid-rows-4 gap-1 z-0">
+                          <template v-for="y in 4" :key="'ry'+y">
+                              <template v-for="x in 4" :key="'rx'+x">
+                                  <!-- SVG coordinates logic: y=1 is top, y=4 is bottom -->
+                                  <!-- Mathematical logic: y=0 is bottom, y=3 is top -->
+                                  <!-- So r_y = 3 - math_y. Which means math_y = 3 - (ry - 1) = 4 - ry -->
+                                  
+                                  <div class="bg-slate-900/50 rounded-sm relative flex items-center justify-center">
+                                      
+                                      <!-- Goal highlight -->
+                                      <div v-if="x-1 === goalX && 4-y === goalY" class="absolute inset-1 bg-emerald-500/30 rounded border-2 border-emerald-500 animate-pulse"></div>
+                                      
+                                      <!-- Wall block -->
+                                      <div v-if="hasWall(x-1, 4-y)" class="absolute inset-0 bg-red-500/80 border-4 border-red-700 rounded-sm shadow-inner flex items-center justify-center">
+                                          <PhX weight="bold" class="w-8 h-8 text-red-900/50" />
+                                      </div>
+
+                                  </div>
+                              </template>
+                          </template>
+                      </div>
+
+                      <!-- The Robot -->
+                      <!-- 4x4 grid inside 384x384 box (approx). Each cell is 96px width/height. -->
+                      <!-- Left = x * 25%. Bottom = y * 25%. -->
+                      <div class="absolute w-[25%] h-[25%] transition-all duration-500 ease-in-out flex items-center justify-center z-10"
+                           :class="crashStatus ? 'animate-shake' : ''"
+                           :style="{ left: `${robotX * 25}%`, bottom: `${robotY * 25}%` }">
+                           
+                           <div class="w-16 h-16 bg-blue-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center relative"
+                                :class="crashStatus ? 'bg-red-500' : ''">
+                               <PhRobot weight="fill" class="w-10 h-10 text-white" />
+                               <div v-if="crashStatus" class="absolute inset-0 flex items-center justify-center">
+                                   <PhX weight="bold" class="w-12 h-12 text-white" />
+                               </div>
+                           </div>
+
+                      </div>
+
+                  </div>
+
+              </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+:root { font-family: 'Inter', sans-serif; }
+
+.bg-circuit-pattern {
+    background-color: #0f172a;
+    background-image: radial-gradient(#1e293b 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
+.animate-shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) forwards;
+}
+@keyframes shake {
+  10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-5deg); }
+  20%, 80% { transform: translate3d(4px, 0, 0) rotate(5deg); }
+  30%, 50%, 70% { transform: translate3d(-8px, 0, 0) rotate(-10deg); }
+  40%, 60% { transform: translate3d(8px, 0, 0) rotate(10deg); }
+}
+</style>

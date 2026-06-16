@@ -1,0 +1,306 @@
+<script setup>
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { 
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTriangle, PhArrowClockwise
+} from '@phosphor-icons/vue'
+
+const props = defineProps({
+  isOpen: Boolean,
+  title: { type: String, default: 'Classificatie: Het Driehoeken-Rooster' },
+  instruction: { 
+    type: String, 
+    default: 'Elke driehoek heeft twee "namen": eentje voor de <strong>zijden</strong>, eentje voor de <strong>hoeken</strong>.<br/><br/><strong>Opdracht:</strong> Kijk naar de blauwe driehoek. Welke twee namen horen hierbij? Klik op het exacte kruispunt in het rooster.' 
+  },
+  currentStep: { type: Number, default: 1 },
+  totalSteps: { type: Number, default: 1 },
+  fullscreen: { type: Boolean, default: true },
+  icon: { type: Object, default: () => PhTriangle }
+})
+
+const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const shouldPulse = ref(false)
+const isCorrect = ref(false)
+const isChecked = ref(false)
+const feedback = ref({ type: 'info', text: 'Klik op een vakje in het 3x3 rooster.' })
+
+// Level Logic
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    targetRow: 1, // Gelijkbenig
+    targetCol: 1, // Rechthoekig
+    svgPoints: '20,20 20,180 180,180',
+    hasRightAngle: true,
+    rightAnglePoly: '20,180 20,160 40,160 40,180',
+    tick1: { x1: 15, y1: 100, x2: 25, y2: 100 },
+    tick2: { x1: 100, y1: 175, x2: 100, y2: 185 },
+    tick3: null,
+    successMsg: 'Perfect! De driehoek heeft een rechte hoek (90°) en twee zijden die exact even lang zijn. Het is een Gelijkbenige Rechthoekige driehoek.'
+  },
+  {
+    targetRow: 0, // Ongelijkbenig
+    targetCol: 2, // Stomphoekig
+    svgPoints: '150,20 20,180 180,180', // Wait, obtuse means one angle > 90.
+    // Let's make base 20,180 to 180,180. Top vertex far left: e.g. -50, 50... Wait, SVG viewbox is 0 0 200 200.
+    // Base: 50,180 to 180,180. Top vertex: 20, 50. Angle at (50,180) is obtuse.
+    hasRightAngle: false,
+    rightAnglePoly: '',
+    tick1: null, tick2: null, tick3: null,
+    successMsg: 'Goed gezien! Eén hoek is duidelijk groter dan 90° (stomp) en alle drie de zijden hebben een andere lengte. Het is een Ongelijkbenige Stomphoekige driehoek.'
+  },
+  {
+    targetRow: 2, // Gelijkzijdig
+    targetCol: 0, // Scherphoekig
+    svgPoints: '100,20 30,141.2 170,141.2', // 140 base width, height is 140*sqrt(3)/2 ~ 121.2
+    hasRightAngle: false,
+    rightAnglePoly: '',
+    // tick marks on all 3
+    tick1: { x1: 60, y1: 85, x2: 70, y2: 75 }, // left edge
+    tick2: { x1: 130, y1: 75, x2: 140, y2: 85 }, // right edge
+    tick3: { x1: 100, y1: 136.2, x2: 100, y2: 146.2 }, // base
+    successMsg: 'Fantastisch! Alle zijden zijn even lang, en automatisch zijn dan alle hoeken scherp (exact 60°). Het is een Gelijkzijdige (Scherphoekige) driehoek.'
+  }
+]
+
+const currentLevelData = computed(() => levels[currentInternalLevel.value])
+
+// Domain Logic
+const cols = ['Scherphoekig', 'Rechthoekig', 'Stomphoekig']
+const rows = ['Ongelijkbenig', 'Gelijkbenig', 'Gelijkzijdig']
+
+const selectedRow = ref(null)
+const selectedCol = ref(null)
+
+function selectCell(r, c) {
+    if (isCorrect.value) return;
+    selectedRow.value = r;
+    selectedCol.value = c;
+    checkAnswer(); // Auto-check for fluidity in this grid
+}
+
+function resetActivityState() {
+    isCorrect.value = false;
+    isChecked.value = false;
+    feedback.value = { type: 'info', text: 'Klik op een vakje in het 3x3 rooster.' };
+    selectedRow.value = null;
+    selectedCol.value = null;
+}
+
+function checkAnswer() {
+  isChecked.value = true;
+  
+  // Specific impossible cases check first!
+  if (selectedRow.value === 2 && selectedCol.value === 1) {
+      isCorrect.value = false
+      feedback.value = { type: 'error', text: 'Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Er kan dus nóóit een rechte hoek (90°) inzitten!'}
+      return
+  }
+  if (selectedRow.value === 2 && selectedCol.value === 2) {
+      isCorrect.value = false
+      feedback.value = { type: 'error', text: 'Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Hij kan dus nóóit stomphoekig zijn!'}
+      return
+  }
+
+  const data = currentLevelData.value
+
+  if (selectedRow.value === data.targetRow && selectedCol.value === data.targetCol) {
+    isCorrect.value = true
+    feedback.value = { type: 'success', text: data.successMsg }
+  } else {
+    isCorrect.value = false
+    
+    if (selectedRow.value !== data.targetRow && selectedCol.value === data.targetCol) {
+        feedback.value = { type: 'error', text: `De hoekennaam klopt (${cols[selectedCol.value]})! Maar kijk eens naar de lengte van de zijden. Let op de merktekens (streepjes).`}
+    } else if (selectedRow.value === data.targetRow && selectedCol.value !== data.targetCol) {
+        feedback.value = { type: 'error', text: `De zijdennaam klopt (${rows[selectedRow.value]}). Maar bestudeer de HOEKEN goed. Is er een hoek groter dan 90°, of exact 90°?`}
+    } else {
+        feedback.value = { type: 'error', text: 'Niet juist. Kijk eerst naar de hoeken (scherp, recht, stomp). Vergelijk daarna de lengtes van de zijden (ongelijk, gelijkbenig, gelijkzijdig).'}
+    }
+  }
+}
+
+function handleNext() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++;
+    resetActivityState();
+  } else {
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
+    else emit('complete');
+  }
+}
+
+// Lifecycle
+watch(() => props.isOpen, (val) => {
+  if (val) {
+    currentInternalLevel.value = 0;
+    resetActivityState();
+    window.addEventListener('keydown', handleKeydown)
+    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
+    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else {
+    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+    window.removeEventListener('keydown', handleKeydown)
+    shouldPulse.value = false
+  }
+}, { immediate: true })
+
+function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
+const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
+onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+})
+</script>
+
+<template>
+<div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
+    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+      
+      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-600" />
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+              <div class="flex gap-1">
+                <div v-for="i in totalInternalLevels" :key="i" 
+                     class="w-2 h-2 rounded-full" 
+                     :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+          <PhX class="w-6 h-6" />
+        </button>
+      </header>
+
+      <main class="flex flex-1 overflow-hidden">
+        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
+          <div class="flex-1 p-6 overflow-y-auto">
+            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
+            
+            <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-indigo-900 mb-2">Jouw Classificatie:</label>
+               
+               <div class="flex flex-col gap-2">
+                   <div class="bg-white px-3 py-2 rounded border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedRow !== null ? 'border-indigo-400 bg-indigo-50' : ''">
+                       <span v-if="selectedRow !== null">{{ rows[selectedRow] }}</span>
+                       <span v-else class="text-slate-400 italic">Kies de zijden...</span>
+                   </div>
+                   <div class="bg-white px-3 py-2 rounded border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedCol !== null ? 'border-indigo-400 bg-indigo-50' : ''">
+                       <span v-if="selectedCol !== null">{{ cols[selectedCol] }}</span>
+                       <span v-else class="text-slate-400 italic">Kies de hoeken...</span>
+                   </div>
+               </div>
+            </div>
+          </div>
+
+          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug">{{ feedback.text }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
+                <PhArrowRight weight="bold" />
+              </button>
+              <div v-else class="flex-1 py-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+              
+              <div class="w-full max-w-4xl flex flex-col items-center gap-8">
+                  
+                  <!-- The Triangle to Classify -->
+                  <div class="relative bg-white p-8 rounded-2xl shadow-md border-2 border-slate-200" :key="'tri'+currentInternalLevel">
+                      <h4 class="absolute top-2 left-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Te classificeren:</h4>
+                      <svg width="200" height="200" viewBox="0 0 200 200" class="mt-4">
+                          <!-- Right angle indicator -->
+                          <polyline v-if="currentLevelData.hasRightAngle" :points="currentLevelData.rightAnglePoly" fill="transparent" stroke="#ef4444" stroke-width="2" class="animate-fadeIn" />
+                          
+                          <!-- The triangle -->
+                          <polygon :points="currentLevelData.svgPoints" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" stroke-width="4" stroke-linejoin="round" class="transition-all duration-700" />
+                          
+                          <!-- Equality tick marks -->
+                          <line v-if="currentLevelData.tick1" :x1="currentLevelData.tick1.x1" :y1="currentLevelData.tick1.y1" :x2="currentLevelData.tick1.x2" :y2="currentLevelData.tick1.y2" stroke="#1e293b" stroke-width="3" class="animate-fadeIn" />
+                          <line v-if="currentLevelData.tick2" :x1="currentLevelData.tick2.x1" :y1="currentLevelData.tick2.y1" :x2="currentLevelData.tick2.x2" :y2="currentLevelData.tick2.y2" stroke="#1e293b" stroke-width="3" class="animate-fadeIn" />
+                          <line v-if="currentLevelData.tick3" :x1="currentLevelData.tick3.x1" :y1="currentLevelData.tick3.y1" :x2="currentLevelData.tick3.x2" :y2="currentLevelData.tick3.y2" stroke="#1e293b" stroke-width="3" class="animate-fadeIn" />
+                      </svg>
+                  </div>
+
+                  <!-- The Grid -->
+                  <div class="bg-white rounded-xl shadow-xl border-4 border-slate-800 p-1 flex flex-col overflow-hidden transition-all duration-500" :class="isCorrect ? 'border-emerald-500 shadow-emerald-200' : ''">
+                      
+                      <!-- Header Row -->
+                      <div class="flex bg-slate-800 text-white font-bold transition-colors" :class="isCorrect ? 'bg-emerald-600' : ''">
+                          <div class="w-32 p-3"></div> <!-- Empty top-left -->
+                          <div v-for="col in cols" :key="col" class="w-36 p-3 text-center text-sm uppercase tracking-wider border-l border-slate-600/50">
+                              {{ col }}
+                          </div>
+                      </div>
+
+                      <!-- Data Rows -->
+                      <div v-for="(rowName, rIdx) in rows" :key="rowName" class="flex border-t border-slate-300">
+                          
+                          <!-- Row Header -->
+                          <div class="w-32 p-3 bg-slate-100 font-bold text-slate-700 flex items-center justify-start text-sm uppercase border-r border-slate-300">
+                              {{ rowName }}
+                          </div>
+                          
+                          <!-- Cells -->
+                          <div v-for="(colName, cIdx) in cols" :key="colName" 
+                               @click="selectCell(rIdx, cIdx)"
+                               class="w-36 h-20 border-l border-slate-200 cursor-pointer transition-all flex items-center justify-center relative group"
+                               :class="{
+                                   'bg-emerald-500 hover:bg-emerald-500': isCorrect && selectedRow === rIdx && selectedCol === cIdx,
+                                   'bg-red-500 hover:bg-red-500': !isCorrect && selectedRow === rIdx && selectedCol === cIdx,
+                                   'hover:bg-slate-50': selectedRow !== rIdx || selectedCol !== cIdx
+                               }">
+                               
+                               <!-- Selected indicator icon -->
+                               <PhCheckCircle v-if="isCorrect && selectedRow === rIdx && selectedCol === cIdx" weight="fill" class="w-8 h-8 text-white animate-fadeIn" />
+                               <PhX v-if="!isCorrect && selectedRow === rIdx && selectedCol === cIdx" weight="bold" class="w-8 h-8 text-white animate-fadeIn" />
+
+                               <!-- Hover state target ring -->
+                               <div v-if="selectedRow !== rIdx || selectedCol !== cIdx" class="w-8 h-8 rounded-full border-2 border-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                               
+                               <!-- Warning for impossible cells -->
+                               <PhWarningCircle v-if="rIdx === 2 && (cIdx === 1 || cIdx === 2)" weight="duotone" class="absolute bottom-1 right-1 w-4 h-4 text-slate-300" />
+                          </div>
+
+                      </div>
+
+                  </div>
+
+              </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+:root { font-family: 'Inter', sans-serif; }
+.pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+</style>

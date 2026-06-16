@@ -1,0 +1,549 @@
+Leerplandoelen
+4.1 Problemen oplossen en wiskundig redeneren
+Minimumdoelen
+LPD 1 De leerlingen beschrijven fenomenen uit de realiteit aan de hand van wiskundige
+concepten uit de eerste graad.
+Samenhang eerste graad: Wisselwerking wetenschappen, technologie, wiskunde en
+maatschappij (I-Nat-a LPD 6; I-Tec-a LPD 4)
+Wenk: Je kan aan dit doel werken door voldoende contexten bij de inhoudelijke doelen
+aan bod te laten komen. Telkens wanneer er met een context wordt gewerkt, zal
+een wiskundig concept worden gebruikt om iets uit de realiteit te beschrijven. Je
+kan werken met actuele contexten.
+Wenk: Je kan via dit doel ook werken aan het STEM-doel over de wisselwerking tussen
+wetenschappen, technologie, wiskunde en de maatschappij.
+Extra: De evolutie en geschiedenis van wiskunde kan worden geduid (i.t.t. het idee dat
+wiskunde een vaststaand iets is). Voorbeelden: soorten talstelsels, Simon Stevin 
+Wiskunde (versie oktober 2024) 11
+D/2024/13.758/017 I-Wis-a
+en zijn bijdragen aan wiskunde (bv. terminologie en decimale schrijfwijze),
+Descartes en het assenstelsel, algebra en Arabische onderzoekers …
+LPD 2 De leerlingen lossen vraagstukken en problemen op door te mathematiseren en
+demathematiseren en door gebruik te maken van heuristieken.
+Samenhang eerste graad: Een oplossing ontwerpen (I-Nat-a LPD 5; I-Tec-a LPD 3)
+Duiding: Bij vraagstukken is de oplossingsmethode vaak aansluitend bij de pas geziene
+leerstof, terwijl bij problemen oplossen heuristieken en een oplossingsmethode
+moeten worden gekozen.
+Wenk: Je kan het oplossen van problemen best integreren in het normale lesgebeuren en
+gespreid doorheen het schooljaar laten terugkomen. De leerlingen ontwikkelen
+die vaardigheid het meest effectief door middel van een actief leerproces. Je kan
+bijvoorbeeld na een aantal leerinhouden of hoofdstukken problemen laten
+oplossen waarbij leerlingen zelf de passende leerinhoud moeten selecteren. Je
+kan ook problemen aan bod laten komen die los staan van de geziene
+leerinhouden.
+Wenk: Heuristische methoden worden veelvuldig gebruikt bij het oplossen van
+problemen. Belangrijk is ze bewust te laten ervaren en te expliciteren op het
+ogenblik dat ze spontaan worden gebruikt. In een eerste fase kan je leerlingen de
+heuristiek aanbieden of laten kiezen uit een beperkt aantal. Voorbeelden van
+heuristieken die aan bod kunnen komen: het gegeven en gevraagde expliciteren,
+het probleem herformuleren of opdelen in deelproblemen, een schets of tekening
+maken, bijzondere gevallen onderzoeken, tijdelijk één van de voorwaarden laten
+vallen, van achter naar voor werken, alle mogelijkheden opschrijven en dan
+elimineren.
+Wenk: Het demathematiseren kan gebeuren via een antwoordzin. Controleren of een
+antwoord realistisch is, hoort ook bij deze stap van het oplossingsproces.
+LPD 3 De leerlingen gebruiken ICT om berekeningen uit te voeren en grafische voorstellingen
+te maken.
+Wenk: Je kan ICT breed en strategisch (laten) inzetten en combineren met de
+inhoudelijke doelen.
+Wenk: Voorbeelden van grafische voorstellingen: meetkundige tekeningen en
+constructies, beelden bij transformaties, grafieken, tabellen, diagrammen.
+Wenk: Je kan aandacht schenken aan het zinvol gebruik van ICT, bv. bij berekeningen.
+LPD 4 De leerlingen gebruiken met de nodige nauwkeurigheid meetinstrumenten en
+hulpmiddelen.
+Samenhang eerste graad: Meetinstrumenten en hulpmiddelen (I-Nat-a LPD 2; I-Tec-a LPD 5)
+Wenk: Voorbeelden van meetinstrumenten en hulpmiddelen: meetlat (bv. lengte van
+lijnstuk op mm nauwkeurig), geodriehoek (bv. hoekgrootte op graad nauwkeurig),
+passer, formularium.
+12 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+LPD 5 De leerlingen gebruiken gepaste grootheden en eenheden in een correcte weergave.
+ Grootteorde en maatbesef van de grootheden tijd, lengte, oppervlakte, volume, inhoud en
+massa
+Herleiding van courante eenheden
+Samenhang eerste graad: Grootheden en eenheden (I-Nat-a LPD 3; I-Tec-a LPD 6)
+Wenk: Je kan de grootheden in symbolen, maar ook in woorden weergeven.
+Wenk: In een eerste stap kunnen bij herleidingen herleidingstabellen worden gebruikt als
+hulpmiddel. Na automatisatie is het niet meer nodig om steeds dat hulpmiddel te
+hanteren. Je kan omzettingen tussen volume en inhoud aan bod laten komen.
+Wenk: Niet-courante voorvoegsels zoals deca- en hecto- en niet-courante eenheden
+zoals landmaten zijn geen doel op zich maar kunnen worden gebruikt in specifieke
+situaties.
+Wenk: Je kan ook grootheden zoals temperatuur, hoekgrootte en geldwaarde aan bod
+laten komen.
+BG - De leerlingen gebruiken maatgetallen en eenheden van grootheden in
+betekenisvolle contexten.
+ Grootteorde en maatbesef van de grootheden tijd, lengte, oppervlakte, volume, inhoud en
+massa
+Duiding: In vergelijking met het bovenliggende leerplandoel zijn herleidingen niet vereist.
+LPD 6 De leerlingen beargumenteren wiskundige redeneringen.
+ Als-dan-relatie (implicatie, symbool ⇒), als-en-slechts-als-relatie (equivalentie, symbool ⇔)
+Wenk: Om de correctheid van een wiskundige uitspraak na te gaan kan het nuttig zijn om
+ze eerst te laten illustreren met voorbeelden. Om aan te tonen dat een uitspraak
+vals is kan er worden gewerkt met een tegenvoorbeeld.
+Wenk: Je kan dit leerplandoel breed inzetten en combineren met de inhoudelijke doelen.
+Wiskundige redeneringen of argumentaties komen bv. ook aan bod in oefeningen
+waarbij wiskundige eigenschappen worden toegepast.
+Wenk: Je kan aandacht schenken aan het gestructureerd verwoorden en noteren van de
+gedachtegang bij een redenering met correct gebruik van vakterminologie. Je kan
+tijdens de les de leerlingen hun redenering mondeling laten uitleggen en de
+leerlingen evalueren door mogelijke fouten aan te wijzen en te laten verbeteren.
+Je kan definities van wiskundige begrippen laten formuleren, waarbij de nadruk
+ligt op het inzichtelijk verwoorden eerder dan op een letterlijke reproductie.
+Wenk: Je kan de leerlingen vragen om stappen of delen uit redeneringen te geven. Je kan
+tussenstappen van een bewijs laten verantwoorden.
+Wenk: Het is de bedoeling dat leerlingen inzicht krijgen in het verschil tussen een
+implicatie en equivalentie en de symbolen ⇒ en ⇔ kunnen hanteren.
+Symbolen kunnen handig zijn om een uitdrukking verkort weer te geven. Het is 
+Wiskunde (versie oktober 2024) 13
+D/2024/13.758/017 I-Wis-a
+anderzijds niet de bedoeling om daarin te overdrijven, m.a.w. geen symboliek om
+de symboliek. Het is niet nodig dat de leerlingen de dubbele pijl systematisch
+gebruiken bij het oplossen van (eerstegraads)vergelijkingen.
+Extra: Je kan de leerlingen behandelde bewijzen van eigenschappen uit de andere
+rubrieken laten reconstrueren, eventueel in een gewijzigde situatie (zoals in een
+specifieke situatie of met andere symbolen). Voorbeelden: getalbewijzen (bv.
+deelbaarheidskenmerken), eigenschappen van meetkundige objecten in het vlak,
+hoofdeigenschap van evenredigheden (gelijkheid van kruisproducten).
+LPD 7 De leerlingen voeren bewerkingen uit met twee verzamelingen: doorsnede, unie en
+verschil.
+ Element, deelverzameling
+Symbolen ∈, ∉, ⊂, ⊄,∩,∪,∖
+Venndiagram
+Wenk: Je kan de link leggen met leerinhouden uit de andere rubrieken. Voorbeelden: de
+inclusies ℕ ⊂ ℤ ⊂ ℚ, delers en veelvouden van getallen, de classificatie van
+driehoeken en van vierhoeken, beschrijvingen van meetkundige situaties (bv. punt
+op een rechte en snijpunt van twee rechten).
+Wenk: Ook in contexten van buiten de wiskunde kunnen verzamelingen worden gebruikt
+om zaken te beschrijven.
+4.2 Getallenleer
+Minimumdoelen
+LPD 8 De leerlingen ordenen rationale getallen op een getallenas en met behulp van
+symbolen.
+ Symbolen <, >, ≤, ≥, =, ≠
+LPD 9 De leerlingen zetten rationale getallen om van de ene naar de andere
+voorstellingswijze: decimale vorm, breuk en procent.
+Wenk: Afhankelijk van de complexiteit van de omzetting kan ICT worden ingezet.
+Wenk: Voor rationale getallen met oneindig repeterende decimale vorm is het niet de
+bedoeling om een algemene werkwijze uit te leggen om die om te zetten naar de
+breukvorm.
+LPD 10 De leerlingen bepalen de grootste gemeenschappelijke deler en het kleinste
+gemeenschappelijk veelvoud van natuurlijke getallen.
+ Deling met rest, priemgetal
+Wenk: Je kan het verschil uitleggen tussen de deling met rest bij natuurlijke getallen en
+de deling van natuurlijke getallen als rationale getallen. Je kan de link leggen 
+14 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+tussen delers van natuurlijke getallen en opgaande delingen (d.w.z. delingen met
+rest gelijk aan nul).
+Wenk: Het is voldoende om één methode voor het bepalen van de grootste
+gemeenschappelijke deler of het kleinste gemeenschappelijk veelvoud aan bod te
+laten komen, bv. via de definitie (vergelijken van de rijen van delers of
+veelvouden). Bepaling via priemfactorisatie is niet noodzakelijk. Priemgetallen
+komen wel aan bod als getallen met juist twee delers.
+Wenk: Je kan dit leerplandoel realiseren in samenhang met LPD 11 over bewerkingen
+met breuken, i.h.b. breuken gelijknamig maken en vereenvoudigen.
+Wenk: Delers van natuurlijke getallen kunnen worden bepaald aan de hand van
+deelbaarheidskenmerken door bv. 2, 3, 4, 5, 9, 10, 25 en 100.
+Extra: Je kan verschillende algoritmes om de grootste gemene deler te bepalen met
+elkaar vergelijken. Voorbeelden: via de definitie, via priemfactorisatie en het
+algoritme van Euclides. Je kan voor concrete waardes van natuurlijke getallen
+kijken welk algoritme het snelst de grootste gemeenschappelijke deler bepaalt.
+Extra: Je kan de verzameling van de delers en veelvouden van een getal m.b.v. symbolen
+noteren.
+LPD 11 De leerlingen voeren de hoofdbewerkingen uit op natuurlijke, gehele en rationale
+getallen: optellen, aftrekken, vermenigvuldigen en delen.
+ Uitbreiding van de natuurlijke getallen (symbool ℕ) naar de gehele getallen (symbool ℤ) en
+van de gehele getallen naar de rationale getallen (symbool ℚ)
+Symbolen +, -, ·, :
+Wenk: De uitbreiding van de natuurlijke getallen naar de gehele getallen kan worden
+geduid via de aftrekking van natuurlijke getallen; de uitbreiding van de gehele
+getallen naar de rationale getallen via de deling van gehele getallen.
+Wenk: Afhankelijk van de complexiteit van de berekening kan ICT worden ingezet.
+Wenk: Je kan oefeningen over verhoudingen aan bod laten komen.
+BG - De leerlingen voeren met functioneel gebruik van ICT eenvoudige berekeningen
+uit met natuurlijke getallen en positieve decimale getallen met maximaal 2 cijfers na
+de komma in betekenisvolle contexten.
+Duiding: In vergelijking met het bovenliggende leerplandoel gaat het om eenvoudige
+berekeningen in betekenisvolle contexten, zijn bewerkingen met breuken en
+negatieve getallen niet vereist en mag ICT steeds worden gebruikt.
+LPD 12 De leerlingen gebruiken eigenschappen en rekenregels van de hoofdbewerkingen om
+handig te rekenen.
+ Tegengestelde, omgekeerde en absolute waarde van een getal met symbolen (.
+−1
+, |. |)
+Wenk: Je kan via het tegengestelde het verband leggen tussen optellen en aftrekken en
+via het omgekeerde het verband leggen tussen vermenigvuldigen en delen. 
+Wiskunde (versie oktober 2024) 15
+D/2024/13.758/017 I-Wis-a
+Wenk: Je kan de tekenregels aan bod laten komen en aandacht schenken aan de
+verschillende betekenissen van het minteken (toestandsteken, symbool van
+tegengestelde en bewerkingsteken). Het concept absolute waarde kan worden
+geduid via afstand op een getallenas en kan worden gebruikt bij het verwoorden
+van de tekenregels.
+Wenk: Voorbeelden van eigenschappen: commutativiteit, associativiteit, distributiviteit,
+eigenschappen van de getallen 0 en 1 bij bewerkingen (neutraal element en
+opslorpend element).
+Wenk: Je kan (als opstap naar LPD 33 over eerstegraadsvergelijkingen) oefeningen aan
+bod laten komen waarbij een ontbrekende term of factor moet worden ingevuld.
+LPD 13 De leerlingen voeren procentberekeningen uit.
+Wenk: Afhankelijk van de complexiteit van de berekening kan ICT worden ingezet.
+Wenk: Je kan aandacht schenken aan vlotte werkwijzen om procenten te berekenen, bv.
+korting van 20% is vermenigvuldigen met 0,8 of 21% BTW erbij is
+vermenigvuldigen met 1,21.
+Extra: Je kan laten terugrekenen met procenten, d.w.z. vanuit een gegeven procent het
+geheel bepalen.
+BG - De leerlingen voeren met functioneel gebruik van ICT eenvoudige
+procentberekeningen uit in betekenisvolle contexten.
+Duiding: In vergelijking met het bovenliggende leerplandoel gaat het om eenvoudige
+berekeningen in betekenisvolle contexten en mag ICT steeds worden gebruikt.
+LPD 14 De leerlingen nemen machten met gehele exponenten van rationale getallen en
+vierkantswortels bij natuurlijke getallen.
+ Symbolen .
+𝑛
+, √.
+Wenk: Het volstaat om vierkantswortels te nemen van volkomen kwadraten.
+Vierkantswortels van andere natuurlijke getallen komen aan bod in de tweede
+graad.
+Wenk: Afhankelijk van de complexiteit van de berekening kan ICT worden ingezet.
+Wenk: Je kan het metriek stelsel beschouwen als toepassing van machten met grondtal
+10.
+Extra: Je kan vierkantswortels laten nemen van volkomen kwadraten van breuken.
+Extra: Je kan de wetenschappelijke schrijfwijze aan bod laten komen als toepassing van
+machten met grondtal 10.
+LPD 15 De leerlingen passen rekenregels van machten met gehele exponenten toe.
+Wenk: Voorbeelden van rekenregels: product van machten met zelfde grondtal, deling
+van machten met zelfde grondtal, macht van een macht, macht van een product
+en macht van een quotiënt. 
+16 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+Het is aangewezen om aandacht te schenken aan inzicht in de rekenregels (bv.
+door ze te verantwoorden via goed gekozen voorbeelden) en om de rekenregels
+eerst apart in te oefenen.
+Extra: Je kan berekeningen met machten met letterexponenten aan bod laten komen.
+LPD 16 De leerlingen passen de volgorde van de bewerkingen toe en gebruiken daarbij het
+gelijkheidsteken correct.
+Wenk: Afhankelijk van de complexiteit van de berekening kan ICT worden ingezet.
+LPD 17 De leerlingen ronden af en schatten resultaten van bewerkingen.
+Wenk: Je kan getallen zinvol laten afronden, waarbij de afrondingstechniek afhangt van
+de context.
+Wenk: In bepaalde situaties volstaat een schatting van een resultaat; in andere situaties
+is een nauwkeurig resultaat nodig, maar kan een schatting als controle worden
+gebruikt.
+BG - De leerlingen ronden zinvol af en schatten resultaten van bewerkingen in
+betekenisvolle contexten.
+Duiding: In vergelijking met het bovenliggende leerplandoel gaat het om bewerkingen in
+betekenisvolle contexten.
+4.3 Meetkunde
+4.3.1 Vlakke meetkunde
+Minimumdoelen
+LPD 18 De leerlingen analyseren meetkundige objecten in het vlak met behulp van
+eigenschappen.
+ Eigenschappen van meetkundige objecten:
+• Hoeken bij twee evenwijdige rechten en een snijlijn
+• Hoekensom in driehoeken en vierhoeken
+• Hoeken in gelijkzijdige en gelijkbenige driehoeken
+• Zijden, hoeken en diagonalen in vierhoeken
+Wenk: Je kan de leerlingen eerst de eigenschappen laten onderzoeken (bv. via ICT,
+tekening of schets) en daarna laten formuleren.
+Extra: Je kan ook andere eigenschappen beschouwen. Voorbeelden:
+driehoeksongelijkheid, hoekensom van een veelhoek, ‘tegenover een grotere
+hoek ligt een langere zijde’, de omgekeerde eigenschap horend bij hoeken bij
+twee evenwijdige rechten en een snijlijn.
+Wiskunde (versie oktober 2024) 17
+D/2024/13.758/017 I-Wis-a
+LPD 19 De leerlingen classificeren driehoeken en vierhoeken.
+Wenk: De classificatie kan gebeuren op basis van bestudeerde eigenschappen, bv. van
+zijden, hoeken en diagonalen in vierhoeken (zie LPD 18).
+LPD 20 De leerlingen analyseren merkwaardige lijnen in driehoeken: bissectrice, hoogtelijn,
+middelloodlijn en zwaartelijn.
+Wenk: Je kan aandacht schenken aan het onderscheid tussen de verschillende
+merkwaardige lijnen en leerlingen die laten benoemen.
+Wenk: Je kan eigenschappen van merkwaardige lijnen aan bod laten komen zoals:
+− eigenschap van de middelloodlijn van een lijnstuk;
+− eigenschap van de bissectrice van een hoek;
+− concurrentie van merkwaardige lijnen in driehoeken;
+− samenvallen van merkwaardige lijnen in een gelijkbenige driehoek.
+Je kan de leerlingen eerst de eigenschappen laten onderzoeken (bv. via ICT,
+tekening of schets) en daarna laten formuleren.
+Extra: Je kan omgekeerde eigenschappen van merkwaardige lijnen aan bod laten komen.
+Bij het formuleren kan gebruik worden gemaakt van de enkele of dubbele pijl.
+LPD 21 De leerlingen analyseren meetkundige relaties in het vlak: evenwijdigheid, loodrechte
+stand en symmetrie.
+ Symbolen ∥, ∦, ⟂
+Wenk: Je kan leerlingen de onderlinge stand van twee rechten laten bepalen op basis van
+beweringen over de evenwijdigheid en loodrechte stand van een aantal rechten.
+Wenk: Je kan leerlingen laten bepalen of een gegeven vlakke figuur punt- of
+lijnsymmetrisch is.
+Extra: Je kan eigenschappen van symmetrie in driehoeken en vierhoeken aan bod laten
+komen.
+Extra: Je kan leerlingen voorbeelden laten zoeken van figuren die draaisymmetrisch zijn,
+maar niet punt- of lijnsymmetrisch.
+LPD 22 De leerlingen construeren meetkundige objecten met gegeven eigenschappen in het
+vlak.
+ Meetkundige objecten: lijnstukken, merkwaardige lijnen, driehoeken, vierhoeken en cirkels
+Wenk: Naast de traditionele hulpmiddelen (meetlat, passer, geodriehoek) kan je ook ICT
+inzetten bij dit leerplandoel.
+Wenk: Je kan constructies met behulp van passer en liniaal aan bod laten komen, zoals
+de constructie van:
+− hoek met gelijke hoekgrootte als gegeven hoek;
+− lijnstuk met gelijke lengte als gegeven lijnstuk;
+18 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+− cirkel (als meetkundige plaats) met gegeven middelpunt en straal;
+− middelloodlijn van een lijnstuk;
+− bissectrice van een hoek;
+− gelijkzijdige driehoek of driehoek met drie gegeven zijden;
+− ruit met gegeven zijde.
+Wenk: Je kan tekeningen met behulp van meetlat en geodriehoek aan bod laten komen,
+zoals:
+− hoek met gegeven hoekgrootte;
+− lijnstuk met gegeven lengte;
+− evenwijdige en loodrechte rechten;
+− driehoeken en vierhoeken met bepaalde eigenschappen of gegevens;
+− merkwaardige lijnen in een driehoek.
+Extra: Je kan bij een driehoek de ingeschreven of omgeschreven cirkel laten tekenen.
+LPD 23 De leerlingen leggen met behulp van eigenschappen het verband tussen een vlakke
+figuur en haar beeld onder een transformatie van het vlak.
+ Translatie over een vector, spiegeling om een as, spiegeling om een punt en rotatie rond
+een centrum over een hoek
+Verband tussen transformaties en congruentie
+Verband tussen transformaties en symmetrie
+Samenhang eerste graad: Krachten en hun uitwerking (I-Nat-a LPD 21)
+Duiding: Via dit leerplandoel worden translaties (verschuivingen), spiegelingen,
+puntspiegelingen en rotaties (draaiingen) bestudeerd. Traditioneel worden ze als
+transformaties benoemd, terwijl ze allemaal zelfs isometrieën zijn.
+Wenk: Leerlingen hoeven het beeld van een figuur door een transformatie niet te
+tekenen, maar dit kan wel bijdragen tot het inzicht. Je kan ook ICT inzetten om de
+transformaties voor te stellen.
+Wenk: Voorbeelden van eigenschappen van de transformaties: behoud van lengte,
+hoekgrootte, evenwijdigheid en collineariteit. Translaties en rotaties behouden de
+oriëntatie, spiegelingen om een as niet.
+Wenk: Het is niet nodig om de transformaties met letters voor te stellen.
+Wenk: Het beeld van een (bestudeerde) transformatie is steeds congruent met het
+origineel. Vlakke figuren zijn symmetrisch als er een (bestudeerde) transformatie
+bestaat die de figuur op zichzelf afbeeldt.
+Extra: Je kan een voorbeeld geven van een transformatie van het vlak die geen isometrie
+is. Zo kan je illustreren dat niet alle transformaties aan de bestudeerde
+eigenschappen voldoen.
+Extra: Gegeven twee congruente vlakke figuren, dan bestaat er een samenstelling van
+de transformaties waarvoor het beeld van de eerste figuur gelijk is aan de tweede
+figuur. Je kan leerlingen die transformaties laten zoeken.
+Extra: De eigenschappen van de transformaties kunnen worden gebruikt om op een
+efficiënte manier het beeld van een gegeven figuur te tekenen of bij het verklaren
+van meetkundige eigenschappen. 
+Wiskunde (versie oktober 2024) 19
+D/2024/13.758/017 I-Wis-a
+Extra: Indien het vlak voorzien is van een assenstelsel kan je de coördinaten van het
+beeldpunt bepalen vanuit de coördinaten van het origineel. Voorbeelden van
+transformaties: spiegeling om de 𝑥- of 𝑦-as, spiegeling om de oorsprong,
+translatie over een gegeven vector.
+LPD 24 De leerlingen passen congruentiekenmerken van driehoeken toe.
+ Congruentiekenmerken: ZZZ, ZHZ, HZH, ZZ90°
+Symbool ≅
+Wenk: Je kan de kenmerken eerst laten onderzoeken en daarna laten formuleren.
+Wenk: In eerste instantie worden congruentiekenmerken gebruikt om aan te tonen dat
+twee driehoeken congruent zijn. Je kan ze ook gebruiken om de gelijkheid aan te
+tonen van lengtes van zijden of groottes van hoeken.
+Wenk: Je kan ook het congruentiekenmerk ZHH behandelen of in deze situaties eerst de
+derde hoek laten bepalen (gebruik makend van de hoekensom van een driehoek)
+en dan het congruentiekenmerk HZH laten gebruiken.
+LPD 25 De leerlingen berekenen omtrek en oppervlakte van vlakke figuren: driehoek,
+trapezium, parallellogram, ruit, rechthoek, vierkant en cirkel.
+Duiding: De leerlingen mogen geen formularium gebruiken bij de realisatie van dit
+leerplandoel.
+Wenk: De formules voor de oppervlakte van een driehoek, trapezium, parallellogram en
+ruit kunnen worden afgeleid vanuit de formule voor de oppervlakte van een
+rechthoek. Dat inzicht kan er ook voor zorgen dat leerlingen bepaalde formules
+niet vanbuiten hoeven te leren.
+Extra: Je kan ook van samengestelde figuren de omtrek of oppervlakte laten bepalen.
+BG - De leerlingen berekenen de omtrek van een vierhoek en de oppervlakte van een
+rechthoek in betekenisvolle contexten.
+ Omtrek van een vierhoek als som van de lengtes van de zijden
+Oppervlakte van een rechthoek als product van de lengtes van de lange en korte zijde
+Duiding: In vergelijking met het bovenliggende leerplandoel gaat het over berekeningen
+van omtrek en oppervlakte in betekenisvolle contexten en worden de opgesomde
+soorten vlakke figuren beperkt.
+4.3.2 Ruimtemeetkunde
+Minimumdoelen
+LPD 26 De leerlingen analyseren ruimtefiguren vanuit aanzichten, perspectieven en 3Dfiguren: kubus, balk, piramide, bol, kegel en cilinder.
+ Snijdende, kruisende en evenwijdige rechten
+20 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+Verlies van informatie
+Symmetrie
+Wenk: Je kan ruimtefiguren laten herkennen en benoemen vanuit 2D- of 3Dvoorstellingen.
+Wenk: Het is niet nodig om het onderscheid tussen verschillende soorten perspectieven
+(bv. natuurlijk, cavalière- of isometrisch perspectief) aan bod te laten komen.
+Wenk: Voorbeelden bij verlies aan informatie: de hoekgrootte van hoeken, de lengte van
+lijnstukken, de onderlinge ligging van rechten (bv. kruisende rechten lijken
+snijdend te zijn), onzichtbare delen in een 2D-voorstelling.
+Wenk: Het volstaat om symmetrie in heel eenvoudige voorbeelden te tonen. Zo kan je
+illustreren dat ook in de ruimte (en dus niet enkel in het vlak) symmetrie kan
+voorkomen.
+Extra: Je kan 2D-voorstellingen zoals perspectieven of ontwikkelingen laten tekenen.
+LPD 27 De leerlingen berekenen oppervlakte en volume van ruimtefiguren: kubus, balk en
+cilinder.
+Duiding: De leerlingen mogen geen formularium gebruiken bij de realisatie van dit
+leerplandoel.
+Wenk: De oppervlakte van een kubus, balk of cilinder kan worden berekend door de som
+te nemen van de oppervlaktes van de zijvlakken (en de mantel in het geval van de
+cilinder). Leerlingen hoeven de bijhorende formules dus niet vanbuiten te kennen.
+Wenk: Bij zowel de kubus, de balk als de cilinder kan de inhoud worden bepaald door de
+oppervlakte van het grondvlak te vermenigvuldigen met de hoogte.
+Extra: Je kan de oppervlakte of het volume laten berekenen van andere ruimtefiguren
+met formularium. Voorbeelden: bol, kegel en piramide.
+4.4 Algebra
+Minimumdoelen
+LPD 28 De leerlingen hanteren coördinaten in het vlak.
+ Notatie (𝑥, 𝑦)
+Samenhang eerste graad: Relatief situeren (I-Aar-a LPD 14)
+Duiding: Het vlak is voorzien van een assenstelsel. Onder het hanteren van coördinaten
+valt zowel het bepalen van coördinaten van punten als het bepalen van punten
+a.d.h.v. coördinaten.
+Wenk: Voorbeelden van contexten: stadsplannen, landkaarten, plattegronden en
+gezelschapsspelen. Soms komt een coördinaat overeen met een letter i.p.v. een
+getal; soms komen gegeven coördinaten overeen met een gebied i.p.v. een punt
+in het vlak.
+Wiskunde (versie oktober 2024) 21
+D/2024/13.758/017 I-Wis-a
+LPD 29 De leerlingen gebruiken letters als onbekenden, als variabelen en voor
+veralgemeningen.
+Wenk: Letters worden gebruikt als onbekenden bij bv. vergelijkingen, als variabelen bij
+bv. formules voor omtrek, oppervlakte en volume van figuren en voor
+veralgemeningen bij bv. eigenschappen van de hoofdbewerkingen in symbolen.
+Dit leerplandoel wordt best gerealiseerd in samenhang met andere
+leerplandoelen waarin letters worden gebruikt.
+Wenk: De leerlingen gebruiken eerst woorden of getallen i.p.v. letters; later kunnen ze
+die vervangen door letters. Voor onbekenden hoeft niet steeds dezelfde letter te
+worden gebruikt. De formulegevoeligheid kan daardoor groeien.
+Extra: Je kan rekenregels van machten laten formaliseren met behulp van
+letterexponenten. Daarbij kan je aandacht schenken aan de voorwaarden
+waaraan de letters in de rekenregels moeten voldoen, al dan niet m.b.v. de
+kwantor ‘voor alle’.
+LPD 30 De leerlingen bepalen de getalwaarde van een algebraïsche uitdrukking.
+Wenk: Je kiest best relevante oefeningen en vermijdt oefeningen met een kunstmatige
+complexiteit. Je kan aandacht schenken aan betekenisvolle algebraïsche
+uitdrukkingen met meerdere variabelen, bv. oppervlakte en volume van figuren.
+LPD 31 De leerlingen stellen formules op die regelmaat in eenvoudige patronen en schema’s
+beschrijven.
+Wenk: Om regelmaat te ontdekken kan je eerst het patroon laten verderzetten. Om tot
+een letterformule te komen kan je als tussenstap werken met een woordformule.
+Wenk: Je kan ook niet-lineaire (bv. kwadratische) formules behandelen om de illusie van
+lineariteit tegen te gaan, bv. de vierhoeksgetallen.
+LPD 32 De leerlingen rekenen met algebraïsche uitdrukkingen: optellen, aftrekken en
+vermenigvuldigen.
+ Eigenschappen en rekenregels
+Uitwerking van merkwaardige producten tot een som: (𝑎 + 𝑏)² en (𝑎 + 𝑏)(𝑎 − 𝑏)
+Wenk: Voorbeelden van eigenschappen en rekenregels: veeltermen vereenvoudigen
+door gelijksoortige eentermen op te tellen (herleiden), tekenregels en
+distributiviteit (haakjesregels). Je kan de link leggen met LPD 12 over
+eigenschappen en rekenregels van de hoofdbewerkingen en LPD 15 over
+rekenregels van machten. Je kan bij veeltermen in één variabele de eentermen
+laten rangschikken volgens dalende exponent.
+Extra: Om het algebraïsch inzicht te verhogen kan je oefeningen aan bod laten komen
+waarbij een ontbrekende term of factor moet worden ingevuld.
+LPD 33 De leerlingen lossen vergelijkingen van de eerste graad op in één onbekende in de
+verzameling van de rationale getallen.
+22 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+Wenk: Een geleidelijke opbouw is aangewezen: je kan starten met eenvoudige
+vergelijkingen van de vorm 𝑥 + 𝑎 = 𝑏 en 𝑎𝑥 = 𝑏 en nadien pas overgaan naar de
+algemene vorm 𝑎𝑥 + 𝑏 = 𝑐.
+Wenk: Je kan de balansmethode gebruiken om eigenschappen van gelijkheden te duiden.
+Na automatisatie van die eigenschappen door de leerlingen hoeft er niet steeds
+meer worden teruggegrepen naar de balansmethode tijdens het oplossen van
+vergelijkingen.
+Wenk: Minstens komen eerstegraadsvergelijkingen met gehele coëfficiënten aan bod
+waarvan de oplossing rationaal (en niet noodzakelijk geheel) is. Indien je ook
+rationale coëfficiënten (bv. breuken) toelaat, dan beperk je best de complexiteit.
+Bij vergelijkingen waarin breuken voorkomen kan je eerst de noemers laten
+wegwerken.
+Wenk: Je kan vraagstukken met ongelijke verdeling aan bod laten komen. Het kan zinvol
+zijn om te verwijzen naar de veel gebruikte oplossingsmethode met stroken uit
+het basisonderwijs.
+Extra: Je kan formules laten omvormen. Je kiest dan best voor relevante oefeningen
+vanuit betekenisvolle contexten.
+LPD 34 De leerlingen analyseren recht en omgekeerd evenredige verbanden tussen
+grootheden.
+ Formules 𝑦/𝑥 = 𝑐 en 𝑥. 𝑦 = 𝑐 met 𝑐 de evenredigheidsfactor
+Tabel en grafiek
+Samenhang eerste graad: Schaal als verhouding (I-Aar-a LPD 13); massadichtheid als verhouding
+(I-Nat-a LPD 15); constante snelheid als verhouding (I-Tec-a LPD 8)
+Wenk: Voorbeelden van contexten bij recht evenredige verbanden: schaal (afstand op
+schaalmodel versus werkelijke afstand), massadichtheid (massa versus volume) en
+constante snelheid (afgelegde weg versus tijdsduur). Je kan de
+evenredigheidsfactor laten bepalen.
+Wenk: Bij gelijke verhoudingen kan de hoofdeigenschap van evenredigheden (gelijkheid
+van kruisproducten) worden toegepast. Het is niet nodig om het concept
+middelevenredige in te voeren.
+BG - De leerlingen voeren met functioneel gebruik van ICT eenvoudige berekeningen
+uit met verhoudingen in betekenisvolle contexten.
+ Verhoudingstabel
+Duiding: In vergelijking met het bovenliggende leerplandoel wordt het bestuderen van
+verbanden tussen grootheden niet vereist. Verhoudingstabellen mogen als
+hulpmiddel worden gebruikt bij eenvoudige berekeningen met verhoudingen in
+betekenisvolle contexten.
+Wenk: Voorbeelden van betekenisvolle contexten bij verhoudingen: recepten, schaal,
+prijzen van producten vergelijken.
+Wiskunde (versie oktober 2024) 23
+D/2024/13.758/017 I-Wis-a
+4.5 Data en onzekerheid
+Minimumdoelen
+LPD 35 BG - De leerlingen gebruiken informatie uit tabellen en diagrammen in betekenisvolle
+contexten.
+Wenk: Voorbeelden van betekenisvolle contexten: openbaar vervoer, prijsberekening en
+klassement bij sportwedstrijden. Je kan contexten uit de actualiteit gebruiken.
+Wenk: Voorbeelden van soorten diagrammen: staafdiagram, cirkeldiagram en
+lijndiagram.
+Wenk: Je kan je beperken tot tabellen met een beperkt aantal gegevens en enkelvoudige
+(i.p.v. samengestelde) diagrammen, maar dat is niet noodzakelijk. Bij eventuele
+berekeningen mag ICT worden gebruikt.
+LPD 36 De leerlingen voeren een beschrijvend statistisch onderzoek uit met nietgegroepeerde gegevens van één grootheid.
+ Tabel met absolute frequenties
+Staafdiagram, cirkeldiagram, lijndiagram
+Rekenkundig gemiddelde, mediaan, modus, variatiebreedte
+Wenk: De gegevens moeten niet zelf worden verzameld en mogen dus worden
+aangereikt. Het kan de motivatie van leerlingen wel verhogen als ze zelf gegevens
+mogen verzamelen.
+Je kan ingaan op het verschil tussen numerieke en categorische gegevens.
+Voorbeelden van numerieke data: lengte en tijdsduur. Voorbeelden van
+categorische data: kruis of munt bij opgooien van een muntstuk, geboortemaand
+en de gewichtsklassen bij sportwedstrijden.
+Wenk: Het is de bedoeling dat minstens één keer een volledig beschrijvend statistisch
+onderzoek wordt uitgevoerd met dezelfde gegevens. Je kan de volgende
+deelvaardigheden apart laten inoefenen:
+− gegevens voorstellen a.d.h.v. voorstellingswijzen m.b.v. ICT;
+− de centrummaten rekenkundig gemiddelde, mediaan en modus en de
+spreidingsmaat variatiebreedte bepalen m.b.v. ICT;
+− de voorstellingswijzen, centrummaten en spreidingsmaat interpreteren.
+Wenk: Je kan aandacht schenken aan het kiezen van een gepaste voorstellingswijze. Het
+maken van een absolute frequentietabel of een staafdiagram heeft bijvoorbeeld
+enkel zin voor gegevens met een beperkt aantal uitkomstwaarden.
+Extra: Je kan het rekenkundig gemiddelde of de mediaan laten bepalen vanuit een tabel
+met absolute frequenties.
+4.6 Computationeel denken
+Minimumdoelen
+24 Wiskunde (versie oktober 2024)
+I-Wis-a D/2024/13.758/017
+LPD 37 # De leerlingen ontwerpen doelgericht een digitaal en niet-digitaal algoritme volgens
+de principes van computationeel denken en debuggen het.
+ Principes van computationeel denken: decompositie, patroonherkenning, abstractie,
+algoritmen
+Wenk: Een algoritme is een reeks van opeenvolgende instructies of een stappenplan om
+een taak uit te voeren of een probleem op te lossen. Ook in wiskunde worden
+algoritmes gebruikt. Voorbeelden: zeef van Eratosthenes voor priemgetallen,
+deelbaarheidskenmerken, classificatie van meetkundige objecten, bepaling van
+mediaan …
+Wenk: Voor het digitale luik kan je werken met een grafische programmeertaal zoals
+Scratch of Blockly. Voor het niet-digitale luik (unplugged) kan je een algoritme
+laten representeren m.b.v. pseudocode of een stroomdiagram (flowchart). Je kan
+zowel digitaal als niet-digitaal fouten laten opsporen en verbeteren (debuggen).
+Wenk: Tijdens het ontwerpen van een algoritme schenk je best aandacht aan de
+principes van computationeel denken:
+− opdelen van een probleem in eenvoudigere deelproblemen (decompositie);
+− door gelijkenissen te zien in verschillende problemen kunnen dezelfde
+oplossingsmethodes worden gebruikt; door gelijkenissen te zien in algoritmes
+kunnen stukjes code zo worden geschreven dat ze verschillende keren
+kunnen worden gebruikt (patroonherkenning);
+− tot de essentie of kern van de zaak komen door overtolligheden weg te laten
+om zo het probleem eenvoudiger te maken (abstractie).

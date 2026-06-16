@@ -1,0 +1,308 @@
+<script setup>
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { 
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMathOperations, PhArrowClockwise, PhCaretUp, PhCaretDown
+} from '@phosphor-icons/vue'
+
+const props = defineProps({
+  isOpen: Boolean,
+  title: { type: String, default: 'Machten: Negatieve Exponenten' },
+  instruction: { 
+    type: String, 
+    default: 'Een macht vertelt je hoeveel keer je moet <strong>vermenigvuldigen</strong> met het grondtal (startend bij 1).<br/>Een NEGATIEVE macht betekent precies het omgekeerde: <strong>delen</strong>!<br/><br/><strong>Opdracht:</strong> Los de berekening op. Gebruik de machine om de exponent in te stellen en kijk wat er gebeurt. Vul daarna de breuk in.' 
+  },
+  currentStep: { type: Number, default: 1 },
+  totalSteps: { type: Number, default: 1 },
+  fullscreen: { type: Boolean, default: true },
+  icon: { type: Object, default: () => PhMathOperations }
+})
+
+const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const shouldPulse = ref(false)
+const isCorrect = ref(false)
+const isChecked = ref(false)
+const feedback = ref({ type: 'info', text: 'Gebruik de pijltjes om de exponent (het kleine getal) in te stellen.' })
+
+// Level Logic
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    goalText: 'Opdracht 1: De basis',
+    base: 3,
+    targetExponent: -2,
+    targetNum: 1,
+    targetDen: 9,
+    hintError: 'Kijk naar de machine als je hem op 3⁻² zet. Je begint met 1, en deelt twee keer door 3. Vul dit in als breuk.'
+  },
+  {
+    goalText: 'Opdracht 2: Een ander grondtal',
+    base: 2,
+    targetExponent: -3,
+    targetNum: 1,
+    targetDen: 8,
+    hintError: 'Kijk naar de machine op 2⁻³. Je deelt Drie keer door 2. Dat is 1 gedeeld door (2×2×2).'
+  },
+  {
+    goalText: 'Opdracht 3: Exponent nul en negatief',
+    base: 5,
+    targetExponent: -2,
+    targetNum: 1,
+    targetDen: 25,
+    hintError: '5⁻² betekent: deel 1 twee keer door 5. Dus 1 gedeeld door 25.'
+  }
+]
+
+const currentLevelData = computed(() => levels[currentInternalLevel.value])
+
+// Domain Logic
+const exponent = ref(0) // Start at 0
+
+const userNum = ref(null)
+const userDen = ref(null)
+
+const operationList = computed(() => {
+    let ops = []
+    if (exponent.value > 0) {
+        for(let i=0; i<exponent.value; i++) ops.push(`× ${currentLevelData.value.base}`)
+    } else if (exponent.value < 0) {
+        for(let i=0; i<Math.abs(exponent.value); i++) ops.push(`÷ ${currentLevelData.value.base}`)
+    }
+    return ops
+})
+
+const currentResultStr = computed(() => {
+    if (exponent.value >= 0) return Math.pow(currentLevelData.value.base, exponent.value).toString()
+    return `1 / ${Math.pow(currentLevelData.value.base, Math.abs(exponent.value))}`
+})
+
+function increaseExponent() {
+    if (exponent.value < 3 && !isCorrect.value) exponent.value++
+}
+function decreaseExponent() {
+    if (exponent.value > -3 && !isCorrect.value) exponent.value--
+}
+
+function resetActivityState() {
+    isCorrect.value = false;
+    isChecked.value = false;
+    feedback.value = { type: 'info', text: 'Gebruik de pijltjes om de exponent (het kleine getal) in te stellen.' };
+    exponent.value = 0;
+    userNum.value = null;
+    userDen.value = null;
+}
+
+function checkAnswer() {
+  isChecked.value = true;
+  
+  const data = currentLevelData.value;
+
+  if (userNum.value === data.targetNum && userDen.value === data.targetDen) {
+    if (exponent.value === data.targetExponent) {
+        isCorrect.value = true
+        feedback.value = { 
+          type: 'success', 
+          text: `Perfect! Een negatieve exponent levert een breuk op, geen negatief getal. ${data.base} tot de macht ${data.targetExponent} is ${data.targetNum}/${data.targetDen}.` 
+        }
+    } else {
+        isCorrect.value = false
+        feedback.value = { type: 'error', text: `Jouw breuk is wiskundig correct! Maar stel eerst de exponentiemachine in op de gevraagde macht (${data.targetExponent}) om de werking te zien.`}
+    }
+  } else {
+    isCorrect.value = false
+    
+    if (userNum.value === -(data.targetDen)) {
+        feedback.value = { type: 'error', text: 'Fout! Een negatieve exponent maakt het getal NIET negatief. Het betekent DELEN. Kijk naar de output van de machine.'}
+    } else if (userNum.value === data.base * data.targetExponent) {
+        feedback.value = { type: 'error', text: 'Een macht is niet gewoon grondtal maal exponent. Een macht is herhaald vermenigvuldigen (of delen) met ZICHZELF.'}
+    } else {
+        feedback.value = { type: 'error', text: data.hintError }
+    }
+  }
+}
+
+function handleNext() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++;
+    resetActivityState();
+  } else {
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
+    else emit('complete');
+  }
+}
+
+// Lifecycle
+watch(() => props.isOpen, (val) => {
+  if (val) {
+    currentInternalLevel.value = 0;
+    resetActivityState();
+    window.addEventListener('keydown', handleKeydown)
+    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
+    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else {
+    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+    window.removeEventListener('keydown', handleKeydown)
+    shouldPulse.value = false
+  }
+}, { immediate: true })
+
+function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
+const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
+onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+})
+</script>
+
+<template>
+<div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
+    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+      
+      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-pink-600" />
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+              <div class="flex gap-1">
+                <div v-for="i in totalInternalLevels" :key="i" 
+                     class="w-2 h-2 rounded-full" 
+                     :class="i <= currentInternalLevel + 1 ? 'bg-pink-500' : 'bg-slate-200'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+          <PhX class="w-6 h-6" />
+        </button>
+      </header>
+
+      <main class="flex flex-1 overflow-hidden">
+        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
+          <div class="flex-1 p-6 overflow-y-auto">
+            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
+            
+            <div class="text-center bg-pink-50 p-4 border border-pink-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-pink-800">{{ currentLevelData.goalText }}</p>
+            </div>
+
+            <div class="p-4 mt-6 border border-pink-200 bg-pink-50 rounded-xl shadow-inner text-center">
+               <label class="block text-sm font-bold text-pink-900 mb-4">Mijn Antwoord:</label>
+               
+               <div class="flex items-center justify-center gap-4 text-3xl font-black text-slate-700 mb-2">
+                   <div class="flex items-start">
+                       <span>{{ currentLevelData.base }}</span>
+                       <span class="text-xl -mt-1">{{ currentLevelData.targetExponent }}</span>
+                   </div>
+                   <span>=</span>
+                   
+                   <div class="flex flex-col items-center gap-1 w-16">
+                       <input type="number" v-model.number="userNum" placeholder="?" :disabled="isCorrect"
+                              class="w-full font-bold text-xl p-2 border border-pink-300 rounded focus:border-pink-500 focus:ring-pink-500 text-center bg-white" />
+                       <div class="h-1 w-full bg-slate-700 rounded-full"></div>
+                       <input type="number" v-model.number="userDen" placeholder="?" :disabled="isCorrect"
+                              class="w-full font-bold text-xl p-2 border border-pink-300 rounded focus:border-pink-500 focus:ring-pink-500 text-center bg-white" />
+                   </div>
+               </div>
+            </div>
+          </div>
+
+          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug">{{ feedback.text }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (userNum === null || userDen === null)" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Breuk</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
+                <PhArrowRight weight="bold" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+              
+              <!-- The Factory Machine -->
+              <div class="w-full max-w-3xl bg-slate-800 p-8 rounded-3xl shadow-2xl border-b-8 border-slate-900 flex flex-col items-center relative overflow-hidden">
+                  
+                  <h3 class="text-slate-400 font-bold tracking-widest text-sm mb-8 uppercase">De Exponenten Machine</h3>
+
+                  <!-- Machine Pipeline -->
+                  <div class="flex items-center w-full justify-between relative z-10 px-8">
+                      
+                      <!-- Input (Always 1) -->
+                      <div class="w-20 h-20 rounded-full bg-slate-700 border-4 border-slate-600 flex items-center justify-center shadow-inner shrink-0">
+                          <span class="font-black text-3xl text-white">1</span>
+                      </div>
+
+                      <div class="h-2 flex-1 bg-slate-700 mx-2 relative flex items-center justify-center">
+                          <!-- Arrows/Operations dynamically rendered -->
+                          <div v-if="operationList.length === 0" class="bg-slate-800 px-2 text-slate-500 font-bold">Geen Actie (macht = 0)</div>
+                          <div v-else class="flex gap-2 bg-slate-800 px-4 py-2 rounded-full border-2 border-slate-600">
+                              <span v-for="(op, idx) in operationList" :key="idx" class="font-bold whitespace-nowrap animate-fadeIn"
+                                    :class="exponent > 0 ? 'text-emerald-400' : 'text-pink-400'">
+                                  {{ op }}
+                              </span>
+                          </div>
+                      </div>
+
+                      <!-- Output -->
+                      <div class="w-24 h-24 rounded-2xl bg-white border-4 border-slate-300 flex items-center justify-center shadow-lg relative overflow-hidden shrink-0">
+                          <div class="absolute inset-0 bg-blue-500 opacity-10"></div>
+                          <span class="font-black text-2xl text-slate-800 transition-all duration-300" :key="currentResultStr">{{ currentResultStr }}</span>
+                      </div>
+                      
+                  </div>
+
+                  <!-- Machine Control Panel -->
+                  <div class="mt-12 bg-slate-200 p-6 rounded-2xl flex items-center gap-8 shadow-inner border-t border-white/50 w-full max-w-sm">
+                      
+                      <div class="flex flex-col items-center">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-2">Basis</span>
+                          <div class="w-16 h-16 bg-white rounded-lg shadow-sm border border-slate-300 flex items-center justify-center">
+                              <span class="font-black text-4xl text-slate-700">{{ currentLevelData.base }}</span>
+                          </div>
+                      </div>
+
+                      <div class="flex-1 flex flex-col items-center">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-2">Exponent</span>
+                          <div class="flex items-center bg-white rounded-lg shadow-sm border border-slate-300 overflow-hidden w-full">
+                              <button @click="decreaseExponent" :disabled="isCorrect" class="p-4 hover:bg-slate-100 active:bg-slate-200 transition-colors border-r border-slate-300"><PhCaretDown weight="bold" class="text-slate-600" /></button>
+                              <div class="flex-1 flex items-center justify-center font-black text-2xl" :class="exponent < 0 ? 'text-pink-600' : (exponent > 0 ? 'text-emerald-600' : 'text-slate-700')">
+                                  {{ exponent }}
+                              </div>
+                              <button @click="increaseExponent" :disabled="isCorrect" class="p-4 hover:bg-slate-100 active:bg-slate-200 transition-colors border-l border-slate-300"><PhCaretUp weight="bold" class="text-slate-600" /></button>
+                          </div>
+                      </div>
+
+                  </div>
+
+              </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+:root { font-family: 'Inter', sans-serif; }
+.pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+</style>
