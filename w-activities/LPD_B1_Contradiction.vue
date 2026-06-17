@@ -152,6 +152,7 @@ celebrationDone.value = false
 function nextLevel() {
     currentInternalLevel.value++
     resetActivityState()
+    nextTick(() => mainArea.value?.focus())
 }
 
 function handleLevelComplete() {
@@ -172,6 +173,7 @@ watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
     resetActivityState();
+    nextTick(() => mainArea.value?.focus())
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -225,7 +227,7 @@ onUnmounted(() => {
 
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
-          <div class="flex-1 p-6 overflow-y-auto">
+          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
             <MathText :content="currentLevelData.instruction" class="mb-6 prose prose-sm prose-invert text-slate-300" />
 
@@ -238,7 +240,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
