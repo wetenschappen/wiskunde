@@ -142,22 +142,22 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: 'Briljant! ' + data.fractionDisplay + ' = ' + data.targetSquares + '/100 = ' + data.targetDecimal + ' = ' + data.targetPercent + '%.'
+      text: 'Prima! Briljant! ' + data.fractionDisplay + ' = ' + data.targetSquares + '/100 = ' + data.targetDecimal + ' = ' + data.targetPercent + '%.'
     }
   } else {
     isCorrect.value = false
 
     if (attemptCount.value === 1) {
       if (coloredCount.value !== data.targetSquares) {
-        feedback.value = { type: 'error', text: 'Het aantal gekleurde blokjes klopt niet. ' + data.hintSquare }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het aantal gekleurde blokjes klopt niet. ' + data.hintSquare }
       } else if (decimalNum !== data.targetDecimal) {
-        feedback.value = { type: 'error', text: 'Het rooster klopt! Maar het kommagetal is fout. ' + data.hintDecimal }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het rooster klopt! Maar het kommagetal is fout. ' + data.hintDecimal }
       } else {
-        feedback.value = { type: 'error', text: 'Het rooster en kommagetal kloppen! Maar het percentage is fout. ' + data.hintPercent }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het rooster en kommagetal kloppen! Maar het percentage is fout. ' + data.hintPercent }
       }
     } else if (attemptCount.value === 2) {
       if (coloredCount.value !== data.targetSquares) {
-        feedback.value = { type: 'error', text: 'Je hebt ' + coloredCount.value + ' blokjes gekleurd. Het moeten er ' + data.targetSquares + ' zijn (' + data.fractionDisplay + ' van 100).' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Je hebt ' + coloredCount.value + ' blokjes gekleurd. Het moeten er ' + data.targetSquares + ' zijn (' + data.fractionDisplay + ' van 100).' }
       } else if (decimalNum !== data.targetDecimal) {
         feedback.value = { type: 'error', text: data.fractionDisplay + ' = ' + data.targetSquares + '/100. Hoe schrijf je ' + data.targetSquares + ' honderdsten als kommagetal?' }
       } else {
@@ -165,11 +165,11 @@ function checkAnswer() {
       }
     } else {
       if (coloredCount.value !== data.targetSquares) {
-        feedback.value = { type: 'error', text: 'Kleur exact ' + data.targetSquares + ' blokjes voor ' + data.fractionDisplay + '.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Kleur exact ' + data.targetSquares + ' blokjes voor ' + data.fractionDisplay + '.' }
       } else if (decimalNum !== data.targetDecimal) {
-        feedback.value = { type: 'error', text: 'Het juiste kommagetal is ' + data.targetDecimal + '.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het juiste kommagetal is ' + data.targetDecimal + '.' }
       } else {
-        feedback.value = { type: 'error', text: 'Het juiste percentage is ' + data.targetPercent + '%.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het juiste percentage is ' + data.targetPercent + '%.' }
       }
     }
   }
@@ -217,7 +217,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -237,7 +237,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -285,9 +285,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Alles</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Alles</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -322,12 +322,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

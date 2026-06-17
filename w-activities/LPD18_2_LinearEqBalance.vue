@@ -122,7 +122,7 @@ function applyOperation() {
   if (isNaN(val)) return;
 
   if (opType.value === '/' && val === 0) {
-    feedback.value = { type: 'error', text: 'Delen door 0 is wiskundig niet toegestaan!' };
+    feedback.value = { type: 'error', text: 'Niet helemaal... Delen door 0 is wiskundig niet toegestaan!' };
     return;
   }
 
@@ -140,14 +140,14 @@ function applyOperation() {
     else { newLx -= val; newRx -= val; }
   } else if (opType.value === '*') {
     if (opVarType.value === 'x') {
-      feedback.value = { type: 'error', text: 'Vermenigvuldigen met x mag, maar geeft tweedegraadsvergelijkingen (x²). We houden het hier bij eerstegraads.' };
+      feedback.value = { type: 'error', text: 'Niet helemaal... Vermenigvuldigen met x mag, maar geeft tweedegraadsvergelijkingen (\\(x^2\\)). We houden het hier bij eerstegraads.' };
       return;
     }
     newLx *= val; newLc *= val;
     newRx *= val; newRc *= val;
   } else if (opType.value === '/') {
     if (opVarType.value === 'x') {
-      feedback.value = { type: 'error', text: 'Delen door x mag alleen als je zeker weet dat x niet 0 is. In de balansmethode doen we dit best niet.' };
+      feedback.value = { type: 'error', text: 'Niet helemaal... Delen door x mag alleen als je zeker weet dat x niet 0 is. In de balansmethode doen we dit best niet.' };
       return;
     }
     newLx /= val; newLc /= val;
@@ -175,7 +175,7 @@ function checkWin() {
   } else if (leftExpr.value.x === 0 && rightExpr.value.x === 0) {
     isCorrect.value = false;
     attemptCount.value++;
-    feedback.value = { type: 'error', text: 'Oeps! Je hebt aan beide kanten alle x-termen weggewerkt. Je weegschaal klopt nog steeds, maar je kan x niet meer vinden. Reset en probeer opnieuw.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Oeps! Je hebt aan beide kanten alle x-termen weggewerkt. Je weegschaal klopt nog steeds, maar je kan x niet meer vinden. Reset en probeer opnieuw.' }
   } else {
     isCorrect.value = false;
     attemptCount.value++;
@@ -247,11 +247,12 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -273,7 +274,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -297,10 +298,10 @@ onUnmounted(() => {
               <div class="flex flex-col gap-4">
 
                 <div class="flex gap-2">
-                  <button @click="opType = '+'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center" :class="opType === '+' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhPlus /></button>
-                  <button @click="opType = '-'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center" :class="opType === '-' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhMinus /></button>
-                  <button @click="opType = '*'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center" :class="opType === '*' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhMultiply /></button>
-                  <button @click="opType = '/'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center" :class="opType === '/' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhDivide /></button>
+                  <button @click="opType = '+'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="opType === '+' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhPlus /></button>
+                  <button @click="opType = '-'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="opType === '-' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhMinus /></button>
+                  <button @click="opType = '*'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="opType === '*' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhMultiply /></button>
+                  <button @click="opType = '/'" class="flex-1 h-12 rounded-lg font-black text-xl border-2 transition-colors flex items-center justify-center active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="opType === '/' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'"><PhDivide /></button>
                 </div>
 
                 <div class="flex gap-2 items-center">
@@ -313,7 +314,7 @@ onUnmounted(() => {
                    </select>
                 </div>
 
-                <button @click="applyOperation" :disabled="isCorrect" class="w-full py-4 bg-math-blue hover:bg-math-blue active:scale-[0.98] text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50">
+                <button @click="applyOperation" :disabled="isCorrect" class="w-full py-4 bg-math-blue hover:bg-math-blue active:scale-[0.98] text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                    Uitvoeren op Beide Kanten
                 </button>
 
@@ -334,11 +335,11 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -390,7 +391,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -406,10 +407,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

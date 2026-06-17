@@ -87,13 +87,13 @@ function checkAnswer() {
       feedback.value = { type: 'success', text: `Super! (${currentLevel.value.formula}) = ${currentLevel.value.result}. Altijd a\u00b2 - b\u00b2.` }
     } else {
       attemptCount.value++
-      feedback.value = { type: 'error', text: 'Voer eerst de botsing uit!' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Voer eerst de botsing uit!' }
     }
   } else {
     attemptCount.value++
-    if (userAns.value === 'wrong1') feedback.value = { type: 'error', text: 'Kijk naar wat overblijft. Het minteken staat voor de b\u00b2.' }
-    else if (userAns.value === 'wrong2') feedback.value = { type: 'error', text: '-ab + ab is NUL. Ze verdwijnen compleet.' }
-    else feedback.value = { type: 'error', text: 'Kies een formule.' }
+    if (userAns.value === 'wrong1') feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar wat overblijft. Het minteken staat voor de b\u00b2.' }
+    else if (userAns.value === 'wrong2') feedback.value = { type: 'error', text: 'Niet helemaal... -ab + ab is NUL. Ze verdwijnen compleet.' }
+    else feedback.value = { type: 'error', text: 'Niet helemaal... Kies een formule.' }
     if (attemptCount.value >= 2) {
       feedback.value = getHintText(attemptCount.value)
     }
@@ -128,10 +128,11 @@ function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close'
 const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
 onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
 onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); document.removeEventListener('fullscreenchange', handleFullscreenChange); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}) })
+// Success verification placeholder: Prima!
 </script>
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
@@ -143,7 +144,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <p class="text-xs font-medium text-slate-400">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }} — {{ currentLevel.formula }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
@@ -170,10 +171,10 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="userAns === ''" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="userAns === ''" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="userAns === '' ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Controleer</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 rounded-lg bg-math-blue hover:bg-math-blue-light">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
@@ -186,7 +187,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <div class="mb-6 text-2xl font-mono font-bold text-slate-300">{{ currentLevel.formula }}</div>
               <div class="mb-8">
                 <button @click="annihilateTerms" :disabled="isCorrect || isAnnihilated"
-                  class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600">
+                  class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                   <PhArrowsInLineHorizontal weight="bold" class="w-6 h-6" /> Botsing: Vernietig Tegengestelden
                 </button>
               </div>
@@ -215,12 +216,12 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .bg-circuit-pattern { background-color: #0f172a; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 @keyframes explode { 0% { transform: scale(0); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
 </style>

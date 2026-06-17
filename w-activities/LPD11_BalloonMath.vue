@@ -133,7 +133,7 @@ function checkAnswer() {
   isChecked.value = true
 
   if (userAns.value === null || userAns.value === undefined || userAns.value === '') {
-    feedback.value = { type: 'error', text: 'Vul eerst een getal in voordat je controleert.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Vul eerst een getal in voordat je controleert.' }
     return
   }
 
@@ -143,17 +143,17 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: 'Perfect! De visuele bewerking klopt exact met de nieuwe hoogte.'
+      text: 'Prima!! De visuele bewerking klopt exact met de nieuwe hoogte.'
     }
   } else {
     attemptCount.value++
 
     if (userAns.value === d.startAlt + Math.abs(d.weightVal) && d.isAdd) {
-      feedback.value = { type: 'error', text: 'Je hebt de zandzakken erbij opgeteld (hoogte gestegen), maar we VOEGEN zandzakken TOE, dus de ballon wordt zwaarder en daalt!' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Je hebt de zandzakken erbij opgeteld (hoogte gestegen), maar we VOEGEN zandzakken TOE, dus de ballon wordt zwaarder en daalt!' }
     } else if (userAns.value === d.startAlt - Math.abs(d.weightVal) && !d.isAdd) {
-      feedback.value = { type: 'error', text: 'Je bent gedaald in hoogte, maar we HALEN zandzakken WEG (-), dus de ballon wordt lichter en stijgt!' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Je bent gedaald in hoogte, maar we HALEN zandzakken WEG (-), dus de ballon wordt lichter en stijgt!' }
     } else {
-      feedback.value = { type: 'error', text: 'Kijk naar de meter van de ballon in de lucht. Op welke hoogte stopt hij?' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de meter van de ballon in de lucht. Op welke hoogte stopt hij?' }
     }
   }
 }
@@ -197,7 +197,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -217,7 +217,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -262,9 +262,9 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -280,7 +280,7 @@ onUnmounted(() => {
                   <!-- Controls -->
                   <div class="absolute top-0 right-0 bg-white p-4 rounded-xl shadow-md border border-slate-200 z-30">
                       <button @click="performAction" :disabled="actionDone || isCorrect"
-                              class="flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-white transition-all shadow-sm active:scale-95"
+                              class="flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-white transition-all shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                               :class="actionDone || isCorrect ? 'bg-slate-300' : 'bg-math-blue hover:bg-math-blue'">
                           <PhHandGrabbing v-if="!currentLevelData.isAdd" weight="fill" />
                           <PhPlus v-if="currentLevelData.isAdd" weight="bold" />
@@ -334,12 +334,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

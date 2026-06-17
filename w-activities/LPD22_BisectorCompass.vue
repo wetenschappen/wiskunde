@@ -127,7 +127,7 @@ function drawCircles() {
     if (isCorrect.value) return;
     if (!compassRadiusSet.value) {
         attemptCount.value++
-        feedback.value = { type: 'error', text: 'Stel eerst de passeropening (straal) in! ' + getHint() }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Stel eerst de passeropening (straal) in! ' + getHint() }
         return
     }
     circlesDrawn.value = true
@@ -138,7 +138,7 @@ function drawLine() {
     if (isCorrect.value) return;
     if (!circlesDrawn.value) {
         attemptCount.value++
-        feedback.value = { type: 'error', text: 'Je moet eerst de snijpunten zoeken met de passer! ' + getHint() }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Je moet eerst de snijpunten zoeken met de passer! ' + getHint() }
         return
     }
     lineDrawn.value = true
@@ -164,7 +164,7 @@ function checkAnswer() {
     attemptCount.value = 0
     feedback.value = {
       type: 'success',
-      text: 'Magisch, toch? De verbindingslijn is ALTIJD exact de middelloodlijn, ongeacht hoe het lijnstuk gedraaid staat.'
+      text: 'Prima! Magisch, toch? De verbindingslijn is ALTIJD exact de middelloodlijn, ongeacht hoe het lijnstuk gedraaid staat.'
     }
   }
 }
@@ -209,7 +209,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -229,7 +229,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -248,15 +248,15 @@ onUnmounted(() => {
                <h4 class="font-bold text-slate-700 mb-3">Stappenplan:</h4>
 
                <div class="flex flex-col gap-2">
-                   <button @click="setRadius" :disabled="isCorrect || compassRadiusSet" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between" :class="compassRadiusSet ? 'bg-math-blue-bg border-math-blue text-math-blue' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
+                   <button @click="setRadius" :disabled="isCorrect || compassRadiusSet" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="compassRadiusSet ? 'bg-math-blue-bg border-math-blue text-math-blue' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        <span>1. Stel passer in (> helft)</span>
                        <PhCheckCircle v-if="compassRadiusSet" weight="fill" class="text-math-blue" />
                    </button>
-                   <button @click="drawCircles" :disabled="isCorrect || circlesDrawn" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between" :class="circlesDrawn ? 'bg-math-blue-bg border-math-blue text-math-blue' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
+                   <button @click="drawCircles" :disabled="isCorrect || circlesDrawn" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="circlesDrawn ? 'bg-math-blue-bg border-math-blue text-math-blue' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        <span>2. Teken cirkel A én B</span>
                        <PhCheckCircle v-if="circlesDrawn" weight="fill" class="text-math-blue" />
                    </button>
-                   <button @click="drawLine" :disabled="isCorrect || lineDrawn" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between" :class="lineDrawn ? 'bg-emerald-100 border-emerald-400 text-emerald-700' : 'bg-slate-800 border-slate-900 text-white hover:bg-slate-700 disabled:opacity-50'">
+                   <button @click="drawLine" :disabled="isCorrect || lineDrawn" class="py-2 px-4 rounded-lg border-2 font-bold text-left transition-colors flex items-center justify-between active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="lineDrawn ? 'bg-emerald-100 border-emerald-400 text-emerald-700' : 'bg-slate-800 border-slate-900 text-white hover:bg-slate-700 disabled:opacity-50'">
                        <span>3. Verbind de snijpunten</span>
                        <PhCheckCircle v-if="lineDrawn" weight="fill" class="text-emerald-500" />
                    </button>
@@ -270,8 +270,8 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -342,12 +342,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
 </style>

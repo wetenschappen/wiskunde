@@ -108,7 +108,7 @@ function hasWall(x, y) {
 
 function runAlgorithm() {
     if (algorithm.value.length === 0) {
-        feedback.value = { type: 'error', text: 'Je algoritme is leeg! Voeg instructies toe.'}
+        feedback.value = { type: 'error', text: 'Niet helemaal... Je algoritme is leeg! Voeg instructies toe.'}
         return
     }
 
@@ -169,24 +169,24 @@ function finishRun(crashed = false) {
         isCorrect.value = false
         attemptCount.value++
         if (attemptCount.value === 1) {
-          feedback.value = { type: 'error', text: 'BAM! Je robot is gecrasht. Er zit een "bug" in je code. Probeer opnieuw.'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... BAM! Je robot is gecrasht. Er zit een "bug" in je code. Probeer opnieuw.'}
         } else if (attemptCount.value === 2) {
           feedback.value = { type: 'error', text: 'Bijna! Kijk goed naar waar de muur staat en pas je route aan.'}
         } else {
-          feedback.value = { type: 'error', text: 'De muren staan op vaste plekken. Probeer een andere volgorde van stappen. Het doel is (3,3).'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... De muren staan op vaste plekken. Probeer een andere volgorde van stappen. Het doel is (3,3).'}
         }
     } else if (robotX.value === goalX.value && robotY.value === goalY.value) {
         isCorrect.value = true
-        feedback.value = { type: 'success', text: 'Programma succesvol afgerond! Je algoritme is bug-vrij en heeft het doel bereikt.'}
+        feedback.value = { type: 'success', text: 'Prima! Programma succesvol afgerond! Je algoritme is bug-vrij en heeft het doel bereikt.'}
     } else {
         isCorrect.value = false
         attemptCount.value++
         if (attemptCount.value === 1) {
-          feedback.value = { type: 'error', text: 'Je programma is gestopt, maar je hebt het doel niet bereikt. Je mist nog instructies.'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... Je programma is gestopt, maar je hebt het doel niet bereikt. Je mist nog instructies.'}
         } else if (attemptCount.value === 2) {
-          feedback.value = { type: 'error', text: 'Het doel is op (3,3). Tel je stappen: hoeveel naar rechts en omhoog heb je nodig?'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... Het doel is op (3,3). Tel je stappen: hoeveel naar rechts en omhoog heb je nodig?'}
         } else {
-          feedback.value = { type: 'error', text: 'Doel = (3,3). Je start op (0,0). Je hebt 3 stappen naar rechts en 3 omhoog nodig (minus omwegen om muren).'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... Doel = (3,3). Je start op (0,0). Je hebt 3 stappen naar rechts en 3 omhoog nodig (minus omwegen om muren).'}
         }
     }
 }
@@ -255,7 +255,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
@@ -275,7 +275,7 @@ onUnmounted(() => {
             </span>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -292,12 +292,12 @@ onUnmounted(() => {
 
                <div class="grid grid-cols-3 gap-2 w-32 mx-auto">
                    <div></div>
-                   <button @click="addCommand('up')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretUp weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('up')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretUp weight="bold" class="w-6 h-6 text-white" /></button>
                    <div></div>
 
-                   <button @click="addCommand('left')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretLeft weight="bold" class="w-6 h-6 text-white" /></button>
-                   <button @click="addCommand('down')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretDown weight="bold" class="w-6 h-6 text-white" /></button>
-                   <button @click="addCommand('right')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretRight weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('left')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretLeft weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('down')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretDown weight="bold" class="w-6 h-6 text-white" /></button>
+                   <button @click="addCommand('right')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretRight weight="bold" class="w-6 h-6 text-white" /></button>
                </div>
 
                <div class="min-h-[60px] bg-slate-900 border-2 border-slate-600 rounded-xl p-4 flex flex-wrap gap-2 items-center">
@@ -311,7 +311,7 @@ onUnmounted(() => {
                    </div>
                </div>
 
-               <button @click="removeLast" :disabled="isRunning || isCorrect || algorithm.length === 0" class="self-end flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors">
+               <button @click="removeLast" :disabled="isRunning || isCorrect || algorithm.length === 0" class="self-end flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                    <PhBackspace weight="fill" /> Wis laatste
                </button>
 
@@ -324,10 +324,10 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetPosition" :disabled="isRunning" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button @click="resetPosition" :disabled="isRunning" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
 
-              <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Voer Uit</button>
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Voer Uit</button>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -398,7 +398,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
 
 .animate-shake {
     animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) forwards;

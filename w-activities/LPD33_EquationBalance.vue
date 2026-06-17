@@ -92,19 +92,19 @@ function performOperation(op) {
       attemptCount.value = 0 // Reset on progress
       constLeft.value -= 1; constRight.value -= 1
       if (xCount.value > 0 && constLeft.value === 0) {
-        feedback.value = { type: 'success', text: 'Nu heb je alleen x-en over aan de linkerkant! Deel ze door het aantal x-en.' }
+        feedback.value = { type: 'success', text: 'Prima! Nu heb je alleen x-en over aan de linkerkant! Deel ze door het aantal x-en.' }
       } else {
-        feedback.value = { type: 'success', text: `${constLeft.value > 0 ? 'Nog ' + constLeft.value + ' blokje(s) over...' : 'Geen losse blokjes meer!'}` }
+        feedback.value = { type: 'success', text: `Prima! ${constLeft.value > 0 ? 'Nog ' + constLeft.value + ' blokje(s) over...' : 'Geen losse blokjes meer!'}` }
       }
     } else {
       attemptCount.value++
-      feedback.value = { type: 'error', text: 'Kan geen blokjes meer weghalen.' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kan geen blokjes meer weghalen.' }
       if (attemptCount.value >= 2) feedback.value = getHintText(attemptCount.value)
     }
   } else if (op === 'add') {
     attemptCount.value++
     constLeft.value += 1; constRight.value += 1
-    feedback.value = { type: 'error', text: 'Je maakt het complexer! We willen x isoleren.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Je maakt het complexer! We willen x isoleren.' }
     if (attemptCount.value >= 2) feedback.value = getHintText(attemptCount.value)
   } else if (op === 'div') {
     if (constLeft.value === 0) {
@@ -119,13 +119,13 @@ function performOperation(op) {
       }
     } else {
       attemptCount.value++
-      feedback.value = { type: 'error', text: 'Haal eerst de losse blokjes weg voor je deelt!' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Haal eerst de losse blokjes weg voor je deelt!' }
       if (attemptCount.value >= 2) feedback.value = getHintText(attemptCount.value)
     }
   } else if (op === 'mult') {
     attemptCount.value++
     xCount.value *= 2; constLeft.value *= 2; constRight.value *= 2
-    feedback.value = { type: 'error', text: 'Vermenigvuldigen maakt het alleen maar groter!' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Vermenigvuldigen maakt het alleen maar groter!' }
     if (attemptCount.value >= 2) feedback.value = getHintText(attemptCount.value)
   }
 }
@@ -162,14 +162,14 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 </script>
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg"><component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" /></div>
           <div><h2 class="text-lg font-bold text-slate-900">{{ title }}</h2><p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }} — {{ currentLevel.eq }}</p></div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
@@ -179,10 +179,10 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
               <label class="block text-sm font-bold text-math-blue mb-4">Acties (op beide kanten):</label>
               <div class="flex flex-col gap-4">
-                <button @click="performOperation('sub')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u2212 1 blokje</button>
-                <button @click="performOperation('add')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">+ 1 blokje</button>
-                <button @click="performOperation('div')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u00f7 {{ currentLevel.divisor }}</button>
-                <button @click="performOperation('mult')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u00d7 2</button>
+                <button @click="performOperation('sub')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">\u2212 1 blokje</button>
+                <button @click="performOperation('add')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">+ 1 blokje</button>
+                <button @click="performOperation('div')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">\u00f7 {{ currentLevel.divisor }}</button>
+                <button @click="performOperation('mult')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">\u00d7 2</button>
               </div>
             </div>
           </div>
@@ -191,9 +191,9 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
-              <button v-else-if="isCorrect" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white rounded-lg shadow-md bg-math-blue hover:bg-math-blue"><span>Afronden</span><PhArrowRight weight="bold" /></button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
+              <button v-else-if="isCorrect" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white rounded-lg shadow-md bg-math-blue hover:bg-math-blue active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><span>Afronden</span><PhArrowRight weight="bold" /></button>
               <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
@@ -230,11 +230,11 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5) translateY(-20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
 </style>

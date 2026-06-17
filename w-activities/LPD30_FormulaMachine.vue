@@ -82,14 +82,14 @@ function runMachine() {
 
   if (userAns.value === correctAns) {
     isCorrect.value = true
-    feedback.value = { type: 'success', text: 'Machine start...' }
+    feedback.value = { type: 'success', text: 'Prima! Machine start...' }
     currentNumber.value = xValue.value
     const step1 = lvl.m * xValue.value
     setTimeout(() => { step.value = 1; currentNumber.value = step1 }, 800)
     setTimeout(() => {
       step.value = 2
       currentNumber.value = correctAns
-      feedback.value = { type: 'success', text: `Perfect! ${lvl.formula.replace('x', xValue.value)} = ${correctAns}.` }
+      feedback.value = { type: 'success', text: `Prima!! ${lvl.formula.replace('x', xValue.value)} = ${correctAns}.` }
     }, 1600)
   } else {
     attemptCount.value++
@@ -98,7 +98,7 @@ function runMachine() {
     if (step.value === 0 && userAns.value === step1) {
       feedback.value = { type: 'error', text: `Goed begin! ${lvl.m} × ${xValue.value} = ${step1}. Maar vergeet de volgende stap niet. ${getHintText(attemptCount.value, lvl)}` }
     } else {
-      feedback.value = { type: 'error', text: `Fout. Wat is ${lvl.formula.replace('x', xValue.value)}? Volg de machine stap voor stap. ${getHintText(attemptCount.value, lvl)}` }
+      feedback.value = { type: 'error', text: `Niet helemaal... Fout. Wat is ${lvl.formula.replace('x', xValue.value)}? Volg de machine stap voor stap. ${getHintText(attemptCount.value, lvl)}` }
     }
   }
 }
@@ -166,7 +166,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
@@ -178,7 +178,7 @@ onUnmounted(() => {
             <p class="text-xs font-medium text-slate-400">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
@@ -204,10 +204,10 @@ onUnmounted(() => {
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="runMachine" :disabled="userAns === null" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="runMachine" :disabled="userAns === null" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="userAns === null ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Start Machine</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 rounded-lg bg-math-blue hover:bg-math-blue-light">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
@@ -250,14 +250,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .bg-circuit-pattern { background-color: #0f172a; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; background: #f97316; border: 4px solid white; cursor: pointer; margin-top: -10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #475569; border-radius: 4px; }
 </style>

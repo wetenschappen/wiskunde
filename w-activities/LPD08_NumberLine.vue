@@ -153,7 +153,7 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: 'Uitstekend! Je hebt de getallen correct van klein naar groot geordend op de getallenas.'
+      text: 'Prima!! Je hebt de getallen correct van klein naar groot geordend op de getallenas.'
     }
   } else {
     isCorrect.value = false
@@ -166,23 +166,23 @@ function checkAnswer() {
 
     if (attemptCount.value === 1) {
       if (hasNegatives && firstVal >= 0) {
-        feedback.value = { type: 'error', text: 'Kijk naar je kleinste getal (bovenaan). Een positief getal kan nooit kleiner zijn dan een negatief getal. Negatieve getallen zijn ALTIJD kleiner dan positieve.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar je kleinste getal (bovenaan). Een positief getal kan nooit kleiner zijn dan een negatief getal. Negatieve getallen zijn ALTIJD kleiner dan positieve.' }
       } else {
-        feedback.value = { type: 'error', text: 'Controleer de volgorde nog eens. Kijk naar de balkjes: langere balk betekent groter getal. Het kleinste getal moet bovenaan.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Controleer de volgorde nog eens. Kijk naar de balkjes: langere balk betekent groter getal. Het kleinste getal moet bovenaan.' }
       }
     } else if (attemptCount.value === 2) {
       if (firstVal !== smallest) {
-        feedback.value = { type: 'error', text: 'Het getal "' + firstVal + '" staat bovenaan, maar dat is niet het kleinste getal. Het kleinste getal is "' + (smallest < 0 ? '-' : '') + Math.abs(smallest) + '".' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het getal "' + firstVal + '" staat bovenaan, maar dat is niet het kleinste getal. Het kleinste getal is "' + (smallest < 0 ? '-' : '') + Math.abs(smallest) + '".' }
       } else if (lastVal !== largest) {
-        feedback.value = { type: 'error', text: 'Het getal "' + lastVal + '" staat onderaan, maar dat is niet het grootste getal.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Het getal "' + lastVal + '" staat onderaan, maar dat is niet het grootste getal.' }
       } else {
-        feedback.value = { type: 'error', text: 'De uiteinden kloppen, maar de middelste getallen staan nog niet goed. Kijk goed naar de balkjes.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... De uiteinden kloppen, maar de middelste getallen staan nog niet goed. Kijk goed naar de balkjes.' }
       }
     } else {
       // Direct hint: tell them the correct order
       const sorted = [...items.value].sort((a, b) => a.value - b.value)
       const hints = sorted.map(i => i.label)
-      feedback.value = { type: 'error', text: 'De juiste volgorde is: ' + hints.join(' < ') + '. Probeer opnieuw!' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... De juiste volgorde is: ' + hints.join(' < ') + '. Probeer opnieuw!' }
     }
   }
 }
@@ -226,7 +226,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -246,7 +246,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -268,9 +268,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Volgorde</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Volgorde</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -302,9 +302,9 @@ onUnmounted(() => {
                                class="bg-white/90 backdrop-blur border-2 border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-4 w-full">
 
                               <div class="flex flex-col border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
-                                  <button @click="moveUp(index)" :disabled="index === 0 || isCorrect" class="p-2 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-600"><PhCaretUp weight="bold" /></button>
+                                  <button @click="moveUp(index)" :disabled="index === 0 || isCorrect" class="p-2 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-600 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretUp weight="bold" /></button>
                                   <div class="h-px bg-slate-200"></div>
-                                  <button @click="moveDown(index)" :disabled="index === items.length - 1 || isCorrect" class="p-2 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-600"><PhCaretDown weight="bold" /></button>
+                                  <button @click="moveDown(index)" :disabled="index === items.length - 1 || isCorrect" class="p-2 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-600 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretDown weight="bold" /></button>
                               </div>
 
                               <div class="w-24 shrink-0 flex justify-center">
@@ -353,14 +353,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
 .list-move,
 .list-enter-active,

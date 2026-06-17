@@ -131,7 +131,7 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: 'Jackpot! Je hebt alle representaties correct aan elkaar gekoppeld.'
+      text: 'Prima! Jackpot! Je hebt alle representaties correct aan elkaar gekoppeld.'
     }
   } else {
     isCorrect.value = false
@@ -141,15 +141,15 @@ function checkAnswer() {
     const rowPct = col3.value[errorRow].val
 
     if (attemptCount.value === 1) {
-      feedback.value = { type: 'error', text: 'Kijk naar de rij met breuk ' + rowFrac + '. De combinatie (' + rowDec + ', ' + rowPct + ') klopt niet. Draai aan de andere wielen.' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de rij met breuk ' + rowFrac + '. De combinatie (' + rowDec + ', ' + rowPct + ') klopt niet. Draai aan de andere wielen.' }
     } else if (attemptCount.value === 2) {
-      feedback.value = { type: 'error', text: 'Denk aan de omzettingen. Bijvoorbeeld: 0.25 = 25% = 1/4. Welke wielen moet je verschuiven om de juiste combinatie te maken?' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Denk aan de omzettingen. Bijvoorbeeld: 0.25 = 25% = \\(\frac{1}{4}\\). Welke wielen moet je verschuiven om de juiste combinatie te maken?' }
     } else {
       // Find which columns need adjustment
       const matchA = col1.value[0].id
       const matchB = col1.value[1].id
       const matchC = col1.value[2].id
-      feedback.value = { type: 'error', text: 'De juiste stand is: rij 1 = ' + matchA + ', rij 2 = ' + matchB + ', rij 3 = ' + matchC + '. Verschuif de kolommen tot ze overeenkomen.' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... De juiste stand is: rij 1 = ' + matchA + ', rij 2 = ' + matchB + ', rij 3 = ' + matchC + '. Verschuif de kolommen tot ze overeenkomen.' }
     }
   }
 }
@@ -193,7 +193,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -213,7 +213,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -240,9 +240,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Trek aan hendel</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Trek aan hendel</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -269,7 +269,7 @@ onUnmounted(() => {
 
                   <div class="flex flex-col gap-2 relative group">
                       <div class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-2">Decimaal</div>
-                      <button @click="shiftDown(col2)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-math-blue hover:text-math-blue-light transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
+                      <button @click="shiftDown(col2)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-math-blue hover:text-math-blue-light transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
 
                       <div class="bg-white p-2 rounded-xl shadow-inner border-[6px] border-slate-600 flex flex-col gap-2 relative overflow-hidden">
                           <transition-group name="spin">
@@ -279,12 +279,12 @@ onUnmounted(() => {
                           </transition-group>
                       </div>
 
-                      <button @click="shiftUp(col2)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-math-blue hover:text-math-blue-light transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
+                      <button @click="shiftUp(col2)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-math-blue hover:text-math-blue-light transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
                   </div>
 
                   <div class="flex flex-col gap-2 relative group">
                       <div class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-2">Procent</div>
-                      <button @click="shiftDown(col3)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
+                      <button @click="shiftDown(col3)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
 
                       <div class="bg-white p-2 rounded-xl shadow-inner border-[6px] border-slate-600 flex flex-col gap-2 relative overflow-hidden">
                           <transition-group name="spin">
@@ -294,7 +294,7 @@ onUnmounted(() => {
                           </transition-group>
                       </div>
 
-                      <button @click="shiftUp(col3)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
+                      <button @click="shiftUp(col3)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
                   </div>
 
                   <div v-if="isCorrect" class="absolute inset-0 pointer-events-none z-20 flex flex-col justify-center gap-[4.5rem] pt-8 px-6">
@@ -310,14 +310,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
 .spin-move,
 .spin-enter-active,

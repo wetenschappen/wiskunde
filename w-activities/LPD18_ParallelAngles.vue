@@ -122,9 +122,9 @@ function checkMatch() {
     const isXAngle = (a === 1 && b === 4) || (a === 2 && b === 3) || (a === 5 && b === 8) || (a === 6 && b === 7)
 
     if (attemptCount.value <= 1) {
-      if (isZAngle) feedback.value = { type: 'error', text: 'Je hebt een Z-hoek gevonden, maar deze opdracht vraagt iets anders.' }
-      else if (isFAngle) feedback.value = { type: 'error', text: 'Je hebt een F-hoek (overeenkomstig) gevonden, maar deze opdracht vraagt iets anders.' }
-      else if (isXAngle) feedback.value = { type: 'error', text: 'Dit zijn overstaande hoeken (X-hoeken). Ze liggen op hetzelfde snijpunt, maar de opdracht vraagt iets anders.' }
+      if (isZAngle) feedback.value = { type: 'error', text: 'Niet helemaal... Je hebt een Z-hoek gevonden, maar deze opdracht vraagt iets anders.' }
+      else if (isFAngle) feedback.value = { type: 'error', text: 'Niet helemaal... Je hebt een F-hoek (overeenkomstig) gevonden, maar deze opdracht vraagt iets anders.' }
+      else if (isXAngle) feedback.value = { type: 'error', text: 'Niet helemaal... Dit zijn overstaande hoeken (X-hoeken). Ze liggen op hetzelfde snijpunt, maar de opdracht vraagt iets anders.' }
       else feedback.value = { type: 'error', text: data.hint }
     } else if (attemptCount.value === 2) {
       feedback.value = { type: 'error', text: data.hint2 }
@@ -188,11 +188,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -212,7 +213,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -248,9 +249,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
               <!-- Auto-correct on 2-angle selection — no check button -->
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -303,19 +304,19 @@ onUnmounted(() => {
                       <!-- Intersection Top -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 - 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 100px)' }">
-                          <div @click="toggleAngle(1)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(1) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">1</div>
-                          <div @click="toggleAngle(2)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(2) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">2</div>
-                          <div @click="toggleAngle(3)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(3) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">3</div>
-                          <div @click="toggleAngle(4)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(4) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">4</div>
+                          <div @click="toggleAngle(1)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(1) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(1)" @keydown.space.prevent="toggleAngle(1)" aria-label="Interactief element">1</div>
+                          <div @click="toggleAngle(2)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(2) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(2)" @keydown.space.prevent="toggleAngle(2)" aria-label="Interactief element">2</div>
+                          <div @click="toggleAngle(3)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(3) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(3)" @keydown.space.prevent="toggleAngle(3)" aria-label="Interactief element">3</div>
+                          <div @click="toggleAngle(4)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(4) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(4)" @keydown.space.prevent="toggleAngle(4)" aria-label="Interactief element">4</div>
                       </div>
 
                       <!-- Intersection Bottom -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 + 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 200px)' }">
-                          <div @click="toggleAngle(5)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(5) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">5</div>
-                          <div @click="toggleAngle(6)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(6) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">6</div>
-                          <div @click="toggleAngle(7)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(7) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">7</div>
-                          <div @click="toggleAngle(8)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(8) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">8</div>
+                          <div @click="toggleAngle(5)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(5) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(5)" @keydown.space.prevent="toggleAngle(5)" aria-label="Interactief element">5</div>
+                          <div @click="toggleAngle(6)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(6) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(6)" @keydown.space.prevent="toggleAngle(6)" aria-label="Interactief element">6</div>
+                          <div @click="toggleAngle(7)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(7) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(7)" @keydown.space.prevent="toggleAngle(7)" aria-label="Interactief element">7</div>
+                          <div @click="toggleAngle(8)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" :class="selectedAngles.includes(8) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'" role="button" tabindex="0" @keydown.enter.prevent="toggleAngle(8)" @keydown.space.prevent="toggleAngle(8)" aria-label="Interactief element">8</div>
                       </div>
 
                   </div>
@@ -327,14 +328,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;

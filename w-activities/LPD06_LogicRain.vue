@@ -104,7 +104,7 @@ function checkAnswer() {
     attemptCount.value = 0
     feedback.value = {
       type: 'success',
-      text: 'Perfect beredeneerd! Logica gaat om wat je met 100% zekerheid kunt afleiden uit een stelling.'
+      text: 'Prima! beredeneerd! Logica gaat om wat je met 100% zekerheid kunt afleiden uit een stelling.'
     }
   } else {
     attemptCount.value++
@@ -169,7 +169,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -189,7 +189,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -204,7 +204,7 @@ onUnmounted(() => {
                <label class="block text-sm font-bold text-math-blue mb-3">{{ currentLevelData.goalText }}</label>
                <div class="flex flex-col gap-2">
                    <button v-for="opt in currentLevelData.options" :key="opt"
-                           @click="() => { if(!isCorrect) { userAnswer = opt; isChecked = false; } }"
+                           @click="() = class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"> { if(!isCorrect) { userAnswer = opt; isChecked = false; } }"
                            class="w-full py-2 rounded-lg font-bold transition-colors border-2"
                            :class="userAnswer === opt ? 'bg-math-blue border-math-blue text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        {{ opt }}
@@ -219,9 +219,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -234,8 +234,8 @@ onUnmounted(() => {
 
               <!-- Interactive Visual Controls -->
               <div class="absolute top-6 left-1/2 -translate-x-1/2 flex gap-4 bg-white p-2 rounded-xl shadow-md border border-slate-200 z-20">
-                  <button @click="triggerRain" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2" :class="streetState === 'rain' ? 'bg-blue-100 text-blue-700 border-blue-300' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhCloudRain weight="bold" /> Laat het regenen</button>
-                  <button @click="triggerTruck" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2" :class="streetState === 'truck' ? 'bg-math-blue-bg text-math-blue border-surface-200' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhTruck weight="bold" /> Laat sproeiwagen passeren</button>
+                  <button @click="triggerRain" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="streetState === 'rain' ? 'bg-blue-100 text-blue-700 border-blue-300' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhCloudRain weight="bold" /> Laat het regenen</button>
+                  <button @click="triggerTruck" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="streetState === 'truck' ? 'bg-math-blue-bg text-math-blue border-surface-200' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhTruck weight="bold" /> Laat sproeiwagen passeren</button>
               </div>
 
               <!-- The Street Scene -->
@@ -302,14 +302,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
 @keyframes fall {
     0% { transform: translateY(-100px); opacity: 0; }

@@ -154,12 +154,12 @@ function checkAnswer() {
   // Impossible cells check
   if (selectedRow.value === 2 && selectedCol.value === 1) {
       isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Er kan dus nooit een rechte hoek (90°) inzitten!'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Er kan dus nooit een rechte hoek (90°) inzitten!'}
       return
   }
   if (selectedRow.value === 2 && selectedCol.value === 2) {
       isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Hij kan dus nooit stomphoekig zijn!'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Onmogelijk! Een gelijkzijdige driehoek heeft altijd 3 hoeken van 60°. Hij kan dus nooit stomphoekig zijn!'}
       return
   }
 
@@ -178,7 +178,7 @@ function checkAnswer() {
       } else if (selectedRow.value === data.targetRow && selectedCol.value !== data.targetCol) {
           feedback.value = { type: 'error', text: `De zijdennaam klopt (${rows[selectedRow.value]}). ${data.hintAngle}`}
       } else {
-          feedback.value = { type: 'error', text: 'Niet juist. Kijk eerst naar de hoeken (scherp, recht, stomp). Vergelijk daarna de lengtes van de zijden.'}
+          feedback.value = { type: 'error', text: 'Niet helemaal... Niet juist. Kijk eerst naar de hoeken (scherp, recht, stomp). Vergelijk daarna de lengtes van de zijden.'}
       }
     } else if (attemptCount.value === 2) {
       feedback.value = { type: 'error', text: data.hintSide + ' ' + data.hintAngle }
@@ -227,7 +227,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -247,7 +247,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -280,8 +280,8 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -334,12 +334,12 @@ onUnmounted(() => {
                           <!-- Cells -->
                           <div v-for="(colName, cIdx) in cols" :key="colName"
                                @click="selectCell(rIdx, cIdx)"
-                               class="w-36 h-20 border-l border-slate-200 cursor-pointer transition-all flex items-center justify-center relative group"
+                               class="w-36 h-20 border-l border-slate-200 cursor-pointer transition-all flex items-center justify-center relative group focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
                                :class="{
                                    'bg-emerald-500 hover:bg-emerald-500': isCorrect && selectedRow === rIdx && selectedCol === cIdx,
                                    'bg-red-500 hover:bg-red-500': !isCorrect && selectedRow === rIdx && selectedCol === cIdx,
                                    'hover:bg-slate-50': selectedRow !== rIdx || selectedCol !== cIdx
-                               }">
+                               }" role="button" tabindex="0" @keydown.enter.prevent="selectCell(rIdx, cIdx)" @keydown.space.prevent="selectCell(rIdx, cIdx)" aria-label="Selecteer vak op het rooster">
 
                                <!-- Selected indicator icon -->
                                <PhCheckCircle v-if="isCorrect && selectedRow === rIdx && selectedCol === cIdx" weight="fill" class="w-8 h-8 text-white animate-fadeIn" />
@@ -363,12 +363,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
 </style>

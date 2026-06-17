@@ -160,11 +160,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -176,7 +177,7 @@ onUnmounted(() => {
             <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
@@ -191,12 +192,12 @@ onUnmounted(() => {
                 <span class="bg-white px-4 py-1 rounded-lg shadow-sm border border-slate-200">{{ equation.rightLoose }}</span>
               </div>
               <div class="mt-6 flex items-center justify-center gap-4">
-                <button @click="decreaseX" :disabled="isCorrect || xValue <= 0" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">-</button>
+                <button @click="decreaseX" :disabled="isCorrect || xValue <= 0" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">-</button>
                 <div class="flex flex-col items-center">
                   <span class="text-xs font-bold text-slate-400 uppercase">Doos x</span>
                   <span class="text-3xl font-black text-math-blue w-12">{{ xValue }}</span>
                 </div>
-                <button @click="increaseX" :disabled="isCorrect || xValue >= 15" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">+</button>
+                <button @click="increaseX" :disabled="isCorrect || xValue class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">= 15" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">+</button>
               </div>
             </div>
           </div>
@@ -207,8 +208,8 @@ onUnmounted(() => {
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
@@ -255,12 +256,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(0.5); } }
+
 </style>

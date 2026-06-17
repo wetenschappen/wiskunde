@@ -128,36 +128,36 @@ function checkAnswer() {
         isCorrect.value = true
         feedback.value = {
           type: 'success',
-          text: 'Uitstekend! Het gemiddelde wordt veel meer beïnvloed door een uitschieter dan de mediaan. De mediaan is veel "robuuster". Dit geldt voor alle datasets!'
+          text: 'Prima!! Het gemiddelde wordt veel meer beïnvloed door een uitschieter dan de mediaan. De mediaan is veel "robuuster". Dit geldt voor alle datasets!'
         }
     } else {
         isCorrect.value = false
-        feedback.value = { type: 'error', text: 'Je antwoord klopt! Maar voeg eerst de uitschieter toe in de grafiek om het visueel te bewijzen.'}
+        feedback.value = { type: 'error', text: 'Niet helemaal... Je antwoord klopt! Maar voeg eerst de uitschieter toe in de grafiek om het visueel te bewijzen.'}
     }
   } else if (userAns.value === 'median') {
     isCorrect.value = false
     attemptCount.value++
     if (attemptCount.value === 1) {
-      feedback.value = { type: 'error', text: 'Kijk naar de getallen in het blauw. De mediaan verandert veel minder dan het gemiddelde. Welke is het meest beïnvloed?'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de getallen in het blauw. De mediaan verandert veel minder dan het gemiddelde. Welke is het meest beïnvloed?'}
     } else if (attemptCount.value === 2) {
-      feedback.value = { type: 'error', text: 'Let op de oranje lijn (gemiddelde) versus de blauwe lijn (mediaan). Welke schiet omhoog?'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Let op de oranje lijn (gemiddelde) versus de blauwe lijn (mediaan). Welke schiet omhoog?'}
     } else {
-      feedback.value = { type: 'error', text: 'Het antwoord is "Gemiddelde". De uitschieter heeft een grote invloed op het gemiddelde omdat alle getallen worden opgeteld.'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Het antwoord is "Gemiddelde". De uitschieter heeft een grote invloed op het gemiddelde omdat alle getallen worden opgeteld.'}
     }
   } else if (userAns.value === 'none') {
     isCorrect.value = false
     attemptCount.value++
     if (attemptCount.value === 1) {
-      feedback.value = { type: 'error', text: 'Kijk nog eens goed: een van de twee maten verandert wél.'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk nog eens goed: een van de twee maten verandert wél.'}
     } else if (attemptCount.value === 2) {
-      feedback.value = { type: 'error', text: 'Het gemiddelde of de mediaan? Sleep met je ogen de oranje en blauwe lijn.'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Het gemiddelde of de mediaan? Sleep met je ogen de oranje en blauwe lijn.'}
     } else {
-      feedback.value = { type: 'error', text: 'Het gemiddelde verandert wél. De mediaan blijft bijna gelijk. Kies "Gemiddelde".'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Het gemiddelde verandert wél. De mediaan blijft bijna gelijk. Kies "Gemiddelde".'}
     }
   } else {
     isCorrect.value = false
     attemptCount.value++
-    feedback.value = { type: 'error', text: 'Kies een conclusie uit de lijst.'}
+    feedback.value = { type: 'error', text: 'Niet helemaal... Kies een conclusie uit de lijst.'}
   }
 }
 
@@ -204,7 +204,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -221,7 +221,7 @@ onUnmounted(() => {
           <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
             {{ currentLevel.name }} ({{ currentInternalLevel + 1 }}/{{ totalInternalLevels }})
           </span>
-          <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+          <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
             <PhX class="w-6 h-6" />
           </button>
         </div>
@@ -250,9 +250,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Conclusie</button>
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Conclusie</button>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -267,7 +267,7 @@ onUnmounted(() => {
 
                   <div class="mb-12">
                       <button @click="addOutlier" :disabled="isCorrect || hasOutlier"
-                              class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50">
+                              class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                           <PhMoney weight="bold" class="w-6 h-6" /> Voeg Uitschieter Toe (&euro;{{ currentLevel.outlier }})
                       </button>
                   </div>
@@ -339,12 +339,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

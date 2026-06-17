@@ -234,7 +234,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -253,7 +253,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -281,7 +281,7 @@ onUnmounted(() => {
                   <label class="block mb-2 text-sm font-bold text-slate-700">2. Is er een Eulerpad mogelijk?</label>
                   <div class="flex gap-2">
                     <button v-for="opt in ['Ja', 'Nee']" :key="opt"
-                            @click="() => { if(!isCorrect) { userHasPath = opt; isChecked = false; } }"
+                            @click="() = class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"> { if(!isCorrect) { userHasPath = opt; isChecked = false; } }"
                             class="flex-1 p-4 border-2 rounded-lg font-bold transition-all text-center"
                             :class="userHasPath === opt ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 hover:border-surface-200 bg-white text-slate-700'">
                       {{ opt }}
@@ -412,10 +412,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

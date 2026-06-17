@@ -188,9 +188,9 @@ function handleGridClick(e) {
   isChecked.value = false
 
   if (target.type === 'strijdig') {
-    feedback.value = { type: 'error', text: 'Kijk naar de richting van de lijnen. Ze zijn evenwijdig! Gebruik de speciale knoppen onderaan.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de richting van de lijnen. Ze zijn evenwijdig! Gebruik de speciale knoppen onderaan.' }
   } else {
-    feedback.value = { type: 'error', text: 'Let op! De twee vergelijkingen stellen exact dezelfde rechte voor. Gebruik de speciale knoppen.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Let op! De twee vergelijkingen stellen exact dezelfde rechte voor. Gebruik de speciale knoppen.' }
   }
 }
 
@@ -206,9 +206,9 @@ function setSpecialChoice(type) {
     userSpecialChoice.value = type
     userPoint.value = null
     if (target.type === 'strijdig') {
-      feedback.value = { type: 'success', text: 'Geweldig! De lijnen zijn evenwijdig. Ze snijden nooit, dus er is geen oplossing (strijdig stelsel).' }
+      feedback.value = { type: 'success', text: 'Prima!! De lijnen zijn evenwijdig. Ze snijden nooit, dus er is geen oplossing (strijdig stelsel).' }
     } else {
-      feedback.value = { type: 'success', text: 'Zeer scherp! De tweede vergelijking is een veelvoud van de eerste. Het is dezelfde lijn, dus er zijn oneindig veel oplossingen (onbepaald).' }
+      feedback.value = { type: 'success', text: 'Prima! Zeer scherp! De tweede vergelijking is een veelvoud van de eerste. Het is dezelfde lijn, dus er zijn oneindig veel oplossingen (onbepaald).' }
     }
     return
   }
@@ -219,9 +219,9 @@ function setSpecialChoice(type) {
   isChecked.value = false
 
   if (target.type === 'strijdig') {
-    feedback.value = { type: 'error', text: 'Kijk naar de lijnen (en hun richtingscoëfficiënt). Gaan deze ooit snijden? Zoek de juiste speciale knop.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de lijnen (en hun richtingscoëfficiënt). Gaan deze ooit snijden? Zoek de juiste speciale knop.' }
   } else {
-    feedback.value = { type: 'error', text: 'Heb je het snijpunt gezocht? Let op: beide vergelijkingen tekenen éxact dezelfde rechte! Wat betekent dat voor het aantal snijpunten?' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Heb je het snijpunt gezocht? Let op: beide vergelijkingen tekenen éxact dezelfde rechte! Wat betekent dat voor het aantal snijpunten?' }
   }
 }
 
@@ -299,7 +299,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -321,7 +321,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -348,7 +348,7 @@ onUnmounted(() => {
 
               <!-- Options -->
               <div class="pt-4 flex flex-col gap-2">
-                <div v-if="userPoint" class="p-4 border-2 border-math-blue bg-math-blue-bg rounded-lg text-center shadow-sm cursor-pointer" @click="userPoint = null">
+                <div v-if="userPoint" class="p-4 border-2 border-math-blue bg-math-blue-bg rounded-lg text-center shadow-sm cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="userPoint = null" role="button" tabindex="0" @keydown.enter.prevent="userPoint = null" @keydown.space.prevent="userPoint = null" aria-label="Selecteer punt">
                   <p class="text-xs font-bold text-math-blue uppercase">Gekozen Snijpunt:</p>
                   <p class="text-xl font-mono font-black text-math-blue">({{ userPoint.x }}, {{ userPoint.y }})</p>
                   <p class="text-[10px] text-math-blue mt-1">(Klik om te wissen)</p>
@@ -361,12 +361,12 @@ onUnmounted(() => {
                 <p class="text-xs font-bold text-slate-400 text-center uppercase tracking-wider mb-1">Of kies een speciaal geval:</p>
 
                 <button @click="setSpecialChoice('strijdig')"
-                        class="p-4 border-2 rounded-lg font-bold transition-all shadow-sm"
+                        class="p-4 border-2 rounded-lg font-bold transition-all shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                         :class="isCorrect && currentLevelData.type === 'strijdig' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : userSpecialChoice === 'strijdig' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 bg-white text-slate-600 hover:border-red-300'">
                   Geen snijpunt (Strijdig stelsel)
                 </button>
                 <button @click="setSpecialChoice('onbepaald')"
-                        class="p-4 border-2 rounded-lg font-bold transition-all shadow-sm"
+                        class="p-4 border-2 rounded-lg font-bold transition-all shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                         :class="isCorrect && currentLevelData.type === 'onbepaald' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : userSpecialChoice === 'onbepaald' ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-600 hover:border-surface-200'">
                   Oneindig veel snijpunten (Onbepaald stelsel)
                 </button>
@@ -388,7 +388,7 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
@@ -397,7 +397,7 @@ onUnmounted(() => {
                 Klik in grafiek of kies speciaal geval
               </button>
 
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -410,9 +410,9 @@ onUnmounted(() => {
 
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
-              <div class="relative bg-white rounded-lg shadow-sm border border-slate-300 overflow-hidden cursor-crosshair"
+              <div class="relative bg-white rounded-lg shadow-sm border border-slate-300 overflow-hidden cursor-crosshair focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
                    style="width: 400px; height: 400px;"
-                   @click="handleGridClick">
+                   @click="handleGridClick" role="button" tabindex="0" @keydown.enter.prevent="handleGridClick" @keydown.space.prevent="handleGridClick" aria-label="Selecteer vak op het rooster">
 
                 <!-- SVG Coordinate System (-5 to 5, origin at 200,200, grid 40px) -->
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -459,7 +459,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -475,10 +475,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

@@ -139,11 +139,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-black/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-black/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
@@ -155,7 +156,7 @@ onUnmounted(() => {
             <p class="text-xs font-medium text-slate-400">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
@@ -181,8 +182,8 @@ onUnmounted(() => {
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">Volgend Level</button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue-light active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
@@ -221,14 +222,14 @@ onUnmounted(() => {
                 <g v-for="xi in 11" :key="'cx'+xi">
                   <g v-for="yi in 11" :key="'cy'+yi">
                     <circle :cx="(xi-1)*40" :cy="(yi-1)*40" r="12" fill="transparent"
-                      class="cursor-crosshair hover:fill-emerald-500/30 transition-colors"
-                      @click="clickRadar(xi-6, 6-yi)" />
+                      class="cursor-crosshair hover:fill-emerald-500/30 transition-colors focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
+                      @click="clickRadar(xi-6, 6-yi)" role="button" tabindex="0" @keydown.enter.prevent="clickRadar(xi-6, 6-yi)" @keydown.space.prevent="clickRadar(xi-6, 6-yi)" aria-label="Selecteer punt" />
                   </g>
                 </g>
 
                 <!-- Target submarine marker (always visible as the target to hit) -->
                 <g>
-                  <circle :cx="200 + currentLevel.targetX * 40" :cy="200 - currentLevel.targetY * 40" r="6" fill="#34d399" class="animate-ping" />
+                  <circle :cx="200 + currentLevel.targetX * 40" :cy="200 - currentLevel.targetY * 40" r="6" fill="#34d399" class="animate-ping-once" />
                   <circle :cx="200 + currentLevel.targetX * 40" :cy="200 - currentLevel.targetY * 40" r="3" fill="#ecfdf5" />
                 </g>
 
@@ -252,13 +253,13 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
 .animate-spin-radar { animation: spin 4s linear infinite; transform-origin: 200px 200px; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>

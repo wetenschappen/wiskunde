@@ -114,7 +114,7 @@ watch([valMin, valQ1, valMed, valQ3, valMax], () => {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: 'Magistraal! Je hebt alle vijf de getallen perfect berekend en visueel opgebouwd.'
+      text: 'Prima! Magistraal! Je hebt alle vijf de getallen perfect berekend en visueel opgebouwd.'
     }
     return
   }
@@ -142,7 +142,7 @@ watch([valMin, valQ1, valMed, valQ3, valMax], () => {
   if (!ordered) {
     // Show ordering hint only if not already showing
     if (feedback.value.type !== 'error' || !feedback.value.text.includes('volgorde')) {
-      feedback.value = { type: 'error', text: 'Let op! De volgorde moet zijn: Minimum ≤ Q1 ≤ Mediaan ≤ Q3 ≤ Maximum.' }
+      feedback.value = { type: 'error', text: 'Niet helemaal... Let op! De volgorde moet zijn: Minimum ≤ Q1 ≤ Mediaan ≤ Q3 ≤ Maximum.' }
     }
   } else {
     // When ordering is fixed, clear the ordering error if it was shown
@@ -164,16 +164,16 @@ function showHint() {
   const maxCorrect = valMax.value === t.max
 
   if (!mCorrect || !maxCorrect) {
-    if (attemptCount.value === 1) feedback.value = { type: 'error', text: 'Het minimum of maximum klopt niet. Zoek de uiterste getallen.' }
-    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'Het minimum is het kleinste getal, het maximum het grootste.' }
+    if (attemptCount.value === 1) feedback.value = { type: 'error', text: 'Niet helemaal... Het minimum of maximum klopt niet. Zoek de uiterste getallen.' }
+    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'Niet helemaal... Het minimum is het kleinste getal, het maximum het grootste.' }
     else feedback.value = { type: 'error', text: `Min = ${t.min}, Max = ${t.max}.` }
   } else if (!medCorrect) {
-    if (attemptCount.value === 1) feedback.value = { type: 'error', text: 'De mediaan (middelste getal) is fout. Streep getallen weg.' }
-    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'De mediaan is het middelste getal in de gesorteerde rij.' }
+    if (attemptCount.value === 1) feedback.value = { type: 'error', text: 'Niet helemaal... De mediaan (middelste getal) is fout. Streep getallen weg.' }
+    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'Niet helemaal... De mediaan is het middelste getal in de gesorteerde rij.' }
     else feedback.value = { type: 'error', text: `Mediaan = ${t.med}.` }
   } else {
     if (attemptCount.value === 1) feedback.value = { type: 'error', text: `Q1 of Q3 is fout. ${currentLevelData.value.hint}` }
-    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'Q1 is mediaan van de linkerhelft, Q3 van de rechterhelft.' }
+    else if (attemptCount.value === 2) feedback.value = { type: 'error', text: 'Niet helemaal... Q1 is mediaan van de linkerhelft, Q3 van de rechterhelft.' }
     else feedback.value = { type: 'error', text: `Q1 = ${t.q1}, Q3 = ${t.q3}.` }
   }
 }
@@ -234,7 +234,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -256,7 +256,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -297,7 +297,7 @@ onUnmounted(() => {
                 <label class="block mb-1 text-sm font-bold text-slate-700">Maximum: <span class="font-mono text-math-blue">{{ valMax }}</span></label>
                 <input type="range" v-model.number="valMax" :min="currentLevelData.axisMin" :max="currentLevelData.axisMax" step="0.5" class="w-full accent-teal-600">
               </div>
-              <button @click="showHint" :disabled="isCorrect" class="w-full py-2 text-sm font-bold text-slate-600 bg-white border-2 border-slate-300 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50">
+              <button @click="showHint" :disabled="isCorrect" class="w-full py-2 text-sm font-bold text-slate-600 bg-white border-2 border-slate-300 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 Hint nodig?
               </button>
             </div>
@@ -316,11 +316,11 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -389,7 +389,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -405,10 +405,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

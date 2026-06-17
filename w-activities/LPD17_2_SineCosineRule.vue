@@ -173,11 +173,11 @@ function autoValidate() {
   if (target.targetRule === 'cosinus' && cosFilled === 3) {
     isCorrect.value = true;
     isChecked.value = true;
-    feedback.value = { type: 'success', text: 'Fantastisch! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
+    feedback.value = { type: 'success', text: 'Prima!! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
   } else if (target.targetRule === 'sinus' && sinFilled === 3) {
     isCorrect.value = true;
     isChecked.value = true;
-    feedback.value = { type: 'success', text: 'Fantastisch! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
+    feedback.value = { type: 'success', text: 'Prima!! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
   }
 }
 
@@ -211,15 +211,15 @@ function checkAnswer() {
   const target = currentLevelData.value;
   if (target.targetRule === 'cosinus' && cosFilled === 3) {
     isCorrect.value = true;
-    feedback.value = { type: 'success', text: 'Fantastisch! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
+    feedback.value = { type: 'success', text: 'Prima!! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
   } else if (target.targetRule === 'sinus' && sinFilled === 3) {
     isCorrect.value = true;
-    feedback.value = { type: 'success', text: 'Fantastisch! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
+    feedback.value = { type: 'success', text: 'Prima!! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
   } else {
     if (cosFilled === 3) {
-      feedback.value = { type: 'error', text: 'Kijk naar de cosinusregel. Heb je niet 2 onbekenden over? Probeer de sinusregel.' };
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de cosinusregel. Heb je niet 2 onbekenden over? Probeer de sinusregel.' };
     } else {
-      feedback.value = { type: 'error', text: 'Kijk naar de sinusregel. Je mist nu waarschijnlijk een compleet overstaand paar. Probeer de cosinusregel.' };
+      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de sinusregel. Je mist nu waarschijnlijk een compleet overstaand paar. Probeer de cosinusregel.' };
     }
   }
 }
@@ -284,7 +284,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -306,7 +306,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -329,7 +329,7 @@ onUnmounted(() => {
               <div class="flex flex-col gap-4">
                 <button v-for="data in currentLevelData.data" :key="data.id"
                         @click="selectData(data.id)"
-                        class="p-4 border-2 rounded-xl text-left font-bold transition-all flex items-center justify-between shadow-sm"
+                        class="p-4 border-2 rounded-xl text-left font-bold transition-all flex items-center justify-between shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                         :class="selectedDataId === data.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-4 ring-emerald-100' : 'border-slate-200 hover:border-emerald-300 bg-white text-slate-700'">
                   <span>{{ data.label }}</span>
                   <span class="font-mono text-xl" :class="data.type === 'zijde' ? 'text-blue-600' : 'text-math-blue'">{{ data.val }}</span>
@@ -352,11 +352,11 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -373,19 +373,19 @@ onUnmounted(() => {
 
               <div class="flex items-center justify-center gap-4 text-2xl font-mono font-bold text-slate-700 flex-wrap">
                 <!-- a^2 -->
-                <button @click="fillSlot('cosinus', 'side_a', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'side_a', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_a ? cosRuleSlots.side_a.val : 'a' }}
                 </button>
                 <span>²</span>
                 <span>=</span>
                 <!-- b^2 -->
-                <button @click="fillSlot('cosinus', 'side_b1', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_b1 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'side_b1', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.side_b1 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_b1 ? cosRuleSlots.side_b1.val : 'b' }}
                 </button>
                 <span>²</span>
                 <span>+</span>
                 <!-- c^2 -->
-                <button @click="fillSlot('cosinus', 'side_c1', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_c1 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'side_c1', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.side_c1 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_c1 ? cosRuleSlots.side_c1.val : 'c' }}
                 </button>
                 <span>²</span>
@@ -393,18 +393,18 @@ onUnmounted(() => {
                 <span>2</span>
                 <span>·</span>
                 <!-- b -->
-                <button @click="fillSlot('cosinus', 'side_b2', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_b2 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'side_b2', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.side_b2 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_b2 ? cosRuleSlots.side_b2.val : 'b' }}
                 </button>
                 <span>·</span>
                 <!-- c -->
-                <button @click="fillSlot('cosinus', 'side_c2', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_c2 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'side_c2', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.side_c2 ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_c2 ? cosRuleSlots.side_c2.val : 'c' }}
                 </button>
                 <span>·</span>
                 <span>cos(</span>
                 <!-- alpha -->
-                <button @click="fillSlot('cosinus', 'angle_alpha', 'hoek')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'angle_alpha', 'hoek')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="cosRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.angle_alpha ? cosRuleSlots.angle_alpha.val : 'α' }}
                 </button>
                 <span>)</span>
@@ -420,14 +420,14 @@ onUnmounted(() => {
                 <!-- Left Fraction -->
                 <div class="flex flex-col items-center gap-2">
                   <!-- a -->
-                  <button @click="fillSlot('sinus', 'side_a', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                  <button @click="fillSlot('sinus', 'side_a', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sinRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                     {{ sinRuleSlots.side_a ? sinRuleSlots.side_a.val : 'a' }}
                   </button>
                   <div class="w-24 h-1 bg-slate-300 rounded-lg"></div>
                   <!-- sin(alpha) -->
                   <div class="flex items-center gap-1">
                     <span>sin(</span>
-                    <button @click="fillSlot('sinus', 'angle_alpha', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
+                    <button @click="fillSlot('sinus', 'angle_alpha', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sinRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                       {{ sinRuleSlots.angle_alpha ? sinRuleSlots.angle_alpha.val : 'α' }}
                     </button>
                     <span>)</span>
@@ -439,14 +439,14 @@ onUnmounted(() => {
                 <!-- Right Fraction -->
                 <div class="flex flex-col items-center gap-2">
                   <!-- b -->
-                  <button @click="fillSlot('sinus', 'side_b', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.side_b ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                  <button @click="fillSlot('sinus', 'side_b', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sinRuleSlots.side_b ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                     {{ sinRuleSlots.side_b ? sinRuleSlots.side_b.val : 'b' }}
                   </button>
                   <div class="w-24 h-1 bg-slate-300 rounded-lg"></div>
                   <!-- sin(beta) -->
                   <div class="flex items-center gap-1">
                     <span>sin(</span>
-                    <button @click="fillSlot('sinus', 'angle_beta', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_beta ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
+                    <button @click="fillSlot('sinus', 'angle_beta', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sinRuleSlots.angle_beta ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                       {{ sinRuleSlots.angle_beta ? sinRuleSlots.angle_beta.val : 'β' }}
                     </button>
                     <span>)</span>
@@ -462,7 +462,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -478,10 +478,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

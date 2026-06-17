@@ -120,7 +120,7 @@ function autoValidate() {
     isChecked.value = true
     feedback.value = {
       type: 'success',
-      text: 'Perfect! Je hebt een uitstekend maatbesef voor deze grootheden.'
+      text: 'Prima!! Je hebt een uitstekend maatbesef voor deze grootheden.'
     }
   } else {
     attemptCount.value++
@@ -129,14 +129,14 @@ function autoValidate() {
     const wrongItem = currentItems.value.find(item => item.selectedUnit !== item.correctUnit)
 
     if (attemptCount.value === 1) {
-      feedback.value = { type: 'error', text: `Kijk nog eens goed naar '${wrongItem.name}'. ${wrongItem.val} ${wrongItem.selectedUnit} is niet logisch in de werkelijkheid.`}
+      feedback.value = { type: 'error', text: `Niet helemaal... Kijk nog eens goed naar '${wrongItem.name}'. ${wrongItem.val} ${wrongItem.selectedUnit} is niet logisch in de werkelijkheid.`}
     } else if (attemptCount.value === 2) {
       let hint = ''
       const idx = currentItems.value.indexOf(wrongItem)
       if (idx === 0) hint = 'Het kleinste object heeft de kleinste eenheid.'
       else if (idx === currentItems.value.length - 1) hint = 'Het grootste object heeft de grootste eenheid.'
       else hint = 'Kijk naar de grootte van het object. ' + wrongItem.val + ' is een klein getal — hoort daar een kleine of een grote eenheid bij?'
-      feedback.value = { type: 'error', text: `'${wrongItem.name}' is nog niet juist. ${hint}`}
+      feedback.value = { type: 'error', text: `Niet helemaal... '${wrongItem.name}' is nog niet juist. ${hint}`}
     } else {
       feedback.value = { type: 'error', text: `Probeer voor '${wrongItem.name}': ${wrongItem.val} ${wrongItem.correctUnit} is de realistische combinatie. Kun je de juiste stempel plaatsen?`}
     }
@@ -208,7 +208,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -228,7 +228,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -262,8 +262,8 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -298,7 +298,7 @@ onUnmounted(() => {
                                <span v-if="!item.selectedUnit" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-center">Sleep<br>Hier</span>
                                <span v-else class="text-xl font-black" :class="isChecked && !isCorrect && item.selectedUnit !== item.correctUnit ? 'text-red-600' : 'text-slate-800'">{{ item.selectedUnit }}</span>
 
-                               <button v-if="item.selectedUnit && !isCorrect" @click="removeStamp(item)" class="absolute -top-3 -right-3 bg-slate-200 rounded-full p-1 hover:bg-red-200 hover:text-red-700 border-2 border-white shadow-sm z-10">
+                               <button v-if="item.selectedUnit && !isCorrect" @click="removeStamp(item)" class="absolute -top-3 -right-3 bg-slate-200 rounded-full p-1 hover:bg-red-200 hover:text-red-700 border-2 border-white shadow-sm z-10 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                                    <PhX weight="bold" class="w-3 h-3" />
                                </button>
                           </div>
@@ -313,14 +313,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

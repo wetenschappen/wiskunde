@@ -215,14 +215,14 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 </script>
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-500/20"><component :is="props.icon" weight="fill" class="w-6 h-6 text-emerald-400" /></div>
           <div><h2 class="text-lg font-bold text-slate-100">{{ title }}</h2><p class="text-xs font-medium text-slate-400">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p></div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
@@ -234,7 +234,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <div class="grid grid-cols-2 gap-2">
                 <button v-for="op in allOps" :key="op" @click="selectOp(op)"
                   :disabled="isCorrect || (step !== 0 && step !== 2) || (step === 0 && currentLevel.correctOp1 !== op && op1.value !== '' && op !== currentLevel.correctOp1) || (step === 2 && currentLevel.correctOp2 !== op && op2.value !== '' && op !== currentLevel.correctOp2)"
-                  class="py-2 rounded-lg border-2 font-black text-lg transition-colors disabled:opacity-20 disabled:cursor-not-allowed hover:opacity-80"
+                  class="py-2 rounded-lg border-2 font-black text-lg transition-colors disabled:opacity-20 disabled:cursor-not-allowed hover:opacity-80 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                   :class="getOpClass(op)">
                   {{ op }}
                 </button>
@@ -247,10 +247,10 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="step === 1" @click="checkVal1" class="flex-1 py-4 font-bold tracking-widest uppercase rounded-lg bg-emerald-500 border-emerald-700 text-white hover:bg-emerald-400 border-b-4 active:border-b-0">Tussenstap</button>
-              <button v-else-if="step === 3 && !isCorrect" @click="checkVal2" class="flex-1 py-4 font-bold tracking-widest uppercase rounded-lg bg-emerald-500 border-emerald-700 text-white hover:bg-emerald-400 border-b-4 active:border-b-0">Bereken x</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="step === 1" @click="checkVal1" class="flex-1 py-4 font-bold tracking-widest uppercase rounded-lg bg-emerald-500 border-emerald-700 text-white hover:bg-emerald-400 border-b-4 active:border-b-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Tussenstap</button>
+              <button v-else-if="step === 3 && !isCorrect" @click="checkVal2" class="flex-1 py-4 font-bold tracking-widest uppercase rounded-lg bg-emerald-500 border-emerald-700 text-white hover:bg-emerald-400 border-b-4 active:border-b-0 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Bereken x</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 rounded-lg bg-math-blue hover:bg-math-blue-light"><span>Afronden</span><PhArrowRight weight="bold" /></button>
               <div v-else-if="step !== 1 && step !== 3" class="flex-1 py-4"></div>
             </div>
@@ -286,11 +286,11 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .bg-circuit-pattern { background-color: #0f172a; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

@@ -201,9 +201,9 @@ function checkAnswer() {
   if (selectedTriangle.value === null || selectedRule.value === '') {
       isCorrect.value = false;
       if (attemptCount.value >= 3) {
-        feedback.value = { type: 'error', text: 'Kies eerst een van de drie opties (A, B of C) door erop te klikken, en selecteer daarna het kenmerk in het keuzemenu.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Kies eerst een van de drie opties (A, B of C) door erop te klikken, en selecteer daarna het kenmerk in het keuzemenu.' }
       } else {
-        feedback.value = { type: 'error', text: 'Kies een driehoek én het overeenkomstige kenmerk uit de lijst.' }
+        feedback.value = { type: 'error', text: 'Niet helemaal... Kies een driehoek én het overeenkomstige kenmerk uit de lijst.' }
       }
       return;
   }
@@ -268,11 +268,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -292,7 +293,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -322,9 +323,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (selectedTriangle === null || selectedRule === '')" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Tweeling</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-50 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (selectedTriangle === null || selectedRule === '')" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Tweeling</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -346,24 +347,24 @@ onUnmounted(() => {
 
                   <!-- Option A -->
                   <div @click="selectTriangle('A')"
-                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
-                       :class="selectedTriangle === 'A' ? (isCorrect && currentLevelData.optA.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'">
+                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
+                       :class="selectedTriangle === 'A' ? (isCorrect && currentLevelData.optA.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie A</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optA.svg"></svg>
                   </div>
 
                   <!-- Option B -->
                   <div @click="selectTriangle('B')"
-                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
-                       :class="selectedTriangle === 'B' ? (isCorrect && currentLevelData.optB.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'">
+                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
+                       :class="selectedTriangle === 'B' ? (isCorrect && currentLevelData.optB.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie B</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optB.svg"></svg>
                   </div>
 
                   <!-- Option C -->
                   <div @click="selectTriangle('C')"
-                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
-                       :class="selectedTriangle === 'C' ? (isCorrect && currentLevelData.optC.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'">
+                       class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
+                       :class="selectedTriangle === 'C' ? (isCorrect && currentLevelData.optC.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie C</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optC.svg"></svg>
                   </div>
@@ -375,12 +376,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

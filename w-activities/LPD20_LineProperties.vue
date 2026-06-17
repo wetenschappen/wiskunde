@@ -110,7 +110,7 @@ function checkAnswer() {
   const allQsAnswered = q1.value !== null && q2.value !== null && q3.value !== null && finalName.value !== ''
   if (!allQsAnswered) {
       isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Vul eerst alle Ja/Nee vragen én de naam in.'}
+      feedback.value = { type: 'error', text: 'Niet helemaal... Vul eerst alle Ja/Nee vragen én de naam in.'}
       return
   }
 
@@ -127,11 +127,11 @@ function checkAnswer() {
     // Scaffolding with progressive hints based on mistakes
     const hint = getHint(data)
     if (q1.value !== data.targetQ1) {
-        feedback.value = { type: 'error', text: `Kijk naar Vraag 1. Raakt de rode lijn het bovenste hoekpunt van de driehoek? ${data.targetQ1 ? 'Ja, hij vertrekt daar!' : 'Nee, hij gaat er net naast!'} ${hint}`}
+        feedback.value = { type: 'error', text: `Niet helemaal... Kijk naar Vraag 1. Raakt de rode lijn het bovenste hoekpunt van de driehoek? ${data.targetQ1 ? 'Ja, hij vertrekt daar!' : 'Nee, hij gaat er net naast!'} ${hint}`}
     } else if (q2.value !== data.targetQ2) {
-        feedback.value = { type: 'error', text: `Kijk naar Vraag 2. Zie je ergens een rood vierkantje (90°)? ${data.targetQ2 ? 'Ja, hij staat loodrecht.' : 'Nee, hij staat een beetje schuin.'} ${hint}`}
+        feedback.value = { type: 'error', text: `Niet helemaal... Kijk naar Vraag 2. Zie je ergens een rood vierkantje (90°)? ${data.targetQ2 ? 'Ja, hij staat loodrecht.' : 'Nee, hij staat een beetje schuin.'} ${hint}`}
     } else if (q3.value !== data.targetQ3) {
-        feedback.value = { type: 'error', text: `Kijk naar Vraag 3. Staan er zwarte streepjes op de zijde die tonen dat de helften even lang zijn? ${data.targetQ3 ? 'Ja.' : 'Nee.'} ${hint}`}
+        feedback.value = { type: 'error', text: `Niet helemaal... Kijk naar Vraag 3. Staan er zwarte streepjes op de zijde die tonen dat de helften even lang zijn? ${data.targetQ3 ? 'Ja.' : 'Nee.'} ${hint}`}
     } else {
         feedback.value = { type: 'error', text: `Je eigenschappen kloppen (Ja/Nee), maar de naam van de lijn is fout. Denk logisch na over de combinatie van eigenschappen. ${hint}`}
     }
@@ -174,11 +174,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -198,7 +199,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -217,8 +218,8 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Gaat door het hoekpunt?</span>
                        <div class="flex gap-2">
-                           <button @click="q1 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q1 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q1 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q1 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q1 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q1 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
@@ -226,8 +227,8 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Loodrecht op de zijde? (90°)</span>
                        <div class="flex gap-2">
-                           <button @click="q2 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q2 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q2 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q2 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q2 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q2 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
@@ -235,8 +236,8 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Deelt zijde in het midden?</span>
                        <div class="flex gap-2">
-                           <button @click="q3 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q3 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q3 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q3 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q3 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="q3 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
@@ -261,9 +262,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Kaart</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Kaart</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -323,12 +324,12 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>

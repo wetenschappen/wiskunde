@@ -114,9 +114,9 @@ function showHint() {
   if (isCorrect.value || !currentLevelData.value) return
   attemptCount.value++
   if (attemptCount.value === 1) {
-    feedback.value = { type: 'error', text: 'Blijf schuiven tot de grafiek een volkomen neutrale en eerlijke weergave toont.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... Blijf schuiven tot de grafiek een volkomen neutrale en eerlijke weergave toont.' }
   } else if (attemptCount.value === 2) {
-    feedback.value = { type: 'error', text: 'De truc is dat de visuele schaal niet klopt. Zoek de instelling die de grafiek niet langer misleidt.' }
+    feedback.value = { type: 'error', text: 'Niet helemaal... De truc is dat de visuele schaal niet klopt. Zoek de instelling die de grafiek niet langer misleidt.' }
   } else {
     feedback.value = { type: 'error', text: `De juiste waarde is ${currentLevelData.value.targetVal}.` }
   }
@@ -178,7 +178,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -200,7 +200,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -224,11 +224,11 @@ onUnmounted(() => {
               <input v-if="currentInternalLevel < 2" type="range" v-model.number="sliderVal" :min="currentLevelData.sliderMin" :max="currentLevelData.sliderMax" :step="currentLevelData.sliderStep" :disabled="isCorrect" class="w-full accent-orange-600">
 
               <div v-else class="flex gap-2">
-                <button @click="sliderVal = -1" class="flex-1 py-2 rounded-lg font-bold border-2 transition-all" :class="sliderVal === -1 ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'">Misleidend</button>
-                <button @click="sliderVal = 1" class="flex-1 py-2 rounded-lg font-bold border-2 transition-all" :class="sliderVal === 1 ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'">Eerlijk</button>
+                <button @click="sliderVal = -1" class="flex-1 py-2 rounded-lg font-bold border-2 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sliderVal === -1 ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'">Misleidend</button>
+                <button @click="sliderVal = 1" class="flex-1 py-2 rounded-lg font-bold border-2 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="sliderVal === 1 ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-200 bg-white text-slate-500'">Eerlijk</button>
               </div>
 
-              <button @click="showHint" :disabled="isCorrect" class="w-full py-2 text-sm font-bold text-slate-600 bg-white border-2 border-slate-300 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50">
+              <button @click="showHint" :disabled="isCorrect" class="w-full py-2 text-sm font-bold text-slate-600 bg-white border-2 border-slate-300 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 Hint nodig?
               </button>
             </div>
@@ -247,11 +247,11 @@ onUnmounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -350,7 +350,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -366,10 +366,7 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

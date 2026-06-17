@@ -96,17 +96,17 @@ function onDrop() {
           visualState.value = currentLevelData.value.visTarget;
           feedback.value = {
             type: 'success',
-            text: 'Perfect! Elke stap in oppervlakte is een factor 100 (x10 in lengte, x10 in breedte).'
+            text: 'Prima!! Elke stap in oppervlakte is een factor 100 (x10 in lengte, x10 in breedte).'
           }
         } else {
           attemptCount.value++;
           isChecked.value = true;
           if (droppedAns.value === 10) {
-            feedback.value = { type: 'error', text: 'Let op: 10 is de sprong voor LENGTE (bijv. 1 m = 10 dm). We zoeken OPPERVLAKTE (lengte x breedte).'}
+            feedback.value = { type: 'error', text: 'Niet helemaal... Let op: 10 is de sprong voor LENGTE (bijv. 1 m = 10 dm). We zoeken OPPERVLAKTE (lengte x breedte).'}
           } else if (attemptCount.value === 1) {
             feedback.value = { type: 'error', text: `Niet helemaal juist. Gebruik de vergrootglazen in de figuur om het na te tellen. ${currentLevelData.value.hint}`}
           } else if (attemptCount.value === 2) {
-            feedback.value = { type: 'error', text: `Denk eraan: in de lengte EN de breedte wordt de eenheid 10x kleiner. Dus 10 x 10 = ...?`}
+            feedback.value = { type: 'error', text: `Niet helemaal... Denk eraan: in de lengte EN de breedte wordt de eenheid 10x kleiner. Dus 10 x 10 = ...?`}
           } else {
             feedback.value = { type: 'error', text: `Het juiste antwoord is ${currentLevelData.value.targetVal}. Kijk naar de figuur: het aantal kleine hokjes in het grote vierkant.`}
           }
@@ -170,7 +170,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -190,7 +190,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -224,8 +224,8 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -249,7 +249,7 @@ onUnmounted(() => {
                        :class="droppedAns ? (isCorrect ? 'border-emerald-400 bg-emerald-50' : 'border-slate-800 bg-slate-100') : 'border-surface-200 bg-math-blue-bg hover:bg-math-blue-bg'">
                        <span v-if="!droppedAns" class="text-xs font-bold text-math-blue uppercase tracking-widest">Sleep hier</span>
                        <span v-else class="text-2xl font-black text-slate-800">{{ droppedAns }}</span>
-                       <button v-if="droppedAns && !isCorrect" @click="removeDrop" class="absolute -top-3 -right-3 bg-slate-200 rounded-full p-1 hover:bg-red-200 hover:text-red-700 border-2 border-white shadow-sm">
+                       <button v-if="droppedAns && !isCorrect" @click="removeDrop" class="absolute -top-3 -right-3 bg-slate-200 rounded-full p-1 hover:bg-red-200 hover:text-red-700 border-2 border-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                            <PhX weight="bold" class="w-3 h-3" />
                        </button>
                   </div>
@@ -259,9 +259,9 @@ onUnmounted(() => {
 
               <!-- Interactive Visual Controls -->
               <div class="flex bg-white p-2 rounded-xl shadow-sm border border-slate-200 z-20">
-                  <button @click="visualState = 'm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm" :class="visualState === 'm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'">Toon Geheel</button>
-                  <button @click="visualState = 'dm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'dm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 10</button>
-                  <button @click="visualState = 'cm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'cm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 100</button>
+                  <button @click="visualState = 'm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="visualState === 'm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'">Toon Geheel</button>
+                  <button @click="visualState = 'dm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="visualState === 'dm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 10</button>
+                  <button @click="visualState = 'cm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="visualState === 'cm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 100</button>
               </div>
 
               <!-- The Square (1m^2 representation) -->
@@ -301,14 +301,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
 .ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
 @keyframes ring-pulse-amber {
     0% { box-shadow: 0 0 0 0 #fbbf24; }

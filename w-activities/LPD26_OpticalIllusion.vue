@@ -157,9 +157,9 @@ function togglePerspective() {
     is3D.value = !is3D.value
     if (is3D.value) {
         if (currentLevelData.value.correctAns === 'evenwijdig') {
-            feedback.value = { type: 'success', text: 'Kijk! Ze zitten in verschillende vlakken (voor en achter), maar lopen wel in krek dezelfde richting.' }
+            feedback.value = { type: 'success', text: 'Prima! Kijk! Ze zitten in verschillende vlakken (voor en achter), maar lopen wel in krek dezelfde richting.' }
         } else {
-            feedback.value = { type: 'success', text: 'Kijk nu nog eens goed! De ene lijn ligt vooraan, de andere helemaal achteraan. Ze raken elkaar niet eens!' }
+            feedback.value = { type: 'success', text: 'Prima! Kijk nu nog eens goed! De ene lijn ligt vooraan, de andere helemaal achteraan. Ze raken elkaar niet eens!' }
         }
     }
 }
@@ -187,7 +187,7 @@ function checkAnswer() {
     } else {
         isCorrect.value = false
         attemptCount.value++
-        feedback.value = { type: 'error', text: 'Je hebt helemaal gelijk! Maar wissel het perspectief naar 3D om het ook visueel te bewijzen.'}
+        feedback.value = { type: 'error', text: 'Niet helemaal... Je hebt helemaal gelijk! Maar wissel het perspectief naar 3D om het ook visueel te bewijzen.'}
     }
   } else {
     isCorrect.value = false
@@ -195,16 +195,16 @@ function checkAnswer() {
 
     if (userAns.value === 'snijdend') {
         if (!is3D.value) {
-            feedback.value = { type: 'error', text: 'In dit platte vooraanzicht LIJKT het alsof ze snijden (ze kruisen of raken op de 2D tekening). Verander je perspectief naar 3D!'}
+            feedback.value = { type: 'error', text: 'Niet helemaal... In dit platte vooraanzicht LIJKT het alsof ze snijden (ze kruisen of raken op de 2D tekening). Verander je perspectief naar 3D!'}
         } else {
-            feedback.value = { type: 'error', text: 'Kijk naar de 3D-weergave. Ze raken elkaar absoluut niet! Eentje plakt op de voorkant, de ander op de achterkant.'}
+            feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de 3D-weergave. Ze raken elkaar absoluut niet! Eentje plakt op de voorkant, de ander op de achterkant.'}
         }
     } else if (userAns.value === 'evenwijdig') {
         feedback.value = { type: 'error', text: getHint() }
     } else if (userAns.value === 'kruisend') {
         feedback.value = { type: 'error', text: getHint() }
     } else {
-        feedback.value = { type: 'error', text: 'Kies een antwoord uit de lijst.'}
+        feedback.value = { type: 'error', text: 'Niet helemaal... Kies een antwoord uit de lijst.'}
     }
   }
 }
@@ -249,7 +249,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -269,7 +269,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -301,9 +301,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Ligging</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Ligging</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -318,7 +318,7 @@ onUnmounted(() => {
 
                   <div class="mb-12">
                       <button @click="togglePerspective" :disabled="isCorrect"
-                              class="px-6 py-4 font-bold text-white rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 border-2"
+                              class="px-6 py-4 font-bold text-white rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 border-2 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                               :class="is3D ? 'bg-math-blue border-math-blue hover:bg-math-blue' : 'bg-slate-800 border-slate-900 hover:bg-slate-700'">
                           <PhEye weight="fill" class="w-6 h-6" /> {{ is3D ? 'Terug naar 2D Platvlak' : 'Bekijk in 3D (Draai)' }}
                       </button>
@@ -342,14 +342,14 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
 .animate-spin-slow { animation: spin 4s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>

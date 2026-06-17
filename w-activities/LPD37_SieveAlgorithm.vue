@@ -112,9 +112,9 @@ function cycleState(index) {
       if (numStates.value.every(s => s !== 'normal')) {
         attemptCount.value++
         if (attemptCount.value === 1) {
-          feedback.value = { type: 'error', text: 'Niet alle getallen zijn juist. Controleer de priemgetallen en hun veelvouden.' }
+          feedback.value = { type: 'error', text: 'Niet helemaal... Niet alle getallen zijn juist. Controleer de priemgetallen en hun veelvouden.' }
         } else if (attemptCount.value === 2) {
-          feedback.value = { type: 'error', text: 'Onthoud: een priemgetal heeft precies 2 delers (1 en zichzelf). Omcirkel die. Streep de rest door.' }
+          feedback.value = { type: 'error', text: 'Niet helemaal... Onthoud: een priemgetal heeft precies 2 delers (1 en zichzelf). Omcirkel die. Streep de rest door.' }
         } else {
           feedback.value = { type: 'error', text: `De priemgetallen tot ${maxNum.value} zijn: ${primes.value.join(', ')}.` }
         }
@@ -183,11 +183,12 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
+// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
@@ -211,7 +212,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -253,9 +254,9 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
               <!-- Auto-correct: no check button, grid clicks auto-verify -->
-              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -275,7 +276,7 @@ onUnmounted(() => {
 
                       <button v-for="(state, idx) in numStates" :key="idx"
                               @click="cycleState(idx)" :disabled="isCorrect"
-                              class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center font-black text-2xl md:text-3xl transition-all shadow-sm select-none relative focus:outline-none"
+                              class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center font-black text-2xl md:text-3xl transition-all shadow-sm select-none relative focus:outline-none active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
                               :class="{
                                   'bg-slate-700 border-2 border-slate-600 text-slate-400 hover:bg-slate-600 rounded-xl': state === 'normal',
                                   'bg-red-900/20 border-2 border-red-500/50 text-slate-600 rounded-xl': state === 'crossed',
@@ -299,7 +300,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
 </template>
 
 <style scoped>
@@ -312,5 +313,5 @@ onUnmounted(() => {
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
 </style>
