@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhEngine, PhArrowClockwise, PhArrowUUpLeft } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean, title: { type: String, default: 'Vergelijkingen: De Machine Terugdraaien' },
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies de eerste tegengestelde bewerking.' })
 const attemptCount = ref(0)
@@ -187,6 +189,7 @@ function checkVal2() {
 function resetActivityState() {
   levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
   isCorrect.value = false; isChecked.value = false; step.value = 0; op1.value = ''; val1.value = null; op2.value = ''; val2.value = null
+celebrationDone.value = false
   attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Kies de eerste tegengestelde bewerking.' }
 }
@@ -282,6 +285,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }

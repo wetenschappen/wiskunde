@@ -9,6 +9,7 @@ import {
   PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -30,6 +31,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
@@ -174,6 +176,7 @@ function getHint() {
 function resetActivityState() {
   levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
   isCorrect.value = false
+celebrationDone.value = false
   isChecked.value = false
   attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Bereken de nulwaarden (bijv. via som-product of ABC-formule) en vul het tekenschema in.' }
@@ -481,6 +484,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

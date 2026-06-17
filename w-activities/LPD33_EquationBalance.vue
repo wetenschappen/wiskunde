@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScales, PhArrowClockwise } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean, title: { type: String, default: 'Vergelijkingen: De Balansmethode' },
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies een actie om toe te passen op BEIDE kanten.' })
 
 const attemptCount = ref(0)
@@ -131,6 +133,7 @@ function performOperation(op) {
 function resetActivityState() {
   levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false
+celebrationDone.value = false
   attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Kies een actie om toe te passen op BEIDE kanten.' }
   xCount.value = currentLevel.value.xCount
@@ -226,6 +229,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }

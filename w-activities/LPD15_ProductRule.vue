@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMathOperations, PhArrowClockwise, PhArrowsOutLineHorizontal
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op "Vouw Open" om het bewijs te zien.' })
 
@@ -67,6 +69,7 @@ function expandPowers() {
 
 function resetActivityState() {
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Klik op "Vouw Open" om het bewijs te zien.' };
@@ -239,7 +242,7 @@ onUnmounted(() => {
                               <div v-for="i in currentLevelData.exp1" :key="'e1'+i" class="w-16 h-16 bg-blue-100 border-4 border-blue-400 rounded-xl flex items-center justify-center font-black text-3xl text-blue-700 shadow-sm animate-fadeIn" :style="`animation-delay: ${i*0.1}s`">
                                   {{ currentLevelData.base }}
                               </div>
-                          </template>
+</template>
                       </div>
 
                       <div class="font-black text-4xl text-slate-400 mx-2">×</div>
@@ -257,7 +260,7 @@ onUnmounted(() => {
                               <div v-for="i in currentLevelData.exp2" :key="'e2'+i" class="w-16 h-16 bg-orange-100 border-4 border-orange-400 rounded-xl flex items-center justify-center font-black text-3xl text-orange-700 shadow-sm animate-fadeIn" :style="`animation-delay: ${(i+currentLevelData.exp1)*0.1}s`">
                                   {{ currentLevelData.base }}
                               </div>
-                          </template>
+</template>
                       </div>
 
                   </div>
@@ -277,6 +280,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

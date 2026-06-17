@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhArrowsClockwise, PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Gebruik de slider om de vorm rond punt C te draaien.' })
 
@@ -84,6 +86,7 @@ const isOverlapping = computed(() => rotation.value === 180)
 
 function resetActivityState() {
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Gebruik de slider om de vorm rond punt C te draaien.' };
     rotation.value = 0;
@@ -283,6 +286,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

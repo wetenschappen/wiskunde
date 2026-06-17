@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhBoundingBox, PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Stap 1: Bereken het Grondvlak en klik op "Vul Bodemlaag".' })
 const attemptCount = ref(0)
@@ -103,6 +105,7 @@ function fillAll() {
 
 function resetActivityState() {
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Stap 1: Bereken het Grondvlak en klik op "Vul Bodemlaag".' };
     step.value = 0;
@@ -260,9 +263,9 @@ onUnmounted(() => {
                                               <!-- Right face -->
                                               <polygon points="0,0 26,-15 26,15 0,30" fill="#2563eb" stroke="#1d4ed8" stroke-width="1" />
                                           </g>
-                                      </template>
-                                  </template>
-                              </template>
+</template>
+</template>
+</template>
                           </g>
 
                           <!-- Wireframe Front/Top Edges -->
@@ -299,6 +302,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

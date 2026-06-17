@@ -9,6 +9,7 @@ import {
   PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -30,6 +31,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
 const attemptCount = ref(0)
@@ -117,6 +119,7 @@ const graphPath = computed(() => {
 function resetActivityState() {
   levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false;
+celebrationDone.value = false
   attemptCount.value = 0;
   interacted.value = false;
   feedback.value = { type: 'info', text: 'Plaats de symmetrieas, de top en de twee nulwaarden op de juiste coördinaten.' };
@@ -392,6 +395,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

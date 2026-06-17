@@ -9,6 +9,7 @@ import {
   PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -30,6 +31,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
@@ -116,6 +118,7 @@ function resetActivityState() {
   generateLevels()
   attemptCount.value = 0
   isCorrect.value = false;
+celebrationDone.value = false
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userOdd.value = '';
@@ -283,7 +286,7 @@ onUnmounted(() => {
                     </button>
                   </div>
                 </div>
-              </template>
+</template>
 
               <!-- Level 2: Degree of a node -->
               <template v-else-if="currentInternalLevel === 1">
@@ -293,7 +296,7 @@ onUnmounted(() => {
                          class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-orange-500 transition-colors"
                          placeholder="Graad = ?">
                 </div>
-              </template>
+</template>
 
               <!-- Level 3: Edge count -->
               <template v-else>
@@ -303,7 +306,7 @@ onUnmounted(() => {
                          class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-orange-500 transition-colors"
                          placeholder="Aantal = ?">
                 </div>
-              </template>
+</template>
 
             </div>
           </div>
@@ -391,6 +394,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

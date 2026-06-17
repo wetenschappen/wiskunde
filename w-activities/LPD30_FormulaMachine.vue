@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhEngine, PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -21,6 +22,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies een input x en bereken de output y.' })
 
@@ -103,6 +105,7 @@ function runMachine() {
 
 function resetActivityState() {
   isCorrect.value = false
+celebrationDone.value = false
   isChecked.value = false
   attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Kies een input x en bereken de output y.' }
@@ -246,6 +249,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

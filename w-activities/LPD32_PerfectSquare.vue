@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquaresFour, PhArrowClockwise, PhHandGrabbing } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean, title: { type: String, default: 'Merkwaardige Producten: (a+b)\u00b2' },
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op "Splits Vierkant" om de formule te ontdekken.' })
 
@@ -87,6 +89,7 @@ function checkAnswer() {
 function resetActivityState() {
   levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false; isChecked.value = false; isSplit.value = false
+celebrationDone.value = false
   attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Klik op "Splits Vierkant" om de formule te ontdekken.' }
   userAns.value = ''
@@ -173,6 +176,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }

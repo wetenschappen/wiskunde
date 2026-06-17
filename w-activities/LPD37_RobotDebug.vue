@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhRobot, PhArrowClockwise, PhCaretUp, PhCaretRight, PhCaretDown, PhCaretLeft, PhBackspace
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' })
 const attemptCount = ref(0)
@@ -192,6 +194,7 @@ function finishRun(crashed = false) {
 function resetActivityState() {
     levels.value = generateLevel()
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' };
     algorithm.value = [];
@@ -352,8 +355,8 @@ onUnmounted(() => {
                                       </div>
 
                                   </div>
-                              </template>
-                          </template>
+</template>
+</template>
                       </div>
 
                       <!-- The Robot -->
@@ -380,6 +383,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

@@ -9,6 +9,7 @@ import {
   PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -30,6 +31,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
@@ -115,6 +117,7 @@ function resetActivityState() {
   generateLevels()
   attemptCount.value = 0
   isCorrect.value = false;
+celebrationDone.value = false
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userAnswer.value = '';
@@ -292,18 +295,18 @@ onUnmounted(() => {
                     <line x1="100" y1="50" x2="50" y2="150" stroke="#0ea5e9" stroke-width="4" />
                     <line x1="100" y1="50" x2="150" y2="150" stroke="#0ea5e9" stroke-width="4" />
                     <line x1="100" y1="50" x2="100" y2="150" stroke="#0ea5e9" stroke-width="4" />
-                  </template>
+</template>
                   <template v-else-if="currentLevel.targetNode === 'B'">
                     <line x1="100" y1="50" x2="50" y2="150" stroke="#f59e0b" stroke-width="4" />
                     <line x1="50" y1="150" x2="100" y2="150" stroke="#f59e0b" stroke-width="4" />
-                  </template>
+</template>
                   <template v-else-if="currentLevel.targetNode === 'C'">
                     <line x1="100" y1="50" x2="150" y2="150" stroke="#10b981" stroke-width="4" />
-                  </template>
+</template>
                   <template v-else-if="currentLevel.targetNode === 'D'">
                     <line x1="100" y1="50" x2="100" y2="150" stroke="#8b5cf6" stroke-width="4" />
                     <line x1="50" y1="150" x2="100" y2="150" stroke="#8b5cf6" stroke-width="4" />
-                  </template>
+</template>
 
                   <!-- Nodes -->
                   <circle :cx="100" cy="50" r="15" :fill="currentLevel.targetNode === 'A' ? '#0ea5e9' : '#94a3b8'" stroke="#fff" stroke-width="3" />
@@ -331,6 +334,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

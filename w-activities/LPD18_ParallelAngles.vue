@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhLines, PhArrowClockwise, PhHandPointing
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Selecteer exact twee hoeken die het gevraagde hoekenpaar vormen.' })
 const attemptCount = ref(0)
@@ -143,6 +145,7 @@ function getAngleType(a, b) {
 function resetActivityState() {
     levels.value = generateLevel();
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Selecteer exact twee hoeken die het gevraagde hoekenpaar vormen.' };
@@ -322,6 +325,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTable, PhArrowClockwise, PhChartBar
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' })
 const attemptCount = ref(0)
@@ -118,6 +120,7 @@ function drawGraph() {
 function resetActivityState() {
     levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
     isCorrect.value = false
+celebrationDone.value = false
     isChecked.value = false
     attemptCount.value = 0
     feedback.value = { type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' }
@@ -265,7 +268,7 @@ onUnmounted(() => {
                           <div class="absolute left-[-24px] top-0 bottom-0 w-6 flex flex-col justify-between items-end font-bold text-xs text-slate-400">
                               <template v-for="i in yMax" :key="'tick'+i">
                                   <span>{{ yMax - i + 1 }}</span>
-                              </template>
+</template>
                               <span>0</span>
                           </div>
 
@@ -312,6 +315,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>

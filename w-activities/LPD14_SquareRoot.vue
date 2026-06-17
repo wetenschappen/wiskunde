@@ -4,6 +4,7 @@ import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquareHalf, PhArrowClockwise
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
+import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
+const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Gebruik de slider om de grootte van het vierkant te veranderen.' })
 const attemptCount = ref(0)
@@ -81,6 +83,7 @@ const currentArea = computed(() => sideLength.value * sideLength.value)
 
 function resetActivityState() {
     isCorrect.value = false;
+celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Gebruik de slider om de grootte van het vierkant te veranderen.' };
     sideLength.value = 1;
@@ -268,8 +271,8 @@ onUnmounted(() => {
                               <template v-for="x in sideLength" :key="'tx'+x">
                                   <template v-for="y in sideLength" :key="'ty'+y">
                                       <rect :x="(x-1)*30" :y="(y-1)*30" width="30" height="30" fill="transparent" stroke="#10b981" stroke-width="1" />
-                                  </template>
-                              </template>
+</template>
+</template>
                           </g>
 
                           <!-- Display total Area inside -->
@@ -287,6 +290,7 @@ onUnmounted(() => {
       </main>
     </div>
   </div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
 </template>
 
 <style scoped>
