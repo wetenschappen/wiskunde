@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhBoundingBox, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Volume: De Balk Vullen' },
-  instruction: { 
-    type: String, 
-    default: 'Het volume (inhoud) van een rechte vorm is altijd: <strong>Oppervlakte Grondvlak × Hoogte</strong>. We stapelen eigenlijk gewoon laagjes op elkaar!<br/><br/><strong>Opdracht:</strong> Vul de lege doos. Bereken eerst de oppervlakte van één laagje (het grondvlak). Bereken daarna het totale volume.' 
+  instruction: {
+    type: String,
+    default: 'Het volume (inhoud) van een rechte vorm is altijd: <strong>Oppervlakte Grondvlak × Hoogte</strong>. We stapelen eigenlijk gewoon laagjes op elkaar!<br/><br/><strong>Opdracht:</strong> Vul de lege doos. Bereken eerst de oppervlakte van één laagje (het grondvlak). Bereken daarna het totale volume.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,18 +23,28 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Stap 1: Bereken het Grondvlak en klik op "Vul Bodemlaag".' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { w: 5, d: 3, h: 4 }, // Base: 15, Vol: 60
-  { w: 4, d: 4, h: 3 }, // Base: 16, Vol: 48
-  { w: 6, d: 2, h: 5 }  // Base: 12, Vol: 60
-]
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  switch (levelIndex) {
+    case 0: return { w: randomInt(3, 5), d: randomInt(2, 4), h: randomInt(3, 5) }
+    case 1: return { w: randomInt(4, 6), d: randomInt(3, 5), h: randomInt(4, 6) }
+    case 2: return { w: randomInt(5, 7), d: randomInt(3, 5), h: randomInt(5, 7) }
+    default: return { w: 5, d: 3, h: 4 }
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const baseArea = computed(() => currentLevelData.value.w * currentLevelData.value.d)
 const totalVol = computed(() => baseArea.value * currentLevelData.value.h)
 
@@ -43,12 +53,32 @@ const step = ref(0) // 0: empty, 1: base layer, 2: full
 const ansBase = ref(null)
 const ansVol = ref(null)
 
+function getHint(phase) {
+  if (phase === 'base') {
+    if (attemptCount.value <= 1) {
+      return `Kijk naar de bodem van de doos. Het is een rechthoek van ${currentLevelData.value.w} bij ${currentLevelData.value.d}. Wat is de oppervlakte daarvan?`
+    } else if (attemptCount.value === 2) {
+      return `De oppervlakte van een rechthoek is lengte × breedte. Dus ${currentLevelData.value.w} × ${currentLevelData.value.d} = ?`
+    }
+    return `Berekening: ${currentLevelData.value.w} × ${currentLevelData.value.d} = ${baseArea.value}`
+  }
+  // phase === 'volume'
+  if (attemptCount.value <= 1) {
+    return `Je vult de doos laag per laag. Elke laag heeft oppervlakte ${baseArea.value}. Hoeveel van die lagen passen erin (kijk naar de hoogte)?`
+  } else if (attemptCount.value === 2) {
+    return `Volume = Oppervlakte Grondvlak × Hoogte = ${baseArea.value} × ${currentLevelData.value.h} = ?`
+  }
+  return `Berekening: ${baseArea.value} × ${currentLevelData.value.h} = ${totalVol.value}`
+}
+
 function fillBase() {
     if (ansBase.value === baseArea.value) {
         step.value = 1
+        attemptCount.value = 0
         feedback.value = { type: 'success', text: `Correct! Het grondvlak is ${currentLevelData.value.w} × ${currentLevelData.value.d} = ${baseArea.value}. Eén laagje bevat dus ${baseArea.value} blokjes. Hoeveel van deze laagjes passen erin?` }
     } else {
-        feedback.value = { type: 'error', text: `Fout. Kijk naar de bodem van de doos. Het is een rechthoek van ${currentLevelData.value.w} bij ${currentLevelData.value.d}. Wat is de oppervlakte daarvan?` }
+        attemptCount.value++
+        feedback.value = { type: 'error', text: getHint('base') }
     }
 }
 
@@ -60,10 +90,12 @@ function fillAll() {
         feedback.value = { type: 'success', text: `Briljant! Je hebt het grondvlak (${baseArea.value}) vermenigvuldigd met de hoogte (${currentLevelData.value.h}). In totaal zijn dat ${totalVol.value} blokjes!` }
     } else {
         isCorrect.value = false
+        attemptCount.value++
+
         if (ansVol.value === baseArea.value) {
             feedback.value = { type: 'error', text: `${baseArea.value} is maar één laagje. Hoeveel laagjes passen erin (kijk naar de hoogte)?`}
         } else {
-            feedback.value = { type: 'error', text: `Je moet het grondvlak (${baseArea.value}) vermenigvuldigen met de hoogte (${currentLevelData.value.h}). Wat is ${baseArea.value} × ${currentLevelData.value.h}?`}
+            feedback.value = { type: 'error', text: getHint('volume') }
         }
     }
 }
@@ -75,6 +107,10 @@ function resetActivityState() {
     step.value = 0;
     ansBase.value = null;
     ansVol.value = null;
+    attemptCount.value = 0;
+    if (levels.value.length === 0) {
+      levels.value = [0, 1, 2].map(i => generateLevel(i))
+    }
 }
 
 function handleNext() {
@@ -91,6 +127,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -116,7 +153,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -127,8 +164,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -144,9 +181,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner flex flex-col gap-6">
-               
+
                <!-- Step 1 -->
                <div class="flex flex-col gap-2">
                    <label class="text-sm font-bold text-indigo-900">1. Oppervlakte Grondvlak (G):</label>
@@ -189,17 +226,17 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <div class="relative bg-white shadow-xl rounded-3xl overflow-hidden border-2 border-slate-200 p-8 flex items-center justify-center" style="width: 500px; height: 500px;" :key="currentInternalLevel">
                       <svg width="400" height="400" viewBox="-200 -250 400 400">
-                          
+
                           <!-- Isometric definitions -->
                           <!-- dx_x = 26, dy_x = 15 -->
                           <!-- dx_z = -26, dy_z = 15 -->
                           <!-- dx_y = 0, dy_y = -30 -->
-                          
+
                           <!-- Wireframe Back/Bottom -->
                           <g stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4" fill="none">
                               <!-- Back left edge (height) -->

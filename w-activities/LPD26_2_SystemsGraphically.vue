@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhCrosshair,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,42 +31,118 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    type: 'bepaald',
-    f_str: 'y = x + 1', f: (x) => x + 1,
-    g_str: 'y = -2x + 4', g: (x) => -2 * x + 4,
-    correctPoint: { x: 1, y: 2 },
-    goalText: 'Opdracht 1: Klik exact op het snijpunt van deze twee rechten.',
-    lines: [{ x1: -5, y1: -4, x2: 5, y2: 6 }, { x1: -1, y1: 6, x2: 4.5, y2: -5 }]
-  },
-  {
-    type: 'strijdig',
-    f_str: 'y = 0.5x + 3', f: (x) => 0.5 * x + 3,
-    g_str: 'y = 0.5x - 2', g: (x) => 0.5 * x - 2,
-    correctPoint: null,
-    goalText: 'Opdracht 2: Zoek het snijpunt in de grafiek. Als er geen is, gebruik de knop.',
-    lines: [{ x1: -5, y1: 0.5, x2: 5, y2: 5.5 }, { x1: -5, y1: -4.5, x2: 5, y2: 0.5 }]
-  },
-  {
-    type: 'onbepaald',
-    f_str: 'y = 2x - 3', f: (x) => 2 * x - 3,
-    g_str: '2y = 4x - 6', g: (x) => 2 * x - 3,
-    correctPoint: null,
-    goalText: 'Opdracht 3: Bekijk de vergelijkingen en de lijnen. Wat is hier aan de hand?',
-    lines: [{ x1: -1, y1: -5, x2: 4, y2: 5 }, { x1: -1, y1: -5, x2: 4, y2: 5 }] // visually overlap
-  }
-]
+// Randomization helpers
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function formatEq(slope, intercept) {
+  let result = 'y = '
+  if (slope === 1) result += 'x'
+  else if (slope === -1) result += '-x'
+  else if (Number.isInteger(slope)) result += `${slope}x`
+  else result += `${slope}x`
+  if (intercept > 0) result += ` + ${intercept}`
+  else if (intercept < 0) result += ` - ${Math.abs(intercept)}`
+  return result
+}
+
+function formatEqMultiple(slope, intercept, factor) {
+  const left = factor === 1 ? 'y' : `${factor}y`
+  let right = ''
+  const ms = slope * factor
+  if (ms === 1) right += 'x'
+  else if (ms === -1) right += '-x'
+  else if (Number.isInteger(ms)) right += `${ms}x`
+  else right += `${ms}x`
+  const bs = intercept * factor
+  if (bs > 0) right += ` + ${bs}`
+  else if (bs < 0) right += ` - ${Math.abs(bs)}`
+  return `${left} = ${right}`
+}
+
+function generateLevel(levelIndex) {
+  if (levelIndex === 0) {
+    // Bepaald (intersecting): random intersection point, random slopes
+    const x0 = randomInt(-3, 3)
+    const y0 = randomInt(-3, 3)
+    const slopes = [0.5, 1, 1.5, 2, -0.5, -1, -1.5, -2]
+    let m1 = randomChoice(slopes)
+    let m2
+    do { m2 = randomChoice(slopes) } while (m2 === m1)
+    const b1 = y0 - m1 * x0
+    const b2 = y0 - m2 * x0
+    return {
+      type: 'bepaald',
+      f_str: formatEq(m1, b1),
+      f: (x) => m1 * x + b1,
+      g_str: formatEq(m2, b2),
+      g: (x) => m2 * x + b2,
+      correctPoint: { x: x0, y: y0 },
+      goalText: 'Opdracht 1: Klik exact op het snijpunt van deze twee rechten.',
+      lines: [
+        { x1: -5, y1: m1 * (-5) + b1, x2: 5, y2: m1 * 5 + b1 },
+        { x1: -5, y1: m2 * (-5) + b2, x2: 5, y2: m2 * 5 + b2 }
+      ]
+    }
+  } else if (levelIndex === 1) {
+    // Strijdig (parallel): same slope, different intercept
+    const slopes = [0.5, 1, 1.5, 2, -0.5, -1, -1.5, -2]
+    const m = randomChoice(slopes)
+    let b1, b2
+    b1 = randomInt(-4, 4)
+    do { b2 = randomInt(-4, 4) } while (b2 === b1)
+    return {
+      type: 'strijdig',
+      f_str: formatEq(m, b1),
+      f: (x) => m * x + b1,
+      g_str: formatEq(m, b2),
+      g: (x) => m * x + b2,
+      correctPoint: null,
+      goalText: 'Opdracht 2: Zoek het snijpunt in de grafiek. Als er geen is, gebruik de knop.',
+      lines: [
+        { x1: -5, y1: m * (-5) + b1, x2: 5, y2: m * 5 + b1 },
+        { x1: -5, y1: m * (-5) + b2, x2: 5, y2: m * 5 + b2 }
+      ]
+    }
+  } else {
+    // Onbepaald (coincident): same line in two different forms
+    const slopes = [0.5, 1, 1.5, 2, -0.5, -1, -1.5, -2]
+    const m = randomChoice(slopes)
+    const b = randomInt(-4, 4)
+    const factor = randomChoice([2, 3])
+    return {
+      type: 'onbepaald',
+      f_str: formatEq(m, b),
+      f: (x) => m * x + b,
+      g_str: formatEqMultiple(m, b, factor),
+      g: (x) => m * x + b,
+      correctPoint: null,
+      goalText: 'Opdracht 3: Bekijk de vergelijkingen en de lijnen. Wat is hier aan de hand?',
+      lines: [
+        { x1: -5, y1: m * (-5) + b, x2: 5, y2: m * 5 + b },
+        { x1: -5, y1: m * (-5) + b, x2: 5, y2: m * 5 + b }
+      ]
+    }
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 const userPoint = ref(null)
-const userSpecialChoice = ref(null) // 'strijdig', 'onbepaald'
+const userSpecialChoice = ref(null)
 
 const gridSize = 40 // px
 const originX = 200 // px
@@ -74,7 +150,7 @@ const originY = 200 // px
 
 function handleGridClick(e) {
   if (isChecked.value && isCorrect.value) return;
-  
+
   const rect = e.currentTarget.getBoundingClientRect()
   const clickX = e.clientX - rect.left
   const clickY = e.clientY - rect.top
@@ -85,16 +161,65 @@ function handleGridClick(e) {
   gridX = Math.max(-5, Math.min(gridX, 5))
   gridY = Math.max(-5, Math.min(gridY, 5))
 
+  const target = currentLevelData.value
+
+  // Auto-correct for bepaald: correct click = correct answer
+  if (target.type === 'bepaald') {
+    if (gridX === target.correctPoint.x && gridY === target.correctPoint.y) {
+      isCorrect.value = true
+      userPoint.value = { x: gridX, y: gridY }
+      feedback.value = { type: 'success', text: `Perfect! Het snijpunt (${target.correctPoint.x}, ${target.correctPoint.y}) is de unieke oplossing van dit stelsel.` }
+      return
+    }
+    // Wrong click: give feedback
+    userPoint.value = { x: gridX, y: gridY }
+    userSpecialChoice.value = null
+    isChecked.value = false
+    feedback.value = { type: 'error', text: `Je koos (${gridX}, ${gridY}). Dat is niet het snijpunt waar beide lijnen exact kruisen.` }
+    return
+  }
+
+  // For strijdig/onbepaald: let user click grid but guide them
   userPoint.value = { x: gridX, y: gridY }
-  userSpecialChoice.value = null; // reset special choice if they clicked the grid
+  userSpecialChoice.value = null
   isChecked.value = false
+
+  if (target.type === 'strijdig') {
+    feedback.value = { type: 'error', text: 'Kijk naar de richting van de lijnen. Ze zijn evenwijdig! Gebruik de speciale knoppen onderaan.' }
+  } else {
+    feedback.value = { type: 'error', text: 'Let op! De twee vergelijkingen stellen exact dezelfde rechte voor. Gebruik de speciale knoppen.' }
+  }
 }
 
 function setSpecialChoice(type) {
   if (isCorrect.value) return;
-  userSpecialChoice.value = type;
-  userPoint.value = null; // clear point if they pick a special option
-  isChecked.value = false;
+
+  const target = currentLevelData.value
+
+  // Auto-correct: correct special choice = correct answer
+  if ((target.type === 'strijdig' && type === 'strijdig') ||
+      (target.type === 'onbepaald' && type === 'onbepaald')) {
+    isCorrect.value = true
+    userSpecialChoice.value = type
+    userPoint.value = null
+    if (target.type === 'strijdig') {
+      feedback.value = { type: 'success', text: 'Geweldig! De lijnen zijn evenwijdig. Ze snijden nooit, dus er is geen oplossing (strijdig stelsel).' }
+    } else {
+      feedback.value = { type: 'success', text: 'Zeer scherp! De tweede vergelijking is een veelvoud van de eerste. Het is dezelfde lijn, dus er zijn oneindig veel oplossingen (onbepaald).' }
+    }
+    return
+  }
+
+  // Wrong special choice
+  userSpecialChoice.value = type
+  userPoint.value = null
+  isChecked.value = false
+
+  if (target.type === 'strijdig') {
+    feedback.value = { type: 'error', text: 'Kijk naar de lijnen (en hun richtingscoëfficiënt). Gaan deze ooit snijden? Zoek de juiste speciale knop.' }
+  } else {
+    feedback.value = { type: 'error', text: 'Heb je het snijpunt gezocht? Let op: beide vergelijkingen tekenen éxact dezelfde rechte! Wat betekent dat voor het aantal snijpunten?' }
+  }
 }
 
 function resetActivityState() {
@@ -103,41 +228,9 @@ function resetActivityState() {
   feedback.value = { type: 'info', text: 'Analyseer het stelsel.' };
   userPoint.value = null;
   userSpecialChoice.value = null;
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-  const target = currentLevelData.value;
-
-  if (target.type === 'bepaald') {
-    if (!userPoint.value) {
-      isCorrect.value = false;
-      feedback.value = { type: 'error', text: 'Dit stelsel heeft een snijpunt (een bepaalde oplossing). Klik erop in het assenstelsel.' };
-      return;
-    }
-    if (userPoint.value.x === target.correctPoint.x && userPoint.value.y === target.correctPoint.y) {
-      isCorrect.value = true;
-      feedback.value = { type: 'success', text: `Perfect! Het snijpunt (${target.correctPoint.x}, ${target.correctPoint.y}) is de unieke oplossing van dit stelsel.` };
-    } else {
-      isCorrect.value = false;
-      feedback.value = { type: 'error', text: `Je koos (${userPoint.value.x}, ${userPoint.value.y}). Dat is niet het snijpunt waar beide lijnen exact kruisen.` };
-    }
-  } else if (target.type === 'strijdig') {
-    if (userSpecialChoice.value === 'strijdig') {
-      isCorrect.value = true;
-      feedback.value = { type: 'success', text: 'Geweldig! De lijnen zijn evenwijdig. Ze snijden nooit, dus er is geen oplossing (strijdig stelsel).' };
-    } else {
-      isCorrect.value = false;
-      feedback.value = { type: 'error', text: 'Kijk naar de lijnen (en hun richtingscoëfficiënt). Gaan deze ooit snijden? Zoek de juiste speciale knop.' };
-    }
-  } else if (target.type === 'onbepaald') {
-    if (userSpecialChoice.value === 'onbepaald') {
-      isCorrect.value = true;
-      feedback.value = { type: 'success', text: 'Zeer scherp! De tweede vergelijking is een veelvoud van de eerste. Het is dezelfde lijn, dus er zijn oneindig veel oplossingen (onbepaald).' };
-    } else {
-      isCorrect.value = false;
-      feedback.value = { type: 'error', text: 'Heb je het snijpunt gezocht? Let op: beide vergelijkingen tekenen éxact dezelfde rechte! Wat betekent dat voor het aantal snijpunten?' };
-    }
+  attemptCount.value = 0;
+  if (levels.value.length === 0) {
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
   }
 }
 
@@ -157,6 +250,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -200,9 +294,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -213,14 +307,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -233,11 +327,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-4 shadow-inner">
               <p class="font-bold text-slate-800">Stelsel:</p>
               <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm space-y-2 border-l-4 border-l-slate-800 relative">
@@ -260,14 +354,14 @@ onUnmounted(() => {
                 <div class="h-px bg-slate-200 my-2"></div>
                 <p class="text-xs font-bold text-slate-400 text-center uppercase tracking-wider mb-1">Of kies een speciaal geval:</p>
 
-                <button @click="setSpecialChoice('strijdig')" 
+                <button @click="setSpecialChoice('strijdig')"
                         class="p-3 border-2 rounded-lg font-bold transition-all shadow-sm"
-                        :class="userSpecialChoice === 'strijdig' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 bg-white text-slate-600 hover:border-red-300'">
+                        :class="isCorrect && currentLevelData.type === 'strijdig' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : userSpecialChoice === 'strijdig' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 bg-white text-slate-600 hover:border-red-300'">
                   Geen snijpunt (Strijdig stelsel)
                 </button>
-                <button @click="setSpecialChoice('onbepaald')" 
+                <button @click="setSpecialChoice('onbepaald')"
                         class="p-3 border-2 rounded-lg font-bold transition-all shadow-sm"
-                        :class="userSpecialChoice === 'onbepaald' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600 hover:border-purple-300'">
+                        :class="isCorrect && currentLevelData.type === 'onbepaald' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : userSpecialChoice === 'onbepaald' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600 hover:border-purple-300'">
                   Oneindig veel snijpunten (Onbepaald stelsel)
                 </button>
 
@@ -276,7 +370,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -291,11 +385,12 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || (!userPoint && !userSpecialChoice)" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
+
+              <!-- Auto-correct: no Controleer button needed -->
+              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-slate-400 transition-all rounded-lg shadow-md bg-slate-100 cursor-default">
+                Klik in grafiek of kies speciaal geval
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -306,13 +401,13 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <div class="relative bg-white rounded-lg shadow-sm border border-slate-300 overflow-hidden cursor-crosshair"
                    style="width: 400px; height: 400px;"
                    @click="handleGridClick">
-                
+
                 <!-- SVG Coordinate System (-5 to 5, origin at 200,200, grid 40px) -->
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                   <!-- Grid Lines -->
@@ -320,17 +415,16 @@ onUnmounted(() => {
                     <line v-for="i in 11" :key="'v'+i" :x1="(i-1)*40" y1="0" :x2="(i-1)*40" y2="400" />
                     <line v-for="i in 11" :key="'h'+i" x1="0" :y1="(i-1)*40" x2="400" :y2="(i-1)*40" />
                   </g>
-                  
+
                   <!-- Axes -->
                   <line x1="200" y1="0" x2="200" y2="400" stroke="#94a3b8" stroke-width="2" />
                   <line x1="0" y1="200" x2="400" y2="200" stroke="#94a3b8" stroke-width="2" />
 
                   <!-- Graph lines mapped -->
-                  <!-- origin 200,200, scale 40 -->
                   <line :x1="200 + currentLevelData.lines[0].x1 * 40" :y1="200 - currentLevelData.lines[0].y1 * 40"
                         :x2="200 + currentLevelData.lines[0].x2 * 40" :y2="200 - currentLevelData.lines[0].y2 * 40"
                         stroke="#2563eb" stroke-width="3" stroke-linecap="round" class="transition-all duration-300" />
-                        
+
                   <line :x1="200 + currentLevelData.lines[1].x1 * 40" :y1="200 - currentLevelData.lines[1].y1 * 40"
                         :x2="200 + currentLevelData.lines[1].x2 * 40" :y2="200 - currentLevelData.lines[1].y2 * 40"
                         stroke="#10b981" stroke-width="3" stroke-linecap="round" class="transition-all duration-300"
@@ -338,9 +432,15 @@ onUnmounted(() => {
 
                   <!-- User Point -->
                   <circle v-if="userPoint"
-                          :cx="originX + userPoint.x * gridSize" 
-                          :cy="originY - userPoint.y * gridSize" 
+                          :cx="originX + userPoint.x * gridSize"
+                          :cy="originY - userPoint.y * gridSize"
                           r="6" fill="#f97316" stroke="#fff" stroke-width="2" />
+
+                  <!-- Correct Point indicator when correct -->
+                  <circle v-if="isCorrect && currentLevelData.type === 'bepaald'"
+                          :cx="originX + currentLevelData.correctPoint.x * gridSize"
+                          :cy="originY - currentLevelData.correctPoint.y * gridSize"
+                          r="8" fill="#10b981" stroke="#fff" stroke-width="3" class="animate-fadeIn" />
 
                 </svg>
               </div>

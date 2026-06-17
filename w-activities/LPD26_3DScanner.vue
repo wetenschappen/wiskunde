@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScan, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Ruimtefiguren: De Aanzichten-Scanner' },
-  instruction: { 
-    type: String, 
-    default: 'Een 3D-object ziet er compleet anders uit als je het van de zijkant, bovenkant of voorkant bekijkt. Dit heet de projectie of het "aanzicht".<br/><br/><strong>Opdracht:</strong> Welke platte (2D) vorm zie je als je de figuur pal van BOVEN bekijkt, en welke als je hem plat van VOOR bekijkt?' 
+  instruction: {
+    type: String,
+    default: 'Een 3D-object ziet er compleet anders uit als je het van de zijkant, bovenkant of voorkant bekijkt. Dit heet de projectie of het "aanzicht".<br/><br/><strong>Opdracht:</strong> Welke platte (2D) vorm zie je als je de figuur pal van BOVEN bekijkt, en welke als je hem plat van VOOR bekijkt?'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,14 +23,24 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies de juiste vormen uit de lijsten.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
+function shuffleArray(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const shapeTemplates = [
   {
-    goalText: 'Opdracht 1: Een Cilinder (Blik)',
+    goalText: 'Opdracht: Een Cilinder (Blik)',
     objSVG: `
       <!-- Cylinder built with SVG -->
       <rect x="10" y="25" width="80" height="100" fill="rgba(14, 165, 233, 0.6)" stroke="#0ea5e9" stroke-width="2" />
@@ -46,21 +56,21 @@ const levels = [
     errFront: 'Een vooraanzicht is ALTIJD een platte, 2D-vorm. Diepte verdwijnt! Als je plat van voren naar een blikje kijkt zonder dieptezicht, zie je een rechthoek.'
   },
   {
-    goalText: 'Opdracht 2: Een Kegel (Feestmuts)',
+    goalText: 'Opdracht: Een Kegel (Feestmuts)',
     objSVG: `
       <!-- Cone built with SVG -->
       <polygon points="50,15 10,125 90,125" fill="rgba(245, 158, 11, 0.6)" stroke="#d97706" stroke-width="2" />
       <!-- Bottom Ellipse -->
       <ellipse cx="50" cy="125" rx="40" ry="15" fill="rgba(245, 158, 11, 0.8)" stroke="#d97706" stroke-width="2" />
     `,
-    topAns: 'circle_dot', // specific to cone: a circle with a dot in the middle
+    topAns: 'circle_dot',
     frontAns: 'triangle',
     successMsg: 'Perfect! Een kegel wordt een platte Driehoek als je er recht opkijkt. Vanboven zie je een Cirkel met een stipje in het midden (de top).',
     errTop: 'Kijk in de 3D-weergave vanboven op de feestmuts. Je ziet de ronde basis met in het midden de scherpe top (stipje).',
     errFront: 'Bekijk de kegel plat van voren, zonder bodem of diepte. Welke veelhoek met rechte lijnen schiet er over?'
   },
   {
-    goalText: 'Opdracht 3: Een Piramide',
+    goalText: 'Opdracht: Een Piramide',
     objSVG: `
       <!-- Pyramid built with SVG -->
       <polygon points="50,15 10,120 90,120" fill="rgba(16, 185, 129, 0.4)" stroke="#059669" stroke-width="2" />
@@ -71,7 +81,7 @@ const levels = [
       <!-- Edges to base corners -->
       <line x1="50" y1="15" x2="40" y2="105" stroke="#059669" stroke-width="2" stroke-dasharray="2 2" />
     `,
-    topAns: 'square_cross', // A square with diagonal lines
+    topAns: 'square_cross',
     frontAns: 'triangle',
     successMsg: 'Geweldig! Ook een piramide wordt een platte driehoek van voren. Vanboven zie je het vierkantige grondvlak met de 4 opstaande ribben die als een kruis naar het midden lopen.',
     errTop: 'Kijk naar het grondvlak. Dat is een vierkant (in perspectief). Naar de top toe lopen er opstaande randen.',
@@ -79,11 +89,25 @@ const levels = [
   }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const topViewAns = ref('')
 const frontViewAns = ref('')
+
+function getHint() {
+  const data = currentLevelData.value
+  if (attemptCount.value <= 1) {
+    return 'Een aanzicht is ALTIJD een platte, 2D-vorm. Diepte verdwijnt! Probeer je de figuur van boven of van voren voor te stellen op een plat vlak.'
+  } else if (attemptCount.value === 2) {
+    if (topViewAns.value !== data.topAns) return data.errTop
+    return data.errFront
+  }
+  if (topViewAns.value !== data.topAns) return data.errTop
+  return data.errFront
+}
 
 function resetActivityState() {
     isCorrect.value = false;
@@ -91,33 +115,32 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Kies de juiste vormen uit de lijsten.' };
     topViewAns.value = '';
     frontViewAns.value = '';
+    attemptCount.value = 0;
+    if (levels.value.length === 0) {
+      levels.value = shuffleArray(shapeTemplates)
+    }
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   const data = currentLevelData.value;
-  
+
   if (topViewAns.value === data.topAns && frontViewAns.value === data.frontAns) {
     isCorrect.value = true
     feedback.value = { type: 'success', text: data.successMsg }
   } else {
     isCorrect.value = false
-    
+    attemptCount.value++
+
     // Trap answers specific checks
     if (topViewAns.value === 'cylinder' || topViewAns.value === 'cone' || topViewAns.value === 'pyramid' ||
         frontViewAns.value === 'cylinder' || frontViewAns.value === 'cone' || frontViewAns.value === 'pyramid') {
         feedback.value = { type: 'error', text: 'Een aanzicht is ALTIJD een platte, 2D-vorm. Diepte verdwijnt! Je mag dus nooit een 3D figuur als antwoord geven.'}
         return;
     }
-    
-    if (topViewAns.value !== data.topAns) {
-        feedback.value = { type: 'error', text: data.errTop }
-    } else if (frontViewAns.value !== data.frontAns) {
-        feedback.value = { type: 'error', text: data.errFront }
-    } else {
-        feedback.value = { type: 'error', text: 'Een of beide aanzichten is fout. Probeer het je in te beelden in een compleet plat 2D vlak.'}
-    }
+
+    feedback.value = { type: 'error', text: getHint() }
   }
 }
 
@@ -135,6 +158,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = shuffleArray(shapeTemplates)
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -160,7 +184,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -171,8 +195,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -188,13 +212,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner flex flex-col gap-4">
-               
+
                <div>
                    <label class="block text-sm font-bold text-orange-900 mb-2">1. Bovenaanzicht:</label>
                    <select v-model="topViewAns" :disabled="isCorrect" class="w-full p-3 border-2 border-orange-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 font-bold text-slate-700 bg-white">
@@ -243,14 +267,14 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex justify-center gap-12 items-center">
-                  
+
                   <!-- The 3D Object -->
                   <div class="flex flex-col items-center">
                       <h4 class="font-bold text-slate-500 uppercase tracking-widest text-sm mb-4">3D Object</h4>
                       <div class="relative w-48 h-64 bg-slate-100 rounded-3xl shadow-inner border-2 border-slate-300 flex items-center justify-center overflow-hidden" :key="'obj'+currentInternalLevel">
-                          
+
                           <svg width="100" height="150" viewBox="0 0 100 150" v-html="currentLevelData.objSVG"></svg>
 
                           <!-- Scanner Line Effect -->
@@ -262,24 +286,24 @@ onUnmounted(() => {
 
                   <!-- Projections Output based on user choice -->
                   <div class="flex flex-col gap-6">
-                      
+
                       <!-- Top View Projection -->
                       <div class="flex items-center gap-4">
                           <span class="font-bold text-slate-400 w-24 text-right">Boven:</span>
                           <div class="w-24 h-24 bg-white rounded-xl shadow border-2 border-slate-300 flex items-center justify-center relative overflow-hidden transition-all"
                                :class="topViewAns === currentLevelData.topAns && isCorrect ? 'border-emerald-500 bg-emerald-50' : ''">
-                              
+
                               <span v-if="!topViewAns" class="text-slate-300 text-3xl font-black">?</span>
-                              
+
                               <div v-if="topViewAns === 'circle'" class="w-16 h-16 rounded-full bg-slate-800 animate-fadeIn"></div>
-                              
+
                               <div v-if="topViewAns === 'circle_dot'" class="w-16 h-16 rounded-full bg-slate-800 animate-fadeIn flex items-center justify-center">
                                   <div class="w-2 h-2 bg-white rounded-full"></div>
                               </div>
 
                               <div v-if="topViewAns === 'rectangle'" class="w-12 h-16 bg-slate-800 animate-fadeIn"></div>
                               <div v-if="topViewAns === 'square'" class="w-16 h-16 bg-slate-800 animate-fadeIn"></div>
-                              
+
                               <div v-if="topViewAns === 'square_cross'" class="w-16 h-16 bg-slate-800 animate-fadeIn relative">
                                   <svg width="100%" height="100%" class="absolute inset-0">
                                       <line x1="0" y1="0" x2="100%" y2="100%" stroke="white" stroke-width="2" />
@@ -297,21 +321,21 @@ onUnmounted(() => {
                           <span class="font-bold text-slate-400 w-24 text-right">Voor:</span>
                           <div class="w-24 h-24 bg-white rounded-xl shadow border-2 border-slate-300 flex items-center justify-center relative overflow-hidden transition-all"
                                :class="frontViewAns === currentLevelData.frontAns && isCorrect ? 'border-emerald-500 bg-emerald-50' : ''">
-                              
+
                               <span v-if="!frontViewAns" class="text-slate-300 text-3xl font-black">?</span>
-                              
+
                               <div v-if="frontViewAns === 'circle'" class="w-16 h-16 rounded-full bg-slate-800 animate-fadeIn"></div>
                               <div v-if="frontViewAns === 'rectangle'" class="w-16 h-20 bg-slate-800 animate-fadeIn"></div>
                               <div v-if="frontViewAns === 'square'" class="w-16 h-16 bg-slate-800 animate-fadeIn"></div>
                               <div v-if="frontViewAns === 'triangle'" class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[50px] border-l-transparent border-r-transparent border-b-slate-800 animate-fadeIn drop-shadow-sm"></div>
-                              
+
                               <!-- 3D Traps -->
                               <svg v-if="frontViewAns === 'cylinder'" width="50" height="75" viewBox="0 0 100 150" class="animate-fadeIn">
                                   <rect x="10" y="25" width="80" height="100" fill="rgba(148, 163, 184, 0.6)" stroke="#64748b" stroke-width="2" />
                                   <ellipse cx="50" cy="125" rx="40" ry="15" fill="rgba(148, 163, 184, 0.8)" stroke="#64748b" stroke-width="2" />
                                   <ellipse cx="50" cy="25" rx="40" ry="15" fill="rgba(148, 163, 184, 1)" stroke="#475569" stroke-width="3" />
                               </svg>
-                              
+
                               <svg v-if="frontViewAns === 'cone'" width="50" height="75" viewBox="0 0 100 150" class="animate-fadeIn">
                                   <polygon points="50,15 10,125 90,125" fill="rgba(148, 163, 184, 0.6)" stroke="#64748b" stroke-width="2" />
                                   <ellipse cx="50" cy="125" rx="40" ry="15" fill="rgba(148, 163, 184, 0.8)" stroke="#64748b" stroke-width="2" />

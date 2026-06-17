@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhChartLineUp,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -29,42 +29,87 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
-const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+
+const attemptCount = ref(0)
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-// Formats for inequalities
-const levels = [
-  {
-    formula: "f(x) = x² - 4",
-    inequality: "f(x) < 0",
-    a: 1, p: 0, q: -4,
-    targetType: 'tussen',
-    targetRoots: [-2, 2],
-    targetIncluded: false
-  },
-  {
-    formula: "f(x) = -x² + 2x + 3",
-    inequality: "f(x) ≥ 0",
-    a: -1, p: 1, q: 4,
-    targetType: 'tussen',
-    targetRoots: [-1, 3],
-    targetIncluded: true
-  },
-  {
-    formula: "f(x) = 0.5x² - 2",
-    inequality: "f(x) > 0",
-    a: 0.5, p: 0, q: -2,
-    targetType: 'buiten',
-    targetRoots: [-2, 2],
-    targetIncluded: false
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+  let formulaLabel, inequality, a, p, q, targetType, targetRoots, targetIncluded
+
+  if (levelIndex === 0) {
+    // Level 1: simple
+    a = 1; p = 0
+    const qValues = [-1, -4, -9, -16]
+    q = qValues[rng(0, qValues.length - 1)]
+    const rootVal = Math.sqrt(-q)
+    targetRoots = [-rootVal, rootVal].sort((a,b) => a-b)
+    // Alternate between < and >, between inclusive/exclusive
+    targetType = Math.random() < 0.5 ? 'tussen' : 'buiten'
+    targetIncluded = Math.random() < 0.4
+    if (targetType === 'tussen') {
+      inequality = targetIncluded ? `f(x) \u2264 0` : `f(x) < 0`
+    } else {
+      inequality = targetIncluded ? `f(x) \u2265 0` : `f(x) > 0`
+    }
+  } else if (levelIndex === 1) {
+    // Level 2: a can be -1 or 1, shifted
+    a = Math.random() < 0.5 ? 1 : -1
+    const pairs = [[-1, 3], [0, 4], [-3, 1], [-4, 0], [-2, 2], [-5, -1]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    p = (pair[0] + pair[1]) / 2
+    const diff = pair[1] - pair[0]
+    q = -a * diff * diff / 4
+    targetRoots = pair.sort((a,b) => a-b)
+    targetType = Math.random() < 0.5 ? 'tussen' : 'buiten'
+    targetIncluded = Math.random() < 0.5
+    if (targetType === 'tussen') {
+      inequality = targetIncluded ? `f(x) \u2264 0` : `f(x) < 0`
+    } else {
+      inequality = targetIncluded ? `f(x) \u2265 0` : `f(x) > 0`
+    }
+  } else {
+    // Level 3: wider variety
+    const aOptions = [-2, -1, -0.5, 0.5, 1, 2]
+    a = aOptions[rng(0, aOptions.length - 1)]
+    const pairs = [[-5, 1], [-3, 3], [-1, 5], [-6, 0], [-4, 2], [-2, 4], [-7, -1], [0, 6]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    p = (pair[0] + pair[1]) / 2
+    const diff = pair[1] - pair[0]
+    q = -a * diff * diff / 4
+    targetRoots = pair.sort((a,b) => a-b)
+    targetType = Math.random() < 0.5 ? 'tussen' : 'buiten'
+    targetIncluded = Math.random() < 0.5
+    if (targetType === 'tussen') {
+      inequality = targetIncluded ? `f(x) \u2264 0` : `f(x) < 0`
+    } else {
+      inequality = targetIncluded ? `f(x) \u2265 0` : `f(x) > 0`
+    }
+  }
+
+  formulaLabel = formatQuadratic(a, p, q)
+
+  return { formula: formulaLabel, inequality, a, p, q, targetType, targetRoots, targetIncluded }
+}
+
+function formatQuadratic(a, p, q) {
+  const aStr = a === 1 ? '' : a === -1 ? '-' : a
+  if (p === 0) {
+    const qStr = q === 0 ? '' : (q < 0 ? ` - ${Math.abs(q)}` : ` + ${q}`)
+    return `f(x) = ${aStr}x²${qStr}`
+  }
+  const pPart = p < 0 ? `(x + ${Math.abs(p)})` : `(x - ${p})`
+  const qStr = q === 0 ? '' : (q < 0 ? ` - ${Math.abs(q)}` : ` + ${q}`)
+  return `f(x) = ${aStr}${pPart}²${qStr}`
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // User State for Interval
 const userType = ref('tussen') // 'tussen' of 'buiten'
@@ -81,7 +126,7 @@ const graphPath = computed(() => {
   const points = [];
   for (let x = -6; x <= 6; x += 0.2) {
     let y = a * Math.pow(x - p, 2) + q;
-    if (y < -8 || y > 8) continue; 
+    if (y < -8 || y > 8) continue;
     const svgX = x * 20;
     const svgY = -y * 20;
     points.push(`${svgX},${svgY}`);
@@ -89,52 +134,55 @@ const graphPath = computed(() => {
   return points.length > 0 ? `M ${points.join(' L ')}` : '';
 })
 
+function getHintText(count) {
+  if (count >= 5) {
+    const t = currentLevelData.value
+    return { type: 'info', text: `Oplossing: ${t.targetType === 'tussen' ? 'tussen' : 'buiten'} [${t.targetRoots[0]}, ${t.targetRoots[1]}]${t.targetIncluded ? ' (inbegrepen)' : ' (niet inbegrepen)'}. Pas de schuifregelaars aan.` }
+  } else if (count >= 3) {
+    const t = currentLevelData.value
+    return { type: 'info', text: `De nulwaarden zijn x = ${t.targetRoots[0]} en x = ${t.targetRoots[1]}. Bepaal of de grafiek ${t.targetType === 'tussen' ? 'tussen' : 'buiten'} deze waarden aan de ongelijkheid voldoet.` }
+  } else if (count >= 1) {
+    return { type: 'info', text: 'Zoek de nulwaarden (snijpunten met de x-as). Kijk naar het teken van de ongelijkheid om te bepalen of de oplossing tussen of buiten de nulwaarden ligt.' }
+  }
+  return { type: 'info', text: 'Stel het juiste interval op de x-as in.' }
+}
+
 function resetActivityState() {
+  levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false;
-  isChecked.value = false;
+  attemptCount.value = 0;
   feedback.value = { type: 'info', text: 'Stel het juiste interval op de x-as in.' };
-  
+
   userType.value = 'tussen';
   userRoot1.value = -1;
   userRoot2.value = 1;
   userIncluded.value = true;
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  const target = currentLevelData.value;
-  
-  const rootsCorrect = sortedUserRoots.value[0] === target.targetRoots[0] && sortedUserRoots.value[1] === target.targetRoots[1];
-  const typeCorrect = userType.value === target.targetType;
-  const includedCorrect = userIncluded.value === target.targetIncluded;
+function onInteraction() {
+  if (isCorrect.value) return
+  attemptCount.value++
+
+  const target = currentLevelData.value
+  const rootsCorrect = sortedUserRoots.value[0] === target.targetRoots[0] && sortedUserRoots.value[1] === target.targetRoots[1]
+  const typeCorrect = userType.value === target.targetType
+  const includedCorrect = userIncluded.value === target.targetIncluded
 
   if (rootsCorrect && typeCorrect && includedCorrect) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Fantastisch! Je hebt het oplossingsgebied perfect visueel afgebakend.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Fantastisch! Je hebt het oplossingsgebied perfect visueel afgebakend.'
     }
   } else {
-    isCorrect.value = false
-    
-    if (!rootsCorrect) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'Je grenzen kloppen niet. Zoek de exacte x-waarden waar de parabool de x-as (y=0) snijdt.'
-      }
-    } else if (!typeCorrect) {
-      feedback.value = { 
-        type: 'error', 
-        text: `Kijk goed naar het teken: ${target.inequality}. Ligt de grafiek daarvoor "tussen" de nulwaarden of "buiten" de nulwaarden?`
-      }
-    } else if (!includedCorrect) {
-      feedback.value = { 
-        type: 'error', 
-        text: `Let op het ongelijkheidsteken (${target.inequality}). Mogen de nulwaarden zelf meedoen (gesloten) of niet (open)?`
-      }
-    }
+    feedback.value = getHintText(attemptCount.value)
   }
 }
+
+// Watch all user interaction values
+watch([userType, userRoot1, userRoot2, userIncluded], () => {
+  onInteraction()
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -195,9 +243,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -208,14 +256,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -228,25 +276,25 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6">
               <p class="text-sm font-bold text-orange-800 mb-1">Los op:</p>
               <p class="font-mono text-2xl font-black text-orange-600">{{ currentLevelData.inequality }}</p>
               <p class="text-xs text-orange-700 mt-2 opacity-80">(met {{ currentLevelData.formula }})</p>
             </div>
-            
+
             <div class="space-y-6">
-              
+
               <!-- Interval Type -->
               <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 <label class="block font-bold text-slate-700 mb-2">Waar ligt de oplossing?</label>
                 <div class="flex gap-2">
-                  <button @click="userType = 'tussen'" 
+                  <button @click="userType = 'tussen'"
                           class="flex-1 py-2 rounded-lg font-bold border-2 transition-all"
                           :class="userType === 'tussen' ? 'border-orange-500 bg-orange-100 text-orange-800' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'">
                     Tussen grenzen
                   </button>
-                  <button @click="userType = 'buiten'" 
+                  <button @click="userType = 'buiten'"
                           class="flex-1 py-2 rounded-lg font-bold border-2 transition-all"
                           :class="userType === 'buiten' ? 'border-orange-500 bg-orange-100 text-orange-800' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'">
                     Buiten grenzen
@@ -273,12 +321,12 @@ onUnmounted(() => {
               <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 <label class="block font-bold text-slate-700 mb-2">Zijn de grenzen inbegrepen?</label>
                 <div class="flex gap-2">
-                  <button @click="userIncluded = true" 
+                  <button @click="userIncluded = true"
                           class="flex-1 py-2 rounded-lg font-bold border-2 transition-all text-sm"
                           :class="userIncluded ? 'border-emerald-500 bg-emerald-100 text-emerald-800' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'">
-                    Ja (≤, ≥)
+                    Ja (\u2264, \u2265)
                   </button>
-                  <button @click="userIncluded = false" 
+                  <button @click="userIncluded = false"
                           class="flex-1 py-2 rounded-lg font-bold border-2 transition-all text-sm"
                           :class="!userIncluded ? 'border-emerald-500 bg-emerald-100 text-emerald-800' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'">
                     Nee (<, >)
@@ -290,7 +338,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -305,11 +353,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
+
+              <button v-if="!isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60" disabled>
+                Pas de instellingen aan
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -320,12 +368,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="400" height="400" viewBox="-120 -120 240 240" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10">
-                
+
                 <!-- Grid Lines -->
                 <g stroke="#e2e8f0" stroke-width="1">
                   <line v-for="i in 13" :key="'v'+i" :x1="(i-7)*20" y1="-120" :x2="(i-7)*20" y2="120" />
@@ -347,11 +395,11 @@ onUnmounted(() => {
 
                 <!-- Graph -->
                 <path :d="graphPath" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-500" />
-                
+
                 <!-- Boundary Markers -->
                 <circle :cx="sortedUserRoots[0]*20" cy="0" r="6" :fill="userIncluded ? '#f97316' : 'white'" :stroke="userIncluded ? 'none' : '#f97316'" stroke-width="3" class="transition-all duration-300 shadow-sm" />
                 <circle :cx="sortedUserRoots[1]*20" cy="0" r="6" :fill="userIncluded ? '#f97316' : 'white'" :stroke="userIncluded ? 'none' : '#f97316'" stroke-width="3" class="transition-all duration-300 shadow-sm" />
-                
+
                 <text :x="sortedUserRoots[0]*20 - 4" y="-12" font-size="12" font-weight="bold" fill="#f97316">{{ sortedUserRoots[0] }}</text>
                 <text :x="sortedUserRoots[1]*20 - 4" y="-12" font-size="12" font-weight="bold" fill="#f97316">{{ sortedUserRoots[1] }}</text>
 

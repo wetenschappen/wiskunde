@@ -26,41 +26,84 @@ const feedback = ref({ type: 'info', text: 'Klik op een leeg vakje in de formule
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
+const attemptCount = ref(0)
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+const shapeConfigs = [
   {
     shape: 'driehoek', formula: '(b × h) / 2', label: 'Oppervlakte driehoek',
-    slots: ['b', 'h'], values: { b: 8, h: 5, distractor: 6 }, target: 20,
+    slots: ['b', 'h'], hasDiv2: true,
     svg: 'M40,240 L360,240 L120,40',
-    tags: [
-      { val: 8, style: 'bottom-[20px] left-[50%] -translate-x-1/2 border-emerald-500 text-emerald-700' },
-      { val: 5, style: 'top-[140px] left-[130px] border-red-500 text-red-600' },
-      { val: 6, style: 'top-[140px] left-[10px] border-slate-400 text-slate-500' }
+    tagStyles: [
+      { key: 'b', style: 'bottom-[20px] left-[50%] -translate-x-1/2 border-emerald-500 text-emerald-700' },
+      { key: 'h', style: 'top-[140px] left-[130px] border-red-500 text-red-600' },
+      { key: 'd', style: 'top-[140px] left-[10px] border-slate-400 text-slate-500' }
     ]
   },
   {
     shape: 'rechthoek', formula: 'l × b', label: 'Oppervlakte rechthoek',
-    slots: ['l', 'b'], values: { l: 9, b: 4, distractor: 5 }, target: 36,
+    slots: ['l', 'b'], hasDiv2: false,
     svg: 'M40,60 L360,60 L360,260 L40,260',
-    tags: [
-      { val: 9, style: 'top-[140px] left-[50%] -translate-x-1/2 border-blue-500 text-blue-700' },
-      { val: 4, style: 'bottom-[50px] left-[180px] border-blue-500 text-blue-700' },
-      { val: 5, style: 'top-[90px] left-[40px] border-slate-400 text-slate-500' }
+    tagStyles: [
+      { key: 'l', style: 'top-[140px] left-[50%] -translate-x-1/2 border-blue-500 text-blue-700' },
+      { key: 'b', style: 'bottom-[50px] left-[180px] border-blue-500 text-blue-700' },
+      { key: 'd', style: 'top-[90px] left-[40px] border-slate-400 text-slate-500' }
     ]
   },
   {
     shape: 'parallellogram', formula: 'b × h', label: 'Oppervlakte parallellogram',
-    slots: ['b', 'h'], values: { b: 7, h: 6, distractor: 8 }, target: 42,
+    slots: ['b', 'h'], hasDiv2: false,
     svg: 'M40,240 L360,240 L280,60 L-40,60',
-    tags: [
-      { val: 7, style: 'bottom-[20px] left-[50%] -translate-x-1/2 border-purple-500 text-purple-700' },
-      { val: 6, style: 'top-[140px] left-[120px] border-purple-500 text-purple-700' },
-      { val: 8, style: 'top-[140px] left-[260px] border-slate-400 text-slate-500' }
+    tagStyles: [
+      { key: 'b', style: 'bottom-[20px] left-[50%] -translate-x-1/2 border-purple-500 text-purple-700' },
+      { key: 'h', style: 'top-[140px] left-[120px] border-purple-500 text-purple-700' },
+      { key: 'd', style: 'top-[140px] left-[260px] border-slate-400 text-slate-500' }
     ]
   }
 ]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const l = []
+  for (let i = 0; i < 3; i++) {
+    const cfg = shapeConfigs[i]
+    let v1 = randomInt(4, 9)
+    let v2 = randomInt(3, 7)
+
+    // Ensure integer target for division
+    if (cfg.hasDiv2 && (v1 * v2) % 2 !== 0) {
+      v2++
+    }
+
+    let distractor
+    do { distractor = randomInt(3, 10) } while (distractor === v1 || distractor === v2)
+
+    const target = cfg.hasDiv2 ? (v1 * v2) / 2 : v1 * v2
+
+    const tags = cfg.tagStyles.map(t => ({
+      val: t.key === 'd' ? distractor : (t.key === cfg.slots[0] ? v1 : v2),
+      style: t.style
+    }))
+
+    l.push({
+      shape: cfg.shape,
+      formula: cfg.formula,
+      label: cfg.label,
+      slots: cfg.slots,
+      values: { [cfg.slots[0]]: v1, [cfg.slots[1]]: v2, distractor },
+      target,
+      svg: cfg.svg,
+      tags,
+    })
+  }
+  levels.value = l
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value] || levels.value[0])
 const slotData = ref({})
 const activeSlot = ref(null)
 const userAns = ref(null)
@@ -78,9 +121,25 @@ function assignValue(val) {
   }
 }
 
+function getHintText(count, lvl) {
+  const bSlot = lvl.slots[0]
+  const hSlot = lvl.slots[1]
+  const correctB = lvl.values[bSlot]
+  const correctH = lvl.values[hSlot]
+  if (count === 1) {
+    return `Hint: kijk naar de zijden in de tekening. Welke getallen passen bij ${bSlot} en ${hSlot}?`
+  } else if (count === 2) {
+    return `Hint: ${bSlot} = ${correctB}, ${hSlot} = ${correctH}. Daarna is de formule ${lvl.formula.replace('b', correctB).replace('h', correctH).replace('l', correctB)} = ?`
+  } else {
+    const calc = lvl.formula.includes('/') ? `(${correctB} × ${correctH}) / 2 = ${lvl.target}` : `${correctB} × ${correctH} = ${lvl.target}`
+    return `Het juiste antwoord is ${calc}.`
+  }
+}
+
 function resetActivityState() {
   isCorrect.value = false
   isChecked.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Klik op een leeg vakje in de formule, en klik daarna op het getal in de tekening.' }
   slotData.value = {}
   activeSlot.value = null
@@ -109,19 +168,20 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = { type: 'success', text: `Perfect! ${lvl.formula} = ${b} × ${h} ${lvl.formula.includes('/') ? '/ 2' : ''} = ${lvl.target}.` }
   } else {
+    attemptCount.value++
     isCorrect.value = false
-    if (b === null || h === null) {
-      feedback.value = { type: 'error', text: `Plug eerst ${lvl.slots[0]} en ${lvl.slots[1]} in! Klik op het vakje en kies het getal.` }
+    if (b === undefined || h === undefined) {
+      feedback.value = { type: 'error', text: `Plug eerst ${lvl.slots[0]} en ${lvl.slots[1]} in! Klik op het vakje en kies het getal. ${getHintText(attemptCount.value, lvl)}` }
     } else if (b === lvl.values.distractor || h === lvl.values.distractor) {
-      feedback.value = { type: 'error', text: `Fout ingeplugd! Je koos de afleider (${lvl.values.distractor}). Kijk naar de juiste zijde.` }
+      feedback.value = { type: 'error', text: `Fout ingeplugd! Je koos de afleider (${lvl.values.distractor}). Kijk naar de juiste zijde. ${getHintText(attemptCount.value, lvl)}` }
     } else if (b === correctB && h === correctH && userAns.value !== lvl.target) {
       if (lvl.formula.includes('/') && userAns.value === b * h) {
-        feedback.value = { type: 'error', text: 'Vergeet niet te delen door 2!' }
+        feedback.value = { type: 'error', text: `Vergeet niet te delen door 2! ${getHintText(attemptCount.value, lvl)}` }
       } else {
-        feedback.value = { type: 'error', text: `Ingeplugd: (${b} × ${h})${lvl.formula.includes('/') ? ' / 2' : ''}. De berekening klopt niet.` }
+        feedback.value = { type: 'error', text: `Ingeplugd: (${b} × ${h})${lvl.formula.includes('/') ? ' / 2' : ''}. De berekening klopt niet. ${getHintText(attemptCount.value, lvl)}` }
       }
     } else {
-      feedback.value = { type: 'error', text: 'Controleer welke getallen waar horen in de formule.' }
+      feedback.value = { type: 'error', text: `Controleer welke getallen waar horen in de formule. ${getHintText(attemptCount.value, lvl)}` }
     }
   }
 }
@@ -134,6 +194,7 @@ function goToNextStep() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
+    generateLevel()
     resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })
@@ -183,13 +244,13 @@ onUnmounted(() => {
                     <button @click="selectSlot(currentLevel.slots[0])" :disabled="isCorrect"
                       class="min-w-[60px] h-12 bg-white rounded-lg border-2 shadow-sm flex items-center justify-center transition-all hover:scale-105"
                       :class="activeSlot === currentLevel.slots[0] ? 'border-emerald-500 ring-4 ring-emerald-200' : (slotData[currentLevel.slots[0]] ? 'border-emerald-600 text-emerald-700' : 'border-slate-300 text-slate-400 border-dashed')">
-                      {{ slotData[currentLevel.slots[0]] || `[${currentLevel.slots[0]}]` }}
+                      {{ slotData[currentLevel.slots[0]] !== undefined ? slotData[currentLevel.slots[0]] : `[${currentLevel.slots[0]}]` }}
                     </button>
                     <span class="text-xl" v-if="currentLevel.formula.includes('×')">×</span>
                     <button @click="selectSlot(currentLevel.slots[1])" v-if="currentLevel.slots.length > 1" :disabled="isCorrect"
                       class="min-w-[60px] h-12 bg-white rounded-lg border-2 shadow-sm flex items-center justify-center transition-all hover:scale-105"
                       :class="activeSlot === currentLevel.slots[1] ? 'border-emerald-500 ring-4 ring-emerald-200' : (slotData[currentLevel.slots[1]] ? 'border-emerald-600 text-emerald-700' : 'border-slate-300 text-slate-400 border-dashed')">
-                      {{ slotData[currentLevel.slots[1]] || `[${currentLevel.slots[1]}]` }}
+                      {{ slotData[currentLevel.slots[1]] !== undefined ? slotData[currentLevel.slots[1]] : `[${currentLevel.slots[1]}]` }}
                     </button>
                   </div>
                   <div v-if="currentLevel.formula.includes('/')" class="w-full">

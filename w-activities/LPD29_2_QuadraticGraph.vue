@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhWaveCurve,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -29,13 +29,14 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
-const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
 // Levels and Dynamic State
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
-const target = ref({ a: 1, p: 0, q: 0 })
+const levels = ref([])
+
+const attemptCount = ref(0)
 
 const valA = ref(1)
 const valP = ref(0)
@@ -47,7 +48,7 @@ const levelGenerators = [
   () => {
     let p = Math.floor(Math.random() * 7) - 3; // -3 to 3
     let q = Math.floor(Math.random() * 7) - 3;
-    if (p === 0 && q === 0) p = 2; // Avoid default state
+    if (p === 0 && q === 0) p = 2;
     return { a: 1, p, q };
   },
   // Level 2: Reflection and translation (a = 2 or -2)
@@ -68,8 +69,10 @@ const levelGenerators = [
 ]
 
 function generateLevel() {
-  target.value = levelGenerators[currentInternalLevel.value]()
+  levels.value = levelGenerators.map(gen => gen())
 }
+
+const target = computed(() => levels.value[currentInternalLevel.value] || { a: 1, p: 0, q: 0 })
 
 const graphPathTarget = computed(() => generateParabolaPath(target.value.a, target.value.p, target.value.q))
 const graphPathUser = computed(() => generateParabolaPath(valA.value, valP.value, valQ.value))
@@ -78,9 +81,7 @@ function generateParabolaPath(a, p, q) {
   const points = [];
   for (let x = -10; x <= 10; x += 0.2) {
     let y = a * Math.pow(x - p, 2) + q;
-    if (y < -12 || y > 12) continue; // rough clipping
-
-    // SVG coordinates: Center (0,0), scale 15. Y inverted.
+    if (y < -12 || y > 12) continue;
     const svgX = x * 15;
     const svgY = -y * 15;
     points.push(`${svgX},${svgY}`);
@@ -88,58 +89,29 @@ function generateParabolaPath(a, p, q) {
   return points.length > 0 ? `M ${points.join(' L ')}` : '';
 }
 
-function resetActivityState() {
-  isCorrect.value = false;
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: 'Stel de parameters in om de parabool te verplaatsen en vervormen.' };
-  valA.value = 1;
-  valP.value = 0;
-  valQ.value = 0;
+function getHintText(count, t) {
+  if (count <= 3) {
+    return `Hint: de top van de parabool is (${t.p}, ${t.q}). Pas p (horizontaal) en q (verticaal) aan.`
+  } else if (count <= 6) {
+    return `Hint: de a-waarde bepaalt de vorm. Voor a=${t.a} is de parabool ${t.a > 0 ? 'open naar boven' : 'open naar beneden'}${Math.abs(t.a) !== 1 ? ' met factor ' + Math.abs(t.a) : ''}.`
+  } else {
+    return `Doel: a=${t.a}, p=${t.p}, q=${t.q}. Stel deze exact in.`
+  }
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  const t = target.value;
-
-  if (valA.value === t.a && valP.value === t.p && valQ.value === t.q) {
-    isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Briljant! De parabool dekt het doelwit perfect af.' 
-    }
-  } else {
-    isCorrect.value = false
-    
-    // Gefaseerde hints (Scaffolding)
-    if (valP.value !== t.p || valQ.value !== t.q) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'De top van je parabool ligt nog niet goed. Pas p (horizontaal) en q (verticaal) aan tot de toppen samenvallen.'
-      }
-    } else if (Math.sign(valA.value) !== Math.sign(t.a)) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'De top is juist, maar je parabool opent naar de verkeerde kant! Moet parameter "a" positief of negatief zijn?'
-      }
-    } else if (Math.abs(valA.value) !== Math.abs(t.a)) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'De top en richting kloppen, maar de opening is te breed of te smal. Wijzig de grootte van parameter "a".'
-      }
-    } else {
-      feedback.value = { 
-        type: 'error', 
-        text: 'Nog niet helemaal. Blijf de parameters tweaken.'
-      }
-    }
-  }
+function resetActivityState() {
+  isCorrect.value = false
+  attemptCount.value = 0
+  feedback.value = { type: 'info', text: 'Stel de parameters in om de parabool te verplaatsen en vervormen.' }
+  valA.value = 1
+  valP.value = 0
+  valQ.value = 0
 }
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
     currentInternalLevel.value++;
-    generateLevel();
-    resetActivityState();
+    resetActivityState()
   } else {
     if (props.currentStep < props.totalSteps) {
         emit('update:currentStep', props.currentStep + 1);
@@ -149,12 +121,40 @@ function handleNext() {
   }
 }
 
+// Auto-correct on slider match with debounced hint
+let sliderTimer = null
+
+watch([valA, valP, valQ], () => {
+  const t = target.value
+  if (valA.value === t.a && valP.value === t.p && valQ.value === t.q) {
+    isCorrect.value = true
+    feedback.value = {
+      type: 'success',
+      text: `Briljant! De parabool dekt het doelwit perfect af. f(x) = ${t.a === 1 ? '' : (t.a === -1 ? '-' : t.a)}(x ${t.p >= 0 ? '- ' + t.p : '+ ' + Math.abs(t.p)})² ${t.q >= 0 ? '+ ' + t.q : '- ' + Math.abs(t.q)}`
+    }
+    clearTimeout(sliderTimer)
+    return
+  }
+  isCorrect.value = false
+  attemptCount.value++
+
+  clearTimeout(sliderTimer)
+  sliderTimer = setTimeout(() => {
+    if (!isCorrect.value) {
+      feedback.value = {
+        type: 'error',
+        text: getHintText(attemptCount.value, t)
+      }
+    }
+  }, 1200)
+})
+
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
     generateLevel();
     resetActivityState();
-    
+
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
       nextTick(() => {
@@ -197,9 +197,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-rose-100">
@@ -210,14 +210,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-rose-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -230,9 +230,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
-              
+
               <div class="text-center bg-white p-4 border border-slate-200 rounded shadow-sm">
                 <p class="font-mono text-xl font-black text-rose-600">
                   f(x) = {{ valA === 1 ? '' : (valA === -1 ? '-' : valA) }}(x {{ valP >= 0 ? '- ' + valP : '+ ' + Math.abs(valP) }})² {{ valQ >= 0 ? '+ ' + valQ : '- ' + Math.abs(valQ) }}
@@ -241,8 +241,7 @@ onUnmounted(() => {
 
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">Parameter a: {{ valA }}</label>
-                <input type="range" v-model.number="valA" min="-3" max="3" step="0.5" class="w-full accent-rose-600" :disabled="currentInternalLevel === 0 && valA === 1">
-                <p v-if="currentInternalLevel === 0" class="text-xs text-slate-400 mt-1">In level 1 blijft 'a' vast op 1.</p>
+                <input type="range" v-model.number="valA" min="-3" max="3" step="0.5" class="w-full accent-rose-600">
               </div>
 
               <div>
@@ -259,7 +258,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -274,12 +273,8 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -289,12 +284,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="450" height="450" viewBox="-150 -150 300 300" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10">
-                
+
                 <!-- Grid Lines -->
                 <g stroke="#e2e8f0" stroke-width="1">
                   <line v-for="i in 21" :key="'v'+i" :x1="(i-11)*15" y1="-150" :x2="(i-11)*15" y2="150" />
@@ -307,10 +302,10 @@ onUnmounted(() => {
 
                 <!-- Target Graph (dashed) -->
                 <path :d="graphPathTarget" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="8,4" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
-                
+
                 <!-- User Graph -->
                 <path v-if="valA !== 0" :d="graphPathUser" fill="none" stroke="#e11d48" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-150" />
-                
+
                 <!-- User Vertex Dot -->
                 <circle :cx="valP * 15" :cy="-valQ * 15" r="5" fill="#1e293b" class="transition-all duration-150 shadow-sm" />
 

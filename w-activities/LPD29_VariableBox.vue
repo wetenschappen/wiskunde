@@ -26,23 +26,62 @@ const feedback = ref({ type: 'info', text: 'Beweeg de slider en bereken de omtre
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  { figure: 'vierkant', formula: '4 × z', label: 'Omtrek vierkant', varName: 'z', calc: (v) => 4 * v, targetVar: 7, targetAns: 28 },
-  { figure: 'rechthoek', formula: '2 × (b + h)', label: 'Omtrek rechthoek', varName: 'b', varName2: 'h', fixedVal: 5, calc: (v) => 2 * (v + 5), targetVar: 9, targetAns: 28 },
-  { figure: 'driehoek', formula: 'z + z + z', label: 'Omtrek gelijkzijdige driehoek', varName: 'z', calc: (v) => 3 * v, targetVar: 11, targetAns: 33 },
-]
+const attemptCount = ref(0)
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel() {
+  const l = []
+  // Level 1: vierkant (square) — omtrek = 4 × z
+  let z1 = randomInt(4, 9)
+  l.push({ figure: 'vierkant', formula: '4 × z', label: 'Omtrek vierkant', varName: 'z', calc: (v) => 4 * v, targetVar: z1, targetAns: 4 * z1 })
+  // Level 2: rechthoek (rectangle) — omtrek = 2 × (b + h)
+  let b2 = randomInt(5, 10)
+  let h2 = randomInt(3, 6)
+  l.push({ figure: 'rechthoek', formula: '2 × (b + h)', label: 'Omtrek rechthoek', varName: 'b', varName2: 'h', fixedVal: h2, calc: (v) => 2 * (v + h2), targetVar: b2, targetAns: 2 * (b2 + h2) })
+  // Level 3: driehoek (triangle) — omtrek = z + z + z
+  let z3 = randomInt(8, 14)
+  l.push({ figure: 'driehoek', formula: 'z + z + z', label: 'Omtrek gelijkzijdige driehoek', varName: 'z', calc: (v) => 3 * v, targetVar: z3, targetAns: 3 * z3 })
+  levels.value = l
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value] || levels.value[0])
 
 const sliderVal = ref(5)
 const userAns = ref(null)
 
-const computedValue = computed(() => currentLevel.value.calc(sliderVal.value))
+const computedValue = computed(() => currentLevel.value ? currentLevel.value.calc(sliderVal.value) : 0)
+
+function getHintText(count, t) {
+  if (count === 1) {
+    return `Hint: de formule is ${t.formula}. Vul de waarde van de variabele in.`
+  } else if (count === 2) {
+    if (t.figure === 'vierkant') {
+      return `Hint: een vierkant heeft 4 gelijke zijden. Omtrek = 4 × ${t.targetVar} = ?`
+    } else if (t.figure === 'rechthoek') {
+      return `Hint: omtrek = 2 × (b + h) = 2 × (${t.targetVar} + ${t.fixedVal}) = ?`
+    } else {
+      return `Hint: gelijkzijdige driehoek heeft 3 gelijke zijden. Omtrek = 3 × ${t.targetVar} = ?`
+    }
+  } else {
+    if (t.figure === 'vierkant') {
+      return `Het antwoord is 4 × ${t.targetVar} = ${4 * t.targetVar}.`
+    } else if (t.figure === 'rechthoek') {
+      return `Het antwoord is 2 × (${t.targetVar} + ${t.fixedVal}) = 2 × ${t.targetVar + t.fixedVal} = ${2 * (t.targetVar + t.fixedVal)}.`
+    } else {
+      return `Het antwoord is 3 × ${t.targetVar} = ${3 * t.targetVar}.`
+    }
+  }
+}
 
 function resetActivityState() {
   isCorrect.value = false
   isChecked.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Beweeg de slider en bereken de omtrek voor de opgegeven waarde.' }
   sliderVal.value = 5
   userAns.value = null
@@ -62,13 +101,15 @@ function checkAnswer() {
   const t = currentLevel.value
   if (userAns.value === t.targetAns) {
     isCorrect.value = true
-    feedback.value = { type: 'success', text: `Perfect! ${t.label}: ${t.formula.replace('z', t.targetVar).replace('b', t.targetVar).replace('h', t.fixedVal)} = ${t.targetAns}. De formule werkt voor ELKE waarde.` }
+    const formulaDisplay = t.formula.replace('z', t.targetVar).replace('b', t.targetVar).replace('h', t.fixedVal)
+    feedback.value = { type: 'success', text: `Perfect! ${t.label}: ${formulaDisplay} = ${t.targetAns}. De formule werkt voor ELKE waarde.` }
   } else {
+    attemptCount.value++
     isCorrect.value = false
     if (t.figure === 'vierkant' && userAns.value === t.targetVar * t.targetVar) {
-      feedback.value = { type: 'error', text: 'Dat is de OPPERVLAKTE! De omtrek is 4 × z (de rand eromheen).' }
+      feedback.value = { type: 'error', text: `Dat is de OPPERVLAKTE! De omtrek is 4 × z (de rand eromheen). ${getHintText(attemptCount.value, t)}` }
     } else {
-      feedback.value = { type: 'error', text: `Niet juist. De formule is ${t.formula}. Vervang de letter(s) door de gevraagde getallen.` }
+      feedback.value = { type: 'error', text: `Niet juist. De formule is ${t.formula}. Vervang de letter(s) door de gevraagde getallen. ${getHintText(attemptCount.value, t)}` }
     }
   }
 }
@@ -81,6 +122,7 @@ function goToNextStep() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
+    generateLevel()
     resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })

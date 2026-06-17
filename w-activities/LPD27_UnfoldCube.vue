@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCube, PhArrowClockwise, PhCornersOut
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Oppervlakte: De Kubus Ontvouwen' },
-  instruction: { 
-    type: String, 
-    default: 'Formules blokken is saai. Als je de <strong>oppervlakte</strong> (al het "verfwerk" aan de buitenkant) van een 3D-vorm zoekt, vouw hem dan gewoon plat!<br/><br/><strong>Opdracht:</strong> Ontvouw de kubus. Uit hoeveel gelijke vierkanten bestaat hij? Bereken de totale oppervlakte.' 
+  instruction: {
+    type: String,
+    default: 'Formules blokken is saai. Als je de <strong>oppervlakte</strong> (al het "verfwerk" aan de buitenkant) van een 3D-vorm zoekt, vouw hem dan gewoon plat!<br/><br/><strong>Opdracht:</strong> Ontvouw de kubus. Uit hoeveel gelijke vierkanten bestaat hij? Bereken de totale oppervlakte.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,24 +23,43 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de knop om de kubus uit te vouwen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { side: 4 }, // Area = 6 * 16 = 96
-  { side: 3 }, // Area = 6 * 9 = 54
-  { side: 5 }  // Area = 6 * 25 = 150
-]
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  switch (levelIndex) {
+    case 0: return { side: randomInt(2, 4) }
+    case 1: return { side: randomInt(3, 5) }
+    case 2: return { side: randomInt(4, 6) }
+    default: return { side: 4 }
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const singleArea = computed(() => currentLevelData.value.side * currentLevelData.value.side)
 const totalArea = computed(() => singleArea.value * 6)
 
 // Domain Logic
 const userAns = ref(null)
 const isUnfolded = ref(false)
+
+function getHint() {
+  if (attemptCount.value <= 1) {
+    return 'Ontvouw eerst de kubus. Hoeveel vierkanten zie je?'
+  } else if (attemptCount.value === 2) {
+    return `Eén vierkantje heeft zijde ${currentLevelData.value.side}. De oppervlakte van één vlak is dus ${currentLevelData.value.side} × ${currentLevelData.value.side}.`
+  }
+  return `Berekening: één vlak = ${currentLevelData.value.side} × ${currentLevelData.value.side} = ${singleArea.value}. Totaal = ${singleArea.value} × 6 = ?`
+}
 
 function unfoldCube() {
     if (isCorrect.value) return;
@@ -54,6 +73,10 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Klik op de knop om de kubus uit te vouwen.' };
     isUnfolded.value = false;
     userAns.value = null;
+    attemptCount.value = 0;
+    if (levels.value.length === 0) {
+      levels.value = [0, 1, 2].map(i => generateLevel(i))
+    }
 }
 
 function checkAnswer() {
@@ -62,23 +85,25 @@ function checkAnswer() {
   if (userAns.value === totalArea.value) {
     if (isUnfolded.value) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Perfect! Één vierkantje is ${currentLevelData.value.side}×${currentLevelData.value.side} = ${singleArea.value}. Er zijn er 6, dus ${singleArea.value} × 6 = ${totalArea.value}.` 
+        feedback.value = {
+          type: 'success',
+          text: `Perfect! Eén vierkantje is ${currentLevelData.value.side}×${currentLevelData.value.side} = ${singleArea.value}. Er zijn er 6, dus ${singleArea.value} × 6 = ${totalArea.value}.`
         }
     } else {
         isCorrect.value = false
+        attemptCount.value++
         feedback.value = { type: 'error', text: `${totalArea.value} is correct! Maar ontvouw eerst de kubus om visueel te zien WAAROM de formule 6 × z² is.`}
     }
   } else {
     isCorrect.value = false
-    
+    attemptCount.value++
+
     if (userAns.value === currentLevelData.value.side * currentLevelData.value.side * currentLevelData.value.side) {
         feedback.value = { type: 'error', text: `Je hebt het VOLUME (Inhoud) berekend: ${currentLevelData.value.side}×${currentLevelData.value.side}×${currentLevelData.value.side}. Maar we zoeken de OPPERVLAKTE (verf nodig voor de buitenkant). Ontvouw hem!`}
     } else if (userAns.value === singleArea.value) {
-        feedback.value = { type: 'error', text: `${singleArea.value} is de oppervlakte van slechts ÉÉN van de zijvlakken. Uit hoeveel van die vierkanten bestaat de kubus?`}
+        feedback.value = { type: 'error', text: `${singleArea.value} is de oppervlakte van slechts EEN van de zijvlakken. Uit hoeveel van die vierkanten bestaat de kubus?`}
     } else {
-        feedback.value = { type: 'error', text: 'Bereken de oppervlakte van één vlak (L × B) en vermenigvuldig dit met het totaal aantal vlakken.'}
+        feedback.value = { type: 'error', text: getHint() }
     }
   }
 }
@@ -97,6 +122,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -122,7 +148,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -133,8 +159,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -150,7 +176,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
                <label class="block text-sm font-bold text-teal-900 mb-2">Totale Oppervlakte:</label>
                <div class="flex items-center gap-2">
@@ -179,66 +205,56 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <div class="mb-12">
-                      <button @click="unfoldCube" :disabled="isCorrect || isUnfolded" 
+                      <button @click="unfoldCube" :disabled="isCorrect || isUnfolded"
                               class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                           <PhCornersOut weight="bold" class="w-6 h-6" /> Ontvouw Kubus
                       </button>
                   </div>
 
                   <!-- Visualisation Area -->
-                  <!-- 3D to 2D animation using CSS transforms on 6 faces -->
-                  <!-- We simulate a 3D environment with perspective, then flatten it out. -->
-                  
                   <div class="relative w-[500px] h-[400px] perspective-container flex items-center justify-center" :key="currentInternalLevel">
-                      
+
                       <!-- 3D Cube Container (rotates slightly when solid, flattens when unfolded) -->
-                      <!-- If unfolded, we rotate the container to front view (0,0,0) so the net is flat. -->
                       <div class="cube-assembly preserve-3d transition-transform duration-1000 ease-in-out w-32 h-32 relative"
                            :style="{ transform: isUnfolded ? 'rotateX(0deg) rotateY(0deg) scale(1.2)' : 'rotateX(-20deg) rotateY(-30deg)' }">
-                           
+
                            <!-- Face dimensions: 128x128. Translate Z is 64px. -->
-                           
+
                            <!-- Front -->
-                           <!-- Stays in place, just z-translates back to 0 when unfolded -->
                            <div class="face front bg-blue-500 border-2 border-blue-700 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateY(0deg) translateZ(0px)' : 'rotateY(0deg) translateZ(64px)' }">
                                 <span class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
 
                            <!-- Back -->
-                           <!-- Flips UP when unfolded -->
                            <div class="face back bg-indigo-500 border-2 border-indigo-700 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateX(180deg) translateZ(0px) translateY(256px)' : 'rotateY(180deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80" style="transform: rotate(180deg)">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
 
                            <!-- Top -->
-                           <!-- Flips UP -->
                            <div class="face top bg-sky-400 border-2 border-sky-600 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateX(0deg) translateZ(0px) translateY(-128px)' : 'rotateX(90deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
 
                            <!-- Bottom -->
-                           <!-- Flips DOWN -->
                            <div class="face bottom bg-cyan-600 border-2 border-cyan-800 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateX(0deg) translateZ(0px) translateY(128px)' : 'rotateX(-90deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
 
                            <!-- Left -->
-                           <!-- Flips LEFT -->
                            <div class="face left bg-teal-500 border-2 border-teal-700 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateY(0deg) translateZ(0px) translateX(-128px)' : 'rotateY(-90deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
 
                            <!-- Right -->
-                           <!-- Flips RIGHT -->
                            <div class="face right bg-emerald-500 border-2 border-emerald-700 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateY(0deg) translateZ(0px) translateX(128px)' : 'rotateY(90deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
@@ -276,6 +292,6 @@ onUnmounted(() => {
     width: 128px;
     height: 128px;
     transition: transform 1s cubic-bezier(0.25, 0.1, 0.25, 1);
-    backface-visibility: visible; /* Important for the flat net view to see all faces */
+    backface-visibility: visible;
 }
 </style>

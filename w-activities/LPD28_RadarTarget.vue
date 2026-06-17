@@ -21,50 +21,59 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
-const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = computed(() => [
-  { targetX: -3, targetY: 2, hint: 'Level 1: Eén stap naar links (x = -1) en twee omhoog (y = 2).' },
-  { targetX: randomInt(-5, 5), targetY: randomInt(-5, 5), hint: 'Level 2: Denk aan de volgorde: eerst horizontaal (x), dan verticaal (y).' },
-  { targetX: randomInt(-5, 5), targetY: randomInt(-5, 5), hint: 'Level 3: Laatste kans! Let goed op de negatieve getallen.' }
-])
+const attemptCount = ref(0)
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+function generateLevel() {
+  const l = [];
+  // Level 1: constrained range, easy coordinates
+  l.push({ targetX: randomInt(-3, 3), targetY: randomInt(-3, 3) });
+  // Level 2: medium range
+  l.push({ targetX: randomInt(-5, 5), targetY: randomInt(-5, 5) });
+  // Level 3: full range
+  l.push({ targetX: randomInt(-5, 5), targetY: randomInt(-5, 5) });
+  levels.value = l;
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value] || { targetX: 0, targetY: 0 })
 
 const userX = ref(null)
 const userY = ref(null)
-const isFired = ref(false)
-
-function fireTorpedo() {
-    if (isCorrect.value || userX.value === null || userY.value === null) return
-    isChecked.value = true
-    isFired.value = true
-    setTimeout(() => { checkAnswer() }, 1000)
-}
 
 function clickRadar(x, y) {
-    if (isCorrect.value || isFired.value) return
-    userX.value = x
-    userY.value = y
-    fireTorpedo()
+  if (isCorrect.value) return
+  userX.value = x
+  userY.value = y
+  checkAnswer()
 }
 
 function resetActivityState() {
-    isCorrect.value = false
-    isChecked.value = false
-    isFired.value = false
-    userX.value = null
-    userY.value = null
-    feedback.value = { type: 'info', text: 'Klik op de radar waar de onderzeeër zich bevindt.' }
+  isCorrect.value = false
+  attemptCount.value = 0
+  userX.value = null
+  userY.value = null
+  feedback.value = { type: 'info', text: 'Klik op de radar waar de onderzeeër zich bevindt.' }
+}
+
+function getHintText(t) {
+  const count = attemptCount.value
+  if (count === 1) {
+    return `Hint: het doel heeft x ${t.targetX >= 0 ? 'rechts' : 'links'} van 0 en y ${t.targetY >= 0 ? 'boven' : 'onder'} 0.`
+  } else if (count === 2) {
+    return `Hint: tel ${Math.abs(t.targetX)} stap${Math.abs(t.targetX) !== 1 ? 'pen' : ''} ${t.targetX >= 0 ? 'naar rechts' : 'naar links'} en ${Math.abs(t.targetY)} ${Math.abs(t.targetY) !== 1 ? 'stappen' : 'stap'} ${t.targetY >= 0 ? 'omhoog' : 'omlaag'}.`
+  } else {
+    return `Begin bij (0,0). Ga ${Math.abs(t.targetX)} ${t.targetX >= 0 ? 'naar rechts' : 'naar links'} en ${Math.abs(t.targetY)} ${t.targetY >= 0 ? 'omhoog' : 'omlaag'}. Doel is (${t.targetX}, ${t.targetY}).`
+  }
 }
 
 function nextLevel() {
@@ -80,17 +89,17 @@ function checkAnswer() {
   const t = currentLevel.value
   if (userX.value === t.targetX && userY.value === t.targetY) {
     isCorrect.value = true
-    feedback.value = { type: 'success', text: `BOEM! Voltreffer! (${t.targetX}, ${t.targetY}) — ${t.targetX} stappen ${t.targetX < 0 ? 'links' : 'rechts'}, ${t.targetY} stappen ${t.targetY < 0 ? 'omlaag' : 'omhoog'}.` }
+    feedback.value = { type: 'success', text: `BOEM! Voltreffer! (${t.targetX}, ${t.targetY}) — ${t.targetX < 0 ? Math.abs(t.targetX) + ' links' : t.targetX + ' rechts'}, ${t.targetY < 0 ? Math.abs(t.targetY) + ' omlaag' : t.targetY + ' omhoog'}.` }
   } else {
-    isCorrect.value = false
+    attemptCount.value++
     if (userX.value === t.targetY && userY.value === t.targetX) {
-      feedback.value = { type: 'error', text: `Mis op (${userX.value}, ${userY.value})! Je hebt x en y omgedraaid! Lees eerst horizontaal (x-as), dan verticaal (y-as).` }
+      feedback.value = { type: 'error', text: `Mis op (${userX.value}, ${userY.value})! Je hebt x en y omgedraaid! Lees eerst horizontaal (x-as), dan verticaal (y-as). ${getHintText(t)}` }
     } else if (userX.value === t.targetX && userY.value !== t.targetY) {
-      feedback.value = { type: 'error', text: `x klopt (${t.targetX}), maar y is fout. Doel is y = ${t.targetY}.` }
+      feedback.value = { type: 'error', text: `x klopt (${t.targetX}), maar y is fout. Doel is y = ${t.targetY}. ${getHintText(t)}` }
     } else if (userX.value !== t.targetX && userY.value === t.targetY) {
-      feedback.value = { type: 'error', text: `y klopt (${t.targetY}), maar x is fout. Doel is x = ${t.targetX}.` }
+      feedback.value = { type: 'error', text: `y klopt (${t.targetY}), maar x is fout. Doel is x = ${t.targetX}. ${getHintText(t)}` }
     } else {
-      feedback.value = { type: 'error', text: `Mis! Je schoot op (${userX.value}, ${userY.value}). Doel was (${t.targetX}, ${t.targetY}). Begin bij (0,0).` }
+      feedback.value = { type: 'error', text: `Mis! Je schoot op (${userX.value}, ${userY.value}). Doel was (${t.targetX}, ${t.targetY}). ${getHintText(t)}` }
     }
   }
 }
@@ -103,8 +112,9 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
-    resetActivityState()
+    generateLevel()
     currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -155,11 +165,7 @@ onUnmounted(() => {
                 <span class="w-16 p-2 rounded bg-slate-900 border" :class="userY !== null ? 'border-blue-500 text-blue-400' : 'border-slate-600 text-slate-500'">{{ userY !== null ? userY : 'y' }}</span>
                 <span>)</span>
               </div>
-              <div class="flex gap-2 mt-3">
-                <button @click="fireTorpedo" :disabled="isFired || userX === null || userY === null"
-                  class="flex-1 py-3 rounded-lg font-black tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1"
-                  :class="isFired ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-red-500 border-red-700 text-white hover:bg-red-400'">Vuur</button>
-              </div>
+              <p class="text-xs text-slate-500 mt-2">Klik op de radar om te vuren</p>
             </div>
           </div>
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
@@ -214,17 +220,18 @@ onUnmounted(() => {
                   </g>
                 </g>
 
-                <!-- Target submarine marker -->
-                <g v-if="!isFired">
+                <!-- Target submarine marker (always visible as the target to hit) -->
+                <g>
                   <circle :cx="200 + currentLevel.targetX * 40" :cy="200 - currentLevel.targetY * 40" r="6" fill="#34d399" class="animate-ping" />
                   <circle :cx="200 + currentLevel.targetX * 40" :cy="200 - currentLevel.targetY * 40" r="3" fill="#ecfdf5" />
                 </g>
 
                 <!-- User shot marker -->
-                <g v-if="userX !== null && userY !== null && isFired" class="animate-fadeIn pointer-events-none">
-                  <circle :cx="200 + userX * 40" :cy="200 - userY * 40" r="20" fill="none" stroke="#ef4444" stroke-width="4" class="animate-pulse" />
-                  <circle :cx="200 + userX * 40" :cy="200 - userY * 40" r="4" fill="#ef4444" />
-                  <text v-if="isCorrect" :x="200 + userX * 40" :y="200 - userY * 40 - 25" text-anchor="middle" font-weight="900" font-size="16" fill="#f87171" class="animate-fadeIn" style="animation-delay: 0.5s">BOEM!</text>
+                <g v-if="userX !== null && userY !== null" class="animate-fadeIn pointer-events-none">
+                  <circle :cx="200 + userX * 40" :cy="200 - userY * 40" r="20" fill="none" :stroke="isCorrect ? '#34d399' : '#ef4444'" stroke-width="4" class="animate-pulse" />
+                  <circle :cx="200 + userX * 40" :cy="200 - userY * 40" r="4" :fill="isCorrect ? '#34d399' : '#ef4444'" />
+                  <text v-if="isCorrect" :x="200 + userX * 40" :y="200 - userY * 40 - 25" text-anchor="middle" font-weight="900" font-size="16" fill="#34d399" class="animate-fadeIn" style="animation-delay: 0.5s">BOEM!</text>
+                  <text v-else :x="200 + userX * 40" :y="200 - userY * 40 - 25" text-anchor="middle" font-weight="900" font-size="14" fill="#f87171" class="animate-fadeIn" style="animation-delay: 0.3s">MIS!</text>
                 </g>
 
                 <!-- Radar sweeper -->

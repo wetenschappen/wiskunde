@@ -26,38 +26,76 @@ const feedback = ref({ type: 'info', text: 'Kies een input x en bereken de outpu
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  { formula: 'y = 3x + 5', steps: ['× 3', '+ 5'], calc: (x) => 3 * x + 5 },
-  { formula: 'y = 2x - 4', steps: ['× 2', '− 4'], calc: (x) => 2 * x - 4 },
-  { formula: 'y = 5x + 2', steps: ['× 5', '+ 2'], calc: (x) => 5 * x + 2 },
-]
+const attemptCount = ref(0)
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel() {
+  const l = []
+  // Level 1: simple addition
+  let m1 = randomInt(2, 4)
+  let c1 = randomInt(1, 6)
+  l.push({ formula: `y = ${m1}x + ${c1}`, steps: [`× ${m1}`, `+ ${c1}`], calc: (x) => m1 * x + c1, m: m1, c: c1, op: '+' })
+  // Level 2: subtraction
+  let m2 = randomInt(2, 4)
+  let c2 = randomInt(3, 7)
+  l.push({ formula: `y = ${m2}x - ${c2}`, steps: [`× ${m2}`, `− ${c2}`], calc: (x) => m2 * x - c2, m: m2, c: c2, op: '−' })
+  // Level 3: larger numbers, mixed operations
+  let m3 = randomInt(3, 6)
+  let c3 = randomInt(2, 8)
+  let op3 = Math.random() > 0.5 ? '+' : '−'
+  let calc3 = op3 === '+' ? (x) => m3 * x + c3 : (x) => m3 * x - c3
+  l.push({ formula: `y = ${m3}x ${op3} ${c3}`, steps: [`× ${m3}`, `${op3 === '+' ? '+ ' : '− '}${c3}`], calc: calc3, m: m3, c: c3, op: op3 })
+  levels.value = l
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value] || levels.value[0])
 
 const xValue = ref(4)
 const userAns = ref(null)
 const step = ref(0)
 const currentNumber = ref(4)
 
+function getHintText(count, lvl) {
+  if (count === 1) {
+    return `Hint: volg de formule stap voor stap. ${lvl.formula.replace('x', lvl.m + '')}.`
+  } else if (count === 2) {
+    return `Hint: ${lvl.steps[0]} van ${xValue.value} = ${lvl.m * xValue.value}. Daarna ${lvl.steps[1]}.`
+  } else {
+    const step1 = lvl.m * xValue.value
+    const ans = lvl.calc(xValue.value)
+    return `Stap 1: ${xValue.value} ${lvl.steps[0]} = ${step1}. Stap 2: ${step1} ${lvl.steps[1]} = ${ans}.`
+  }
+}
+
 function runMachine() {
   isChecked.value = true
-  const correctAns = currentLevel.value.calc(xValue.value)
+  const lvl = currentLevel.value
+  const correctAns = lvl.calc(xValue.value)
 
   if (userAns.value === correctAns) {
     isCorrect.value = true
     feedback.value = { type: 'success', text: 'Machine start...' }
     currentNumber.value = xValue.value
-    setTimeout(() => { step.value = 1; currentNumber.value = currentLevel.value.steps[0].includes('×') ? xValue.value * (currentLevel.value.steps[0].includes('3') ? 3 : currentLevel.value.steps[0].includes('2') ? 2 : 5) : xValue.value + (currentLevel.value.steps[0].includes('4') ? -4 : 2) }, 800)
-    setTimeout(() => { step.value = 2; currentNumber.value = correctAns; feedback.value = { type: 'success', text: `Perfect! ${currentLevel.value.formula.replace('x', xValue.value)} = ${correctAns}.` } }, 1600)
+    const step1 = lvl.m * xValue.value
+    setTimeout(() => { step.value = 1; currentNumber.value = step1 }, 800)
+    setTimeout(() => {
+      step.value = 2
+      currentNumber.value = correctAns
+      feedback.value = { type: 'success', text: `Perfect! ${lvl.formula.replace('x', xValue.value)} = ${correctAns}.` }
+    }, 1600)
   } else {
+    attemptCount.value++
     isCorrect.value = false
-    const s = currentLevel.value.steps
-    const partial = s[0].includes('×') ? xValue.value * parseInt(s[0]) : xValue.value + parseInt(s[1])
-    if (step.value === 0 && userAns.value === partial) {
-      feedback.value = { type: 'error', text: `Goed begin! 3 × ${xValue.value} = ${partial}. Maar vergeet de volgende stap niet.` }
+    const step1 = lvl.m * xValue.value
+    if (step.value === 0 && userAns.value === step1) {
+      feedback.value = { type: 'error', text: `Goed begin! ${lvl.m} × ${xValue.value} = ${step1}. Maar vergeet de volgende stap niet. ${getHintText(attemptCount.value, lvl)}` }
     } else {
-      feedback.value = { type: 'error', text: `Fout. Wat is ${currentLevel.value.formula.replace('x', xValue.value)}? Volg de machine stap voor stap.` }
+      feedback.value = { type: 'error', text: `Fout. Wat is ${lvl.formula.replace('x', xValue.value)}? Volg de machine stap voor stap. ${getHintText(attemptCount.value, lvl)}` }
     }
   }
 }
@@ -65,6 +103,7 @@ function runMachine() {
 function resetActivityState() {
   isCorrect.value = false
   isChecked.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Kies een input x en bereken de output y.' }
   xValue.value = 4
   userAns.value = null
@@ -77,6 +116,7 @@ function nextLevel() {
     currentInternalLevel.value++
     isCorrect.value = false
     isChecked.value = false
+    attemptCount.value = 0
     feedback.value = { type: 'info', text: 'Kies een input x en bereken de output y.' }
     xValue.value = 4
     userAns.value = null
@@ -97,6 +137,7 @@ function goToNextStep() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
+    generateLevel()
     resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })

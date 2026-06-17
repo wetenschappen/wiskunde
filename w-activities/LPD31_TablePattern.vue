@@ -20,17 +20,63 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op "Voeg Tafel Toe" om het patroon te ontdekken.' })
 
-// Levels — different seating configurations
+const attemptCount = ref(0)
+
+// Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { name: 'Tafels in een rij', multTarget: 2, addTarget: 2, chairsFn: (t) => 2 * t + 2, maxT: 5, desc: 'S = ?t + ?' },
-  { name: 'Tafels met banken', multTarget: 3, addTarget: 1, chairsFn: (t) => 3 * t + 1, maxT: 5, desc: 'S = ?t + ?' },
-  { name: 'Zitplaatsen vierkant', multTarget: 4, addTarget: 0, chairsFn: (t) => 4 * t, maxT: 5, desc: 'S = ?t + ?' },
-]
+const levels = ref([])
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+  let name, multTarget, addTarget, chairsFn, maxT, desc
+
+  if (levelIndex === 0) {
+    // Linear: S = mt + b. Vary m and b.
+    // Types: tables in a row: 2t+2, 3t+1, 4t+0, 3t+2, etc.
+    const configs = [
+      { name: 'Tafels in een rij', multTarget: 2, addTarget: 2 },
+      { name: 'Tafels met banken', multTarget: 3, addTarget: 1 },
+      { name: 'Rechte opstelling', multTarget: 4, addTarget: 0 },
+      { name: 'Alternatieve rij', multTarget: 3, addTarget: 2 },
+    ]
+    const cfg = configs[rng(0, configs.length - 1)]
+    name = cfg.name
+    multTarget = cfg.multTarget
+    addTarget = cfg.addTarget
+  } else if (levelIndex === 1) {
+    const configs = [
+      { name: 'Brede tafels', multTarget: 4, addTarget: 2 },
+      { name: 'Lange banken', multTarget: 5, addTarget: 1 },
+      { name: 'Zitplaatsen vierkant', multTarget: 4, addTarget: 0 },
+      { name: 'Smalle tafels', multTarget: 3, addTarget: 3 },
+    ]
+    const cfg = configs[rng(0, configs.length - 1)]
+    name = cfg.name
+    multTarget = cfg.multTarget
+    addTarget = cfg.addTarget
+  } else {
+    const configs = [
+      { name: 'Grote zaalopstelling', multTarget: 6, addTarget: 2 },
+      { name: 'Feesttafels', multTarget: 5, addTarget: 3 },
+      { name: 'U-vormige tafels', multTarget: 7, addTarget: 1 },
+      { name: 'Compacte opstelling', multTarget: 4, addTarget: 4 },
+    ]
+    const cfg = configs[rng(0, configs.length - 1)]
+    name = cfg.name
+    multTarget = cfg.multTarget
+    addTarget = cfg.addTarget
+  }
+
+  chairsFn = (t) => multTarget * t + addTarget
+  maxT = 5
+  desc = 'S = ?t + ?'
+
+  return { name, multTarget, addTarget, chairsFn, maxT, desc }
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const tables = ref(1)
 const multValue = ref(null)
 const addValue = ref(null)
@@ -39,8 +85,26 @@ const chairs = computed(() => currentLevel.value.chairsFn(tables.value))
 
 function addTable() { if (tables.value < currentLevel.value.maxT && !isCorrect.value) tables.value++ }
 
+function getHintText(count) {
+  const lvl = currentLevel.value
+  if (count >= 3) {
+    const chairs1 = lvl.chairsFn(1)
+    const chairs2 = lvl.chairsFn(2)
+    const diff = chairs2 - chairs1
+    return { type: 'info', text: `Bij 1 tafel: ${chairs1} stoelen. Bij 2 tafels: ${chairs2} stoelen. De toename is ${diff} per tafel. S = ${diff}t + ?` }
+  } else if (count >= 2) {
+    const chairs1 = lvl.chairsFn(1)
+    const chairs2 = lvl.chairsFn(2)
+    return { type: 'info', text: `Kijk naar het aantal stoelen: ${lvl.chairsFn(1)} → ${lvl.chairsFn(2)} → ${lvl.chairsFn(3)}. Hoeveel komen er per tafel bij?` }
+  } else {
+    return { type: 'info', text: `Vergelijk ${lvl.chairsFn(1)} stoelen bij 1 tafel met ${lvl.chairsFn(2)} stoelen bij 2 tafels.` }
+  }
+}
+
 function resetActivityState() {
+  levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false; isChecked.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Klik op "Voeg Tafel Toe" om het patroon te ontdekken.' }
   tables.value = 1; multValue.value = null; addValue.value = null
 }
@@ -58,11 +122,15 @@ function checkAnswer() {
       isCorrect.value = true
       feedback.value = { type: 'success', text: `Perfect! ${lvl.name}: S = ${lvl.multTarget}t + ${lvl.addTarget === 0 ? '' : lvl.addTarget}. Dat is ${lvl.chairsFn(1)} stoel${lvl.chairsFn(1)>1?'en':''} bij 1 tafel, ${lvl.chairsFn(2)} bij 2, etc.` }
     } else {
+      attemptCount.value++
       feedback.value = { type: 'error', text: 'Formule klopt! Maar voeg eerst tafels toe om het patroon te zien.' }
     }
   } else {
-    isCorrect.value = false
+    attemptCount.value++
     feedback.value = { type: 'error', text: `Kijk naar de toename: ${lvl.chairsFn(1)} → ${lvl.chairsFn(2)} → ${lvl.chairsFn(3)}... Hoeveel komen er bij per tafel?` }
+    if (attemptCount.value >= 2) {
+      feedback.value = getHintText(attemptCount.value)
+    }
   }
 }
 
@@ -101,11 +169,11 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="props.instruction"></div>
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
-              <label class="block text-sm font-bold text-teal-900 mb-2">Formule (S = ?·t + ?):</label>
+              <label class="block text-sm font-bold text-teal-900 mb-2">Formule (S = ? t + ?):</label>
               <div class="flex items-center justify-center gap-2 text-2xl font-black text-slate-700 mb-2">
                 <span>S = </span>
                 <input type="number" v-model.number="multValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
-                <span>· t + </span>
+                <span> t + </span>
                 <input type="number" v-model.number="addValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
               </div>
               <p class="text-xs text-teal-700 text-center mt-2 italic">(t = aantal tafels)</p>
@@ -113,7 +181,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-              :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error'}">
+              :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>

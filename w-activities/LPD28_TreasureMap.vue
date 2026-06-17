@@ -27,24 +27,32 @@ const feedback = ref({ type: 'info', text: '' })
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
+
+const attemptCount = ref(0)
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function genTarget() {
-  // Generate non-zero, non-origin targets spread across quadrants
-  let x, y
-  do {
-    x = randomInt(-4, 4)
-    y = randomInt(-4, 4)
-  } while (x === 0 || y === 0 || (x === y))
-  return { targetX: x, targetY: y }
+function generateLevel() {
+  const l = []
+  // Level 1: constrained range, easy coordinates
+  let x1, y1
+  do { x1 = randomInt(-3, 3); y1 = randomInt(-3, 3) } while (x1 === 0 || y1 === 0 || x1 === y1)
+  l.push({ targetX: x1, targetY: y1 })
+  // Level 2: medium range
+  let x2, y2
+  do { x2 = randomInt(-4, 4); y2 = randomInt(-4, 4) } while (x2 === 0 || y2 === 0 || x2 === y2)
+  l.push({ targetX: x2, targetY: y2 })
+  // Level 3: full range
+  let x3, y3
+  do { x3 = randomInt(-4, 4); y3 = randomInt(-4, 4) } while (x3 === 0 || y3 === 0 || x3 === y3)
+  l.push({ targetX: x3, targetY: y3 })
+  levels.value = l
 }
 
-const levels = ref([genTarget(), genTarget(), genTarget()])
-
-const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value] || { targetX: 0, targetY: 0 })
 
 const userX = ref(null)
 const userY = ref(null)
@@ -59,17 +67,26 @@ function clickGrid(x, y) {
 function resetActivityState() {
   isCorrect.value = false
   isChecked.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Klik op een kruispunt in het assenstelsel.' }
   userX.value = null
   userY.value = null
 }
 
+function getHintText(t) {
+  const count = attemptCount.value
+  if (count === 1) {
+    return `Hint: de schat ligt in het ${t.targetX > 0 ? (t.targetY > 0 ? 'Kwadrant I (x>0, y>0)' : 'Kwadrant IV (x>0, y<0)') : (t.targetY > 0 ? 'Kwadrant II (x<0, y>0)' : 'Kwadrant III (x<0, y<0)')}.`
+  } else if (count === 2) {
+    return `Hint: de x-coördinaat is ${t.targetX}. Tel ${Math.abs(t.targetX)} stap${Math.abs(t.targetX) !== 1 ? 'pen' : ''} ${t.targetX > 0 ? 'rechts' : 'links'} vanaf 0.`
+  } else {
+    return `Het juiste antwoord is (${t.targetX}, ${t.targetY}). Eerst ${Math.abs(t.targetX)} ${t.targetX > 0 ? 'rechts' : 'links'}, dan ${Math.abs(t.targetY)} ${t.targetY > 0 ? 'omhoog' : 'omlaag'}.`
+  }
+}
+
 function nextLevel() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
     currentInternalLevel.value++
-    // Regenerate levels so the next playthrough is different
-    if (currentInternalLevel.value === 1) levels.value[1] = genTarget()
-    if (currentInternalLevel.value === 2) levels.value[2] = genTarget()
     resetActivityState()
   } else {
     emit('complete')
@@ -83,15 +100,15 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = { type: 'success', text: `Schat gevonden op (${t.targetX}, ${t.targetY})! Eerst ${Math.abs(t.targetX)} stap${Math.abs(t.targetX) > 1 ? 'pen' : ''} ${t.targetX > 0 ? 'rechts' : 'links'}, dan ${Math.abs(t.targetY)} ${Math.abs(t.targetY) > 1 ? 'stappen' : 'stap'} ${t.targetY > 0 ? 'omhoog' : 'omlaag'}.` }
   } else {
-    isCorrect.value = false
+    attemptCount.value++
     if (userX.value === t.targetY && userY.value === t.targetX) {
-      feedback.value = { type: 'error', text: `Oeps! Je klikte (${userX.value}, ${userY.value}) — je hebt x en y omgedraaid! Het eerste getal is altijd horizontaal.` }
+      feedback.value = { type: 'error', text: `Oeps! Je klikte (${userX.value}, ${userY.value}) — je hebt x en y omgedraaid! Het eerste getal is altijd horizontaal. ${getHintText(t)}` }
     } else if (userX.value !== t.targetX && userY.value === t.targetY) {
-      feedback.value = { type: 'error', text: `y klopt (${t.targetY}), maar x is fout. Doel x = ${t.targetX}.` }
+      feedback.value = { type: 'error', text: `y klopt (${t.targetY}), maar x is fout. Doel x = ${t.targetX}. ${getHintText(t)}` }
     } else if (userX.value === t.targetX && userY.value !== t.targetY) {
-      feedback.value = { type: 'error', text: `x klopt (${t.targetX}), maar y is fout. Doel y = ${t.targetY}. Let op het teken!` }
+      feedback.value = { type: 'error', text: `x klopt (${t.targetX}), maar y is fout. Doel y = ${t.targetY}. Let op het teken! ${getHintText(t)}` }
     } else {
-      feedback.value = { type: 'error', text: `Hier ligt geen schat! (${userX.value}, ${userY.value}) is fout. Doel was (${t.targetX}, ${t.targetY}).` }
+      feedback.value = { type: 'error', text: `Hier ligt geen schat! (${userX.value}, ${userY.value}) is fout. Doel was (${t.targetX}, ${t.targetY}). ${getHintText(t)}` }
     }
   }
 }
@@ -105,7 +122,7 @@ function goToNextStep() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
-    levels.value = [genTarget(), genTarget(), genTarget()]
+    generateLevel()
     resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })
@@ -157,10 +174,10 @@ onUnmounted(() => {
                 <div class="w-16 p-2 rounded shadow-sm border" :class="userY !== null ? 'border-blue-300 bg-white text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-300'">{{ userY !== null ? userY : 'y' }}</div>
                 <span>)</span>
               </div>
-              <p v-if="currentLevel.targetX > 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">💡 Hint: de schat ligt in Kwadrant I (x>0, y>0)</p>
-              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">💡 Hint: de schat ligt in Kwadrant II (x&lt;0, y>0)</p>
-              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY < 0" class="mt-3 text-xs text-orange-700 font-medium">💡 Hint: de schat ligt in Kwadrant III (x&lt;0, y&lt;0)</p>
-              <p v-else class="mt-3 text-xs text-orange-700 font-medium">💡 Hint: de schat ligt in Kwadrant IV (x>0, y&lt;0)</p>
+              <p v-if="currentLevel.targetX > 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant I (x>0, y>0)</p>
+              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant II (x&lt;0, y>0)</p>
+              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY < 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant III (x&lt;0, y&lt;0)</p>
+              <p v-else class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant IV (x>0, y&lt;0)</p>
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
@@ -208,8 +225,8 @@ onUnmounted(() => {
                 </g>
                 <!-- User marker -->
                 <g v-if="userX !== null && userY !== null" class="animate-fadeIn pointer-events-none">
-                  <circle :cx="(userX + 5) * 50" :cy="(5 - userY) * 50" r="12" fill="none" stroke="#ef4444" stroke-width="4" />
-                  <circle :cx="(userX + 5) * 50" :cy="(5 - userY) * 50" r="4" fill="#ef4444" />
+                  <circle :cx="(userX + 5) * 50" :cy="(5 - userY) * 50" r="12" :fill="isCorrect ? 'none' : 'none'" :stroke="isCorrect ? '#10b981' : '#ef4444'" stroke-width="4" />
+                  <circle :cx="(userX + 5) * 50" :cy="(5 - userY) * 50" r="4" :fill="isCorrect ? '#10b981' : '#ef4444'" />
                   <text v-if="isCorrect" :x="(userX + 5) * 50" :y="(5 - userY) * 50 - 20" text-anchor="middle" font-size="28">💎</text>
                 </g>
               </svg>

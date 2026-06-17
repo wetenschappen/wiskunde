@@ -7,7 +7,7 @@ import {
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Merkwaardige Producten: (a+b)(a-b)' },
-  instruction: { type: String, default: 'Als we (a+b)(a-b) uitwerken krijgen we 4 termen: a² - ab + ba - b². Maar -ab en +ab heffen elkaar op!<br/><br/><strong>Opdracht:</strong> Klik op "Botsing" en kies de juiste formule.' },
+  instruction: { type: String, default: 'Als we (a+b)(a-b) uitwerken krijgen we 4 termen: a\u00b2 - ab + ba - b\u00b2. Maar -ab en +ab heffen elkaar op!<br/><br/><strong>Opdracht:</strong> Klik op "Botsing" en kies de juiste formule.' },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
   fullscreen: { type: Boolean, default: true },
@@ -20,17 +20,41 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op "Botsing" om de tegengestelde termen te vernietigen.' })
 
+const attemptCount = ref(0)
+
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { a: 2, b: 1, formula: '(2+1)(2-1)', result: '4 - 1 = 3', answer: 'a² - b²' },
-  { a: 5, b: 3, formula: '(5+3)(5-3)', result: '25 - 9 = 16', answer: 'a² - b²' },
-  { a: 4, b: 2, formula: '(4+2)(4-2)', result: '16 - 4 = 12', answer: 'a² - b²' },
-]
+const levels = ref([])
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+  let a, b
+
+  if (levelIndex === 0) {
+    // Level 1: small numbers
+    const pairs = [[2, 1], [3, 1], [3, 2], [4, 1], [4, 3], [5, 2]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    a = pair[0]; b = pair[1]
+  } else if (levelIndex === 1) {
+    // Level 2: medium
+    const pairs = [[5, 3], [6, 2], [7, 4], [8, 3], [5, 4], [7, 2], [6, 5]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    a = pair[0]; b = pair[1]
+  } else {
+    // Level 3: larger
+    const pairs = [[9, 5], [10, 7], [8, 5], [11, 6], [12, 5], [9, 4], [10, 3]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    a = pair[0]; b = pair[1]
+  }
+
+  const formula = `(${a}+${b})(${a}-${b})`
+  const result = `${a*a} - ${b*b} = ${a*a - b*b}`
+  return { a, b, formula, result, answer: 'a\u00b2 - b\u00b2' }
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const isAnnihilated = ref(false)
 const userAns = ref('')
 
@@ -39,7 +63,17 @@ const numericResult = computed(() => currentLevel.value.a * currentLevel.value.a
 function annihilateTerms() {
   if (isCorrect.value) return
   isAnnihilated.value = true
-  feedback.value = { type: 'success', text: `BAM! -${currentLevel.value.a}·${currentLevel.value.b} en +${currentLevel.value.b}·${currentLevel.value.a} (${-currentLevel.value.a * currentLevel.value.b} en ${currentLevel.value.b * currentLevel.value.a}) heffen elkaar op! Welke formule blijft over?` }
+  feedback.value = { type: 'success', text: `BAM! -${currentLevel.value.a}\u00b7${currentLevel.value.b} en +${currentLevel.value.b}\u00b7${currentLevel.value.a} (${-currentLevel.value.a * currentLevel.value.b} en ${currentLevel.value.b * currentLevel.value.a}) heffen elkaar op! Welke formule blijft over?` }
+}
+
+function getHintText(count) {
+  if (count >= 3) {
+    return { type: 'info', text: 'Er blijven 2 termen over: a\u00b2 en -b\u00b2. Het minteken staat voor de b\u00b2.' }
+  } else if (count >= 2) {
+    return { type: 'info', text: '-ab + ab = 0. Ze verdwijnen. Wat blijft er over van (a+b)(a-b)?' }
+  } else {
+    return { type: 'info', text: 'Kijk naar wat overblijft na de botsing. Twee termen.' }
+  }
 }
 
 function checkAnswer() {
@@ -47,21 +81,26 @@ function checkAnswer() {
   if (userAns.value === 'correct') {
     if (isAnnihilated.value) {
       isCorrect.value = true
-      feedback.value = { type: 'success', text: `Super! (${currentLevel.value.formula}) = ${currentLevel.value.result}. Altijd a² - b².` }
+      feedback.value = { type: 'success', text: `Super! (${currentLevel.value.formula}) = ${currentLevel.value.result}. Altijd a\u00b2 - b\u00b2.` }
     } else {
-      isCorrect.value = false
+      attemptCount.value++
       feedback.value = { type: 'error', text: 'Voer eerst de botsing uit!' }
     }
   } else {
-    isCorrect.value = false
-    if (userAns.value === 'wrong1') feedback.value = { type: 'error', text: 'Kijk naar wat overblijft. Het minteken staat voor de b².' }
+    attemptCount.value++
+    if (userAns.value === 'wrong1') feedback.value = { type: 'error', text: 'Kijk naar wat overblijft. Het minteken staat voor de b\u00b2.' }
     else if (userAns.value === 'wrong2') feedback.value = { type: 'error', text: '-ab + ab is NUL. Ze verdwijnen compleet.' }
     else feedback.value = { type: 'error', text: 'Kies een formule.' }
+    if (attemptCount.value >= 2) {
+      feedback.value = getHintText(attemptCount.value)
+    }
   }
 }
 
 function resetActivityState() {
+  levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false; isChecked.value = false; isAnnihilated.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Klik op "Botsing" om de tegengestelde termen te vernietigen.' }
   userAns.value = ''
 }
@@ -110,9 +149,9 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <label class="block text-sm font-bold text-slate-300 mb-2">Conclusie: (a+b)(a-b) = ...</label>
               <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-slate-500 bg-slate-900 text-white rounded-lg focus:ring-orange-500 focus:border-orange-500 font-bold">
                 <option value="" disabled>Kies de juiste formule...</option>
-                <option value="wrong1">a² + b²</option>
-                <option value="correct">a² - b²</option>
-                <option value="wrong2">a² - a²b² - b²</option>
+                <option value="wrong1">a\u00b2 + b\u00b2</option>
+                <option value="correct">a\u00b2 - b\u00b2</option>
+                <option value="wrong2">a\u00b2 - a\u00b2b\u00b2 - b\u00b2</option>
               </select>
               <div v-if="isCorrect" class="mt-4 p-3 bg-slate-800 rounded-lg border border-slate-600">
                 <span class="text-sm font-mono">Numeriek: {{ currentLevel.formula }} = {{ numericResult }} = {{ numericResult }}</span>
@@ -121,7 +160,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           </div>
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
             <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-              :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error'}">
+              :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
@@ -148,7 +187,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               </div>
               <div class="relative w-full max-w-2xl h-48 bg-slate-800 border-4 border-slate-700 rounded-2xl shadow-xl flex items-center justify-between px-8 overflow-hidden">
                 <div class="w-24 h-24 bg-blue-500/20 border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-lg transition-transform" :class="isAnnihilated ? 'translate-x-12' : ''">
-                  <span class="font-black text-3xl text-blue-400">{{ currentLevel.a }}²</span>
+                  <span class="font-black text-3xl text-blue-400">{{ currentLevel.a }}\u00b2</span>
                 </div>
                 <div class="absolute left-[30%] w-24 h-24 bg-red-500/20 border-2 border-red-500 rounded-lg flex items-center justify-center shadow-lg transition-all duration-700 ease-in"
                   :class="isAnnihilated ? 'translate-x-[150px] opacity-0 scale-50 rotate-45' : ''">
@@ -162,7 +201,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
                   <div class="w-32 h-32 bg-orange-500 rounded-full mix-blend-screen filter blur-xl animate-pulse" style="animation: explode 1s ease-out forwards;"></div>
                 </div>
                 <div class="w-24 h-24 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center shadow-lg transition-transform" :class="isAnnihilated ? '-translate-x-12' : ''">
-                  <span class="font-black text-3xl text-pink-400">-{{ currentLevel.b }}²</span>
+                  <span class="font-black text-3xl text-pink-400">-{{ currentLevel.b }}\u00b2</span>
                 </div>
               </div>
             </div>

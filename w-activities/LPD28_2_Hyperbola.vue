@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhTrendDown,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,36 +31,57 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Beweeg de slider en bestudeer het effect.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Positief',
-    q: 'Maak de hyperbool zodat de takken in kwadrant I (rechtsboven) en III (linksonder) liggen.',
-    checkFn: (c) => c > 0,
-    successMsg: 'Juist! Als c positief is, ligt de hyperbool in kwadrant I en III.',
-    errMsg: 'Fout. De takken liggen nu in II en IV. Dit gebeurt als c negatief is. Maak c positief.'
-  },
-  {
-    goalText: 'Opdracht 2: Negatief',
-    q: 'Maak de hyperbool zodat de takken in kwadrant II (linksboven) en IV (rechtsonder) liggen.',
-    checkFn: (c) => c < 0,
-    successMsg: 'Perfect! Als c negatief is, spiegelen de takken zich naar kwadrant II en IV.',
-    errMsg: 'Fout. De takken liggen nu in I en III. Maak de parameter c negatief (kleiner dan nul).'
-  },
-  {
-    goalText: 'Opdracht 3: Het Doelpunt',
-    q: 'Zorg dat de hyperbool EXACT door het roze stippen-punt gaat (x=2, y=2).',
-    checkFn: (c) => c === 4,
-    successMsg: 'Geweldig! Je hebt c=4 gevonden. Immers: y = c/x => 2 = 4/2. Dat klopt!',
-    errMsg: 'Nog niet! Kijk of de roze lijn exact door de roze stip loopt (x=2, y=2). Vul (2,2) eens in de formule in: 2 = c / 2. Wat moet c dan zijn?'
-  }
-]
+// Randomization helpers
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  if (levelIndex === 0) {
+    return {
+      goalText: 'Opdracht 1: Positief',
+      q: 'Maak de hyperbool zodat de takken in kwadrant I (rechtsboven) en III (linksonder) liggen.',
+      checkFn: (c) => c > 0,
+      successMsg: 'Juist! Als c positief is, ligt de hyperbool in kwadrant I en III.',
+      errMsg: 'Fout. De takken liggen nu in II en IV. Dit gebeurt als c negatief is. Maak c positief.',
+      startC: -3,
+      targetPoint: null
+    }
+  } else if (levelIndex === 1) {
+    return {
+      goalText: 'Opdracht 2: Negatief',
+      q: 'Maak de hyperbool zodat de takken in kwadrant II (linksboven) en IV (rechtsonder) liggen.',
+      checkFn: (c) => c < 0,
+      successMsg: 'Perfect! Als c negatief is, spiegelen de takken zich naar kwadrant II en IV.',
+      errMsg: 'Fout. De takken liggen nu in I en III. Maak de parameter c negatief (kleiner dan nul).',
+      startC: 3,
+      targetPoint: null
+    }
+  } else {
+    const tx = randomInt(1, 4)
+    const ty = randomInt(1, 4)
+    const targetC = tx * ty
+    return {
+      goalText: 'Opdracht 3: Het Doelpunt',
+      q: `Zorg dat de hyperbool EXACT door het roze stippen-punt gaat (x=${tx}, y=${ty}).`,
+      checkFn: (c) => c === targetC,
+      successMsg: `Geweldig! Je hebt c=${targetC} gevonden. Immers: y = c/x => ${ty} = ${targetC}/${tx}. Dat klopt!`,
+      errMsg: `Nog niet! Kijk of de roze curve exact door de roze stip loopt (x=${tx}, y=${ty}). Vul (${tx},${ty}) eens in de formule in: ${ty} = c / ${tx}. Wat moet c dan zijn?`,
+      startC: 1,
+      targetPoint: { x: tx, y: ty }
+    }
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // State
 const cValue = ref(1)
@@ -80,35 +101,38 @@ const graphPath = computed(() => {
     // SVG coordinates: Center is (0,0), scale factor 10. Y is inverted.
     const svgX = x * 10;
     const svgY = -y * 10;
-    
+
     if (x < 0) {
       points1.push(`${svgX},${svgY}`);
     } else {
       points2.push(`${svgX},${svgY}`);
     }
   }
-  
+
   if(points1.length === 0 || points2.length === 0) return '';
   return `M ${points1.join(' L ')} M ${points2.join(' L ')}`;
+})
+
+// Auto-correct via slider change watch
+watch(cValue, (newVal) => {
+  if (!isCorrect.value && levels.value.length > 0) {
+    const target = currentLevelData.value
+    if (target.checkFn(newVal)) {
+      isCorrect.value = true
+      feedback.value = { type: 'success', text: target.successMsg }
+    }
+  }
 })
 
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: 'Beweeg de slider en bestudeer het effect.' };
-  cValue.value = 1;
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-  
-  if (currentLevelData.value.checkFn(cValue.value)) {
-    isCorrect.value = true
-    feedback.value = { type: 'success', text: currentLevelData.value.successMsg }
-  } else {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: currentLevelData.value.errMsg }
+  attemptCount.value = 0;
+  if (levels.value.length === 0) {
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
   }
+  cValue.value = currentLevelData.value ? currentLevelData.value.startC : 1
 }
 
 function handleNext() {
@@ -124,6 +148,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -167,9 +192,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
@@ -180,14 +205,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-pink-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -200,13 +225,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-pink-50 p-4 border border-pink-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-pink-800">{{ currentLevelData.goalText }}</p>
+              <p class="font-bold text-pink-800">{{ currentLevelData ? currentLevelData.goalText : '' }}</p>
             </div>
 
             <div class="p-6 mt-6 border-2 border-pink-200 bg-white rounded-xl shadow-inner space-y-6">
-              
+
               <div class="text-center">
                 <p class="font-mono text-2xl font-black text-pink-600 flex items-center justify-center gap-2">
                   <span>f(x) = </span>
@@ -225,16 +250,16 @@ onUnmounted(() => {
                   <span>-5</span><span>0</span><span>5</span>
                 </div>
               </div>
-              
+
               <div class="pt-4 border-t border-slate-200">
-                <p class="font-bold text-slate-800 text-center">{{ currentLevelData.q }}</p>
+                <p class="font-bold text-slate-800 text-center">{{ currentLevelData ? currentLevelData.q : '' }}</p>
               </div>
 
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -249,11 +274,12 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer Grafiek
-              </button>
-              
+
+              <!-- Auto-correct via slider: no Controleer button -->
+              <div v-if="!isCorrect" class="flex-1 py-3 font-bold text-slate-400 text-center rounded-lg shadow-md bg-slate-100 cursor-default">
+                Schuif naar het juiste antwoord
+              </div>
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -264,12 +290,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="400" height="400" viewBox="-100 -100 200 200" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10" :key="currentInternalLevel">
-                
+
                 <!-- Quadrant labels background -->
                 <text x="50" y="-50" font-size="20" font-weight="bold" fill="#ec4899" opacity="0.1">I</text>
                 <text x="-60" y="-50" font-size="20" font-weight="bold" fill="#ec4899" opacity="0.1">II</text>
@@ -288,11 +314,11 @@ onUnmounted(() => {
 
                 <!-- Graph of f(x) = c / x -->
                 <path v-if="cValue !== 0" :d="graphPath" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-300" />
-                
+
                 <!-- Target Point for L3 -->
-                <g v-if="currentInternalLevel === 2" class="animate-fadeIn">
-                    <circle cx="20" cy="-20" r="4" fill="#ec4899" stroke="white" stroke-width="1" class="animate-pulse" />
-                    <text x="25" y="-25" font-weight="bold" fill="#ec4899" font-size="8">(2, 2)</text>
+                <g v-if="currentLevelData && currentLevelData.targetPoint" class="animate-fadeIn">
+                    <circle :cx="currentLevelData.targetPoint.x * 10" :cy="-(currentLevelData.targetPoint.y * 10)" r="4" fill="#ec4899" stroke="white" stroke-width="1" class="animate-pulse" />
+                    <text :x="currentLevelData.targetPoint.x * 10 + 5" :y="-(currentLevelData.targetPoint.y * 10) - 5" font-weight="bold" fill="#ec4899" font-size="8">({{ currentLevelData.targetPoint.x }}, {{ currentLevelData.targetPoint.y }})</text>
                 </g>
               </svg>
 

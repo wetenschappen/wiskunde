@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhBracketsCurly,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,42 +31,89 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Substitueer y.',
-    eq1Left: 'y', eq1Right: '2x + 1',
-    eq2LeftPre: '3x + ', eq2Var: 'y', eq2LeftPost: '', eq2Right: '11',
-    dragTarget: '2x + 1',
-    substitutedStringHTML: '<span class="text-blue-600">3x</span> + <span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(2x + 1)</span> = 11',
-    questionVar: 'x',
-    answer: 2 // 3x + 2x + 1 = 11 -> 5x = 10 -> x=2
-  },
-  {
-    goalText: 'Opdracht 2: Substitueer x.',
-    eq1Left: 'x', eq1Right: 'y - 2',
-    eq2LeftPre: '2', eq2Var: 'x', eq2LeftPost: ' + 3y', eq2Right: '6',
-    dragTarget: 'y - 2',
-    substitutedStringHTML: '2<span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(y - 2)</span> + <span class="text-blue-600">3y</span> = 6',
-    questionVar: 'y',
-    answer: 2 // 2(y-2) + 3y = 6 -> 5y - 4 = 6 -> 5y = 10 -> y=2
-  },
-  {
-    goalText: 'Opdracht 3: Let op de haakjes en het min-teken!',
-    eq1Left: 'y', eq1Right: '-x + 5',
-    eq2LeftPre: 'x - ', eq2Var: 'y', eq2LeftPost: '', eq2Right: '-1',
-    dragTarget: '-x + 5',
-    substitutedStringHTML: '<span class="text-blue-600">x</span> - <span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(-x + 5)</span> = -1',
-    questionVar: 'x',
-    answer: 2 // x - (-x + 5) = -1 -> 2x - 5 = -1 -> 2x = 4 -> x=2
-  }
-]
+// Randomization helpers
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function generateLevel(levelIndex) {
+  const answer = randomInt(-2, 4)
+
+  if (levelIndex === 0) {
+    // y = m*x + b,   a*x + y = c
+    const m = randomChoice([1, 2, 3, -1, -2])
+    const b = randomInt(-3, 5)
+    const a = randomInt(2, 4)
+    const c = (a + m) * answer + b
+
+    const mxPart = m === 1 ? 'x' : m === -1 ? '-x' : `${m}x`
+    const rightStr = b >= 0 ? `${mxPart} + ${b}` : `${mxPart} - ${Math.abs(b)}`
+    const subHtml = `<span class="text-blue-600">${a}x</span> + <span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(${rightStr})</span> = ${c}`
+
+    return {
+      goalText: `Opdracht ${levelIndex + 1}: Substitueer y.`,
+      eq1Left: 'y', eq1Right: rightStr,
+      eq2LeftPre: `${a}x + `, eq2Var: 'y', eq2LeftPost: '', eq2Right: `${c}`,
+      dragTarget: rightStr,
+      substitutedStringHTML: subHtml,
+      questionVar: 'x', answer
+    }
+  }
+
+  if (levelIndex === 1) {
+    // x = y + b,   p*x + q*y = s
+    const b = randomInt(-4, 4)
+    const p = randomChoice([2, 3])
+    const qOptions = [1, 3, 4, 5].filter(n => n !== p)
+    const q = randomChoice(qOptions)
+    const s = (p + q) * answer + p * b
+
+    const rightStr = b >= 0 ? `y + ${b}` : `y - ${Math.abs(b)}`
+    const subHtml = `${p}<span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(${rightStr})</span> + <span class="text-blue-600">${q}y</span> = ${s}`
+
+    return {
+      goalText: `Opdracht ${levelIndex + 1}: Substitueer x.`,
+      eq1Left: 'x', eq1Right: rightStr,
+      eq2LeftPre: `${p}`, eq2Var: 'x', eq2LeftPost: ` + ${q}y`, eq2Right: `${s}`,
+      dragTarget: rightStr,
+      substitutedStringHTML: subHtml,
+      questionVar: 'y', answer
+    }
+  }
+
+  // levelIndex === 2
+  // y = -m*x + b,   x - y = s
+  const m = randomChoice([1, 2])
+  const b = randomInt(-3, 5)
+  const s = (1 + m) * answer - b
+
+  const mxPart = m === 1 ? '-x' : `-${m}x`
+  const rightStr = b >= 0 ? `${mxPart} + ${b}` : `${mxPart} - ${Math.abs(b)}`
+  const subHtml = `<span class="text-blue-600">x</span> - <span class="text-emerald-600 font-bold bg-emerald-50 px-2 rounded">(${rightStr})</span> = ${s}`
+
+  return {
+    goalText: `Opdracht ${levelIndex + 1}: Let op de haakjes!`,
+    eq1Left: 'y', eq1Right: rightStr,
+    eq2LeftPre: 'x - ', eq2Var: 'y', eq2LeftPost: '', eq2Right: `${s}`,
+    dragTarget: rightStr,
+    substitutedStringHTML: subHtml,
+    questionVar: 'x', answer
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 const substituted = ref(false)
 const answeredVar = ref('')
@@ -89,12 +136,26 @@ function onDrop() {
   }
 }
 
+function getHint() {
+  if (attemptCount.value <= 1) {
+    return 'Controleer je haakjes en of je de juiste bewerkingen hebt uitgevoerd.'
+  } else if (attemptCount.value === 2) {
+    return 'Werk stap voor stap: werk de haakjes uit, breng alle termen met de onbekende naar links en de constanten naar rechts.'
+  }
+  const d = currentLevelData.value
+  return `De vergelijking na substitutie oplossen: ${d.questionVar} = ? (Het antwoord is een geheel getal.)`
+}
+
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: 'Voer de substitutie uit door te slepen.' };
   substituted.value = false;
   answeredVar.value = '';
+  attemptCount.value = 0;
+  if (levels.value.length === 0) {
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
+  }
 }
 
 function checkAnswer() {
@@ -107,16 +168,14 @@ function checkAnswer() {
 
   if (parseFloat(answeredVar.value) === currentLevelData.value.answer) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: `Perfect! Als ${currentLevelData.value.questionVar} = ${currentLevelData.value.answer}, dan is je stelsel correct opgelost!` 
+    feedback.value = {
+      type: 'success',
+      text: `Perfect! Als ${currentLevelData.value.questionVar} = ${currentLevelData.value.answer}, dan is je stelsel correct opgelost!`
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: 'Er zit een rekenfout in je uitwerking. Werk de haakjes uit, breng alles met de onbekende naar links en de getallen naar rechts.'
-    }
+    attemptCount.value++
+    feedback.value = { type: 'error', text: getHint() }
   }
 }
 
@@ -136,6 +195,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -179,9 +239,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -192,14 +252,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -212,11 +272,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div v-if="substituted" class="p-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4 shadow-inner animate-fadeIn">
               <p class="font-bold text-slate-800">Vergelijking met 1 onbekende:</p>
               <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm text-center" v-html="currentLevelData.substitutedStringHTML">
@@ -226,7 +286,7 @@ onUnmounted(() => {
                 <label class="block mb-2 text-sm font-bold text-slate-700">Wat is de waarde voor {{ currentLevelData.questionVar }}?</label>
                 <div class="flex items-center gap-3">
                   <span class="font-mono text-xl font-bold">{{ currentLevelData.questionVar }} = </span>
-                  <input type="number" v-model="answeredVar" 
+                  <input type="number" v-model="answeredVar"
                          @keyup.enter="checkAnswer"
                          class="flex-1 p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-teal-500 transition-colors"
                          placeholder="?">
@@ -237,7 +297,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -252,11 +312,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !substituted || !answeredVar" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -267,9 +327,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-8">
-              
+
               <div class="text-4xl font-light text-slate-400 absolute left-[25%] top-1/2 -translate-y-1/2 scale-[5] opacity-30 pointer-events-none">
                 {
               </div>
@@ -292,9 +352,9 @@ onUnmounted(() => {
 
               <!-- Equation 2 -->
               <div class="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-200 flex items-center gap-4 text-3xl font-mono font-bold z-10 min-w-[300px] justify-center transition-all duration-300" :class="{ 'scale-110 shadow-xl border-blue-300': substituted }">
-                
+
                 <span class="text-blue-600">{{ currentLevelData.eq2LeftPre }}</span>
-                
+
                 <!-- Drop zone -->
                 <div v-if="!substituted"
                      @dragover.prevent
@@ -303,7 +363,7 @@ onUnmounted(() => {
                      :class="draggedItem ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 bg-slate-50'">
                   <span class="text-slate-400">{{ currentLevelData.eq2Var }}</span>
                 </div>
-                
+
                 <div v-else class="px-4 py-2 bg-emerald-50 text-emerald-600 border-2 border-emerald-400 rounded-xl animate-fadeIn whitespace-nowrap">
                   ({{ currentLevelData.dragTarget }})
                 </div>

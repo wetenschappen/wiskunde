@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTrapezoid, PhArrowClockwise, PhCopy
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Oppervlakte: Trapezium' },
-  instruction: { 
-    type: String, 
-    default: 'Een trapezium heeft twee evenwijdige basissen (boven en onder). De formule lijkt heel raar: <strong>(Basis1 + Basis2) × Hoogte / 2</strong>. Waarom gedeeld door 2?<br/><br/><strong>Opdracht:</strong> Kloon het trapezium en ontdek welke bekende vorm je met twéé trapeziums kan maken. Bereken dan de oppervlakte van ÉÉN trapezium.' 
+  instruction: {
+    type: String,
+    default: 'Een trapezium heeft twee evenwijdige basissen (boven en onder). De formule lijkt heel raar: <strong>(Basis1 + Basis2) × Hoogte / 2</strong>. Waarom gedeeld door 2?<br/><br/><strong>Opdracht:</strong> Kloon het trapezium en ontdek welke bekende vorm je met twéé trapeziums kan maken. Bereken dan de oppervlakte van ÉÉN trapezium.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,19 +23,33 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de knop om de vorm te klonen en te draaien.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-// baseTop, baseBot, height. (30px = 1 unit)
-const levels = [
-  { baseTop: 4, baseBot: 8, height: 5 }, // Area: (4+8)*5/2 = 12*5/2 = 30
-  { baseTop: 3, baseBot: 7, height: 6 }, // Area: (3+7)*6/2 = 10*6/2 = 30
-  { baseTop: 5, baseBot: 9, height: 4 }  // Area: (5+9)*4/2 = 14*4/2 = 28
-]
+// Randomization helpers
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  switch (levelIndex) {
+    case 0: // Level 1: constrained
+      return { baseTop: randomInt(2, 4), baseBot: randomInt(5, 8), height: randomInt(3, 5) }
+    case 1: // Level 2: medium
+      return { baseTop: randomInt(3, 6), baseBot: randomInt(7, 10), height: randomInt(4, 7) }
+    case 2: // Level 3: challenging
+      return { baseTop: randomInt(4, 8), baseBot: randomInt(8, 12), height: randomInt(5, 8) }
+    default:
+      return { baseTop: 4, baseBot: 8, height: 5 }
+  }
+}
+
+const levels = ref([])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const targetArea = computed(() => ((currentLevelData.value.baseTop + currentLevelData.value.baseBot) * currentLevelData.value.height) / 2)
 const totalArea = computed(() => (currentLevelData.value.baseTop + currentLevelData.value.baseBot) * currentLevelData.value.height)
 
@@ -49,35 +63,52 @@ function transformShape() {
     feedback.value = { type: 'success', text: `Kijk! Twee identieke trapeziums vormen samen een groot PARALLELLOGRAM. Bereken de oppervlakte van dat grote parallellogram (basis ${currentLevelData.value.baseTop + currentLevelData.value.baseBot} × hoogte ${currentLevelData.value.height}) en deel door twee.` }
 }
 
+function getHint() {
+  const hints = [
+    `Kijk naar de tekening. Hoe lang is de totale onderkant na het klonen?`,
+    `Het grote parallellogram heeft basis = (Boven + Onder) en hoogte = h. Bereken de totale oppervlakte en deel door 2.`,
+    `Berekening: (${currentLevelData.value.baseTop} + ${currentLevelData.value.baseBot}) × ${currentLevelData.value.height} ÷ 2 = ?`
+  ]
+  if (attemptCount.value <= 1) return hints[0]
+  if (attemptCount.value === 2) return hints[1]
+  return hints[2]
+}
+
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op de knop om de vorm te klonen en te draaien.' };
     step.value = 0;
     userAns.value = null;
+    attemptCount.value = 0;
+    if (levels.value.length === 0) {
+      levels.value = [0, 1, 2].map(i => generateLevel(i))
+    }
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   if (userAns.value === targetArea.value) {
     if (step.value === 1) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Super! Het grote parallellogram heeft basis (${currentLevelData.value.baseTop}+${currentLevelData.value.baseBot})=${currentLevelData.value.baseTop + currentLevelData.value.baseBot} en hoogte ${currentLevelData.value.height}. De totale oppervlakte is ${totalArea.value}. Omdat er 2 trapeziums inzitten, delen we door 2. Antwoord: ${targetArea.value}!` 
+        feedback.value = {
+          type: 'success',
+          text: `Super! Het grote parallellogram heeft basis (${currentLevelData.value.baseTop}+${currentLevelData.value.baseBot})=${currentLevelData.value.baseTop + currentLevelData.value.baseBot} en hoogte ${currentLevelData.value.height}. De totale oppervlakte is ${totalArea.value}. Omdat er 2 trapeziums inzitten, delen we door 2. Antwoord: ${targetArea.value}!`
         }
     } else {
         isCorrect.value = false
+        attemptCount.value++
         feedback.value = { type: 'error', text: `${targetArea.value} is correct! Maar klik eerst op de knop om de vorm te klonen en het wiskundig te bewijzen.`}
     }
   } else {
     isCorrect.value = false
-    
+    attemptCount.value++
+
     if (userAns.value === totalArea.value) {
         feedback.value = { type: 'error', text: `${totalArea.value} is de oppervlakte van het GROTE parallellogram (de twee samen). Maar de opdracht vraagt de oppervlakte van ÉÉN blauw trapezium! (Vergeet niet te delen door 2)`}
     } else {
-        feedback.value = { type: 'error', text: `Bekijk het grote parallellogram (blauw + roze). Wat is de TOTAAL lengte van de onderkant? Vermenigvuldig dat met de hoogte (${currentLevelData.value.height}) en deel door twee.`}
+        feedback.value = { type: 'error', text: getHint() }
     }
   }
 }
@@ -96,6 +127,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = [0, 1, 2].map(i => generateLevel(i))
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -121,7 +153,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-sky-100">
@@ -132,8 +164,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-sky-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -149,7 +181,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-sky-200 bg-sky-50 rounded-xl shadow-inner text-center">
                <label class="block text-sm font-bold text-sky-900 mb-2">Oppervlakte EEN Trapezium:</label>
                <div class="flex items-center gap-2">
@@ -178,21 +210,20 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex flex-col items-center">
-                  
+
                   <div class="mb-12">
-                      <button @click="transformShape" :disabled="isCorrect || step === 1" 
+                      <button @click="transformShape" :disabled="isCorrect || step === 1"
                               class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                           <PhCopy weight="bold" class="w-6 h-6" /> Kloon en Draai 180°
                       </button>
                   </div>
 
                   <!-- Visualisation Area -->
-                  <!-- Base Bot 8 (240px), Base Top 4 (120px). Height 5 (150px). 1 unit = 30px -->
                   <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-12" :key="'svg'+currentInternalLevel">
                       <svg width="600" height="300" viewBox="0 0 600 300" class="block">
-                          
+
                           <!-- Grid lines -->
                           <g stroke="#e2e8f0" stroke-width="1">
                               <line v-for="i in 19" :key="'v'+i" :x1="i * 30" y1="0" :x2="i * 30" y2="300" />
@@ -200,26 +231,26 @@ onUnmounted(() => {
                           </g>
 
                           <g :transform="`translate(0, ${150 - (currentLevelData.height*30)/2})`"> <!-- Center vertically -->
-                              
+
                               <!-- The Main Trapezium (Blue) -->
-                              <polygon :points="`150,${currentLevelData.height*30} ${150 + currentLevelData.baseBot*30},${currentLevelData.height*30} ${210 + currentLevelData.baseTop*30},0 210,0`" 
+                              <polygon :points="`150,${currentLevelData.height*30} ${150 + currentLevelData.baseBot*30},${currentLevelData.height*30} ${210 + currentLevelData.baseTop*30},0 210,0`"
                                        fill="rgba(14, 165, 233, 0.7)" stroke="#0284c7" stroke-width="3" stroke-linejoin="round" />
-                              
+
                               <!-- Dimensions Labels Main -->
                               <text :x="150 + (currentLevelData.baseBot*30)/2" :y="currentLevelData.height*30 + 25" font-weight="bold" fill="#0284c7" text-anchor="middle">Basis = {{ currentLevelData.baseBot }}</text>
                               <text :x="210 + (currentLevelData.baseTop*30)/2" y="-10" font-weight="bold" fill="#0284c7" text-anchor="middle">Basis = {{ currentLevelData.baseTop }}</text>
-                              
+
                               <line x1="180" y1="0" x2="180" :y2="currentLevelData.height*30" stroke="#64748b" stroke-width="2" stroke-dasharray="4 2" />
                               <text x="165" :y="(currentLevelData.height*30)/2" font-weight="bold" fill="#64748b" text-anchor="end">h = {{ currentLevelData.height }}</text>
 
                               <!-- The Cloned Trapezium (Pink) -->
-                              <g class="transition-all duration-1000 ease-in-out" 
-                                 :style="{ 
+                              <g class="transition-all duration-1000 ease-in-out"
+                                 :style="{
                                      transformOrigin: `${(150 + currentLevelData.baseBot*30 + 210 + currentLevelData.baseTop*30)/2}px ${(currentLevelData.height*30)/2}px`,
-                                     opacity: step === 1 ? 1 : 0, 
-                                     transform: step === 1 ? 'rotate(180deg)' : 'translate(-100px, 0) scale(0.5)' 
+                                     opacity: step === 1 ? 1 : 0,
+                                     transform: step === 1 ? 'rotate(180deg)' : 'translate(-100px, 0) scale(0.5)'
                                  }">
-                                  <polygon :points="`150,${currentLevelData.height*30} ${150 + currentLevelData.baseBot*30},${currentLevelData.height*30} ${210 + currentLevelData.baseTop*30},0 210,0`" 
+                                  <polygon :points="`150,${currentLevelData.height*30} ${150 + currentLevelData.baseBot*30},${currentLevelData.height*30} ${210 + currentLevelData.baseTop*30},0 210,0`"
                                            fill="rgba(236, 72, 153, 0.6)" stroke="#db2777" stroke-width="3" stroke-linejoin="round" />
                                   <text :x="150 + (currentLevelData.baseBot*30)/2" :y="currentLevelData.height*30 + 25" font-weight="bold" fill="#db2777" text-anchor="middle" transform="rotate(180 270 220)">Basis = {{ currentLevelData.baseBot }}</text>
                                   <text :x="210 + (currentLevelData.baseTop*30)/2" y="-10" font-weight="bold" fill="#db2777" text-anchor="middle" transform="rotate(180 270 35)">Basis = {{ currentLevelData.baseTop }}</text>

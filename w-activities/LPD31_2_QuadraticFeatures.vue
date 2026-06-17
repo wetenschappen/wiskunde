@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhMagnifyingGlassPlus,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -29,44 +29,69 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
-const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+
+const attemptCount = ref(0)
+const interacted = ref(false)
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    formula: "f(x) = x² - 4",
-    a: 1, p: 0, q: -4,
-    targets: {
-      axis: 0,
-      vertex: { x: 0, y: -4 },
-      roots: [-2, 2] // Order doesn't matter for the check
-    }
-  },
-  {
-    formula: "f(x) = -(x - 1)² + 4",
-    a: -1, p: 1, q: 4,
-    targets: {
-      axis: 1,
-      vertex: { x: 1, y: 4 },
-      roots: [-1, 3]
-    }
-  },
-  {
-    formula: "f(x) = 0.5(x + 2)² - 4.5",
-    a: 0.5, p: -2, q: -4.5,
-    targets: {
-      axis: -2,
-      vertex: { x: -2, y: -4.5 },
-      roots: [-5, 1]
-    }
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+// Generate random level data with progressive difficulty
+function generateLevel(levelIndex) {
+  const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+  let a, p, q, roots
+
+  if (levelIndex === 0) {
+    // Level 1: a=1, symmetric about y-axis (p=0), integer q ≤ 0
+    a = 1
+    const qValues = [-1, -4, -9, -16, -25]
+    q = qValues[rng(0, qValues.length - 1)]
+    p = 0
+    const rootVal = Math.sqrt(-q)
+    roots = [-rootVal, rootVal]
+  } else if (levelIndex === 1) {
+    // Level 2: a in {-1, 1}, shifted vertex, varied roots
+    a = Math.random() < 0.5 ? 1 : -1
+    const pairs = [[-1, 3], [-3, 1], [0, 4], [-4, 0], [-2, 2], [-5, -1], [1, 5], [-3, 3]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    p = (pair[0] + pair[1]) / 2
+    const diff = pair[1] - pair[0]
+    q = -a * diff * diff / 4
+    roots = pair
+  } else {
+    // Level 3: a in {-2, -1, -0.5, 0.5, 1, 2}, wider root ranges
+    const aOptions = [-2, -1, -0.5, 0.5, 1, 2]
+    a = aOptions[rng(0, aOptions.length - 1)]
+    const pairs = [[-5, 1], [-3, 3], [-1, 5], [-6, 0], [-4, 2], [-2, 4], [-7, -1], [0, 6], [-4, 4], [-8, -2]]
+    const pair = pairs[rng(0, pairs.length - 1)]
+    p = (pair[0] + pair[1]) / 2
+    const diff = pair[1] - pair[0]
+    q = -a * diff * diff / 4
+    roots = pair
+  }
+
+  return {
+    formula: formatQuadratic(a, p, q),
+    a, p, q,
+    targets: { axis: p, vertex: { x: p, y: q }, roots }
+  }
+}
+
+function formatQuadratic(a, p, q) {
+  const aStr = a === 1 ? '' : a === -1 ? '-' : a
+  if (p === 0 && q === 0) return `f(x) = ${aStr}x²`
+  const pPart = p === 0 ? '' : p < 0 ? `(x + ${Math.abs(p)})` : `(x - ${p})`
+  const squared = pPart ? `${aStr}${pPart}²` : `${aStr}x²`
+  if (q === 0) return `f(x) = ${squared}`
+  const qSign = q > 0 ? '+ ' : '- '
+  return `f(x) = ${squared} ${qSign}${Math.abs(q)}`
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // User placements
 const userAxis = ref(0)
@@ -81,7 +106,6 @@ const graphPath = computed(() => {
   for (let x = -10; x <= 10; x += 0.2) {
     let y = a * Math.pow(x - p, 2) + q;
     if (y < -12 || y > 12) continue;
-    // SVG coordinates: Center (0,0), scale 15. Y inverted.
     const svgX = x * 15;
     const svgY = -y * 15;
     points.push(`${svgX},${svgY}`);
@@ -90,10 +114,12 @@ const graphPath = computed(() => {
 })
 
 function resetActivityState() {
+  levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false;
-  isChecked.value = false;
+  attemptCount.value = 0;
+  interacted.value = false;
   feedback.value = { type: 'info', text: 'Plaats de symmetrieas, de top en de twee nulwaarden op de juiste coördinaten.' };
-  
+
   // Randomize initial positions slightly away from target to force interaction
   userAxis.value = -4;
   userVertexX.value = 4;
@@ -102,45 +128,48 @@ function resetActivityState() {
   userRoot2.value = 4;
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  const t = currentLevelData.value.targets;
+function getHintText() {
+  if (attemptCount.value >= 5) {
+    const t = currentLevelData.value.targets
+    return { type: 'info', text: `Tip: symmetrieas x = ${t.axis}, top (${t.vertex.x}, ${t.vertex.y}), nulwaarden x = ${t.roots[0]} en x = ${t.roots[1]}. Plaats de schuifregelaars op deze waarden.` }
+  } else if (attemptCount.value >= 3) {
+    const t = currentLevelData.value.targets
+    return { type: 'info', text: `De symmetrieas is x = ${t.axis}. De top heeft dezelfde x-coordinaat. De nulwaarden zijn de x-waarden waar y=0.` }
+  } else if (attemptCount.value >= 1) {
+    return { type: 'info', text: 'Kijk naar de formule. De symmetrieas is de x-waarde van de top (x = p). De nulwaarden zijn waar de parabool de x-as snijdt.' }
+  }
+  return { type: 'info', text: 'Plaats de symmetrieas, de top en de twee nulwaarden op de juiste coördinaten.' }
+}
 
-  const axisCorrect = userAxis.value === t.axis;
-  const vertexCorrect = userVertexX.value === t.vertex.x && userVertexY.value === t.vertex.y;
-  
-  const userRoots = [userRoot1.value, userRoot2.value].sort((a,b) => a-b);
-  const targetRoots = [...t.roots].sort((a,b) => a-b);
-  const rootsCorrect = userRoots[0] === targetRoots[0] && userRoots[1] === targetRoots[1];
+function onSliderChanged() {
+  if (isCorrect.value) return
+  if (!interacted.value) interacted.value = true
+  attemptCount.value++
+
+  // Auto-correct check: all sliders at target?
+  const t = currentLevelData.value.targets
+  const axisCorrect = userAxis.value === t.axis
+  const vertexCorrect = userVertexX.value === t.vertex.x && userVertexY.value === t.vertex.y
+  const userRoots = [userRoot1.value, userRoot2.value].sort((a,b) => a-b)
+  const targetRoots = [...t.roots].sort((a,b) => a-b)
+  const rootsCorrect = userRoots[0] === targetRoots[0] && userRoots[1] === targetRoots[1]
 
   if (axisCorrect && vertexCorrect && rootsCorrect) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Uitstekend! Je hebt alle kenmerken fysiek correct geplaatst op de grafiek.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Uitstekend! Je hebt alle kenmerken fysiek correct geplaatst op de grafiek.'
     }
   } else {
-    isCorrect.value = false
-    
-    if (!axisCorrect) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'Kijk naar de oranje stippellijn. De symmetrieas loopt niet door het exacte midden van de parabool.'
-      }
-    } else if (!vertexCorrect) {
-      if (userVertexX.value !== t.vertex.x) {
-         feedback.value = { type: 'error', text: 'De top ligt niet op de symmetrieas! De x-coördinaat van de top moet gelijk zijn aan de as.' }
-      } else {
-         feedback.value = { type: 'error', text: 'De x-coördinaat van de top klopt, maar hij ligt nog niet op de uiterste y-waarde van de parabool.' }
-      }
-    } else if (!rootsCorrect) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'Kijk naar de groene punten (nulwaarden). Een nulwaarde ligt altijd op de snijding van de parabool met de x-as (y=0).'
-      }
-    }
+    feedback.value = getHintText()
   }
 }
+
+const debounceTimer = ref(null)
+watch([userAxis, userVertexX, userVertexY, userRoot1, userRoot2], () => {
+  if (debounceTimer.value) clearTimeout(debounceTimer.value)
+  debounceTimer.value = setTimeout(onSliderChanged, 400)
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -201,9 +230,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -214,14 +243,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -234,14 +263,14 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6">
               <p class="text-sm font-bold text-indigo-800 mb-1">Actieve Functie:</p>
               <p class="font-mono text-xl font-black text-indigo-600">{{ currentLevelData.formula }}</p>
             </div>
-            
+
             <div class="space-y-6">
-              
+
               <!-- Symmetrieas -->
               <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
@@ -291,7 +320,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -306,11 +335,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
+
+              <button v-if="!isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60" disabled>
+                Plaats alles correct
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -321,12 +350,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="450" height="450" viewBox="-150 -150 300 300" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10">
-                
+
                 <!-- Grid Lines -->
                 <g stroke="#e2e8f0" stroke-width="1">
                   <line v-for="i in 21" :key="'v'+i" :x1="(i-11)*15" y1="-150" :x2="(i-11)*15" y2="150" />
@@ -339,12 +368,12 @@ onUnmounted(() => {
 
                 <!-- The Parabola -->
                 <path :d="graphPath" fill="none" stroke="#4f46e5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-300" />
-                
+
                 <!-- Interactive Elements Placed by User -->
-                
+
                 <!-- Symmetrieas -->
                 <line :x1="userAxis * 15" y1="-150" :x2="userAxis * 15" y2="150" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8,4" class="transition-all duration-150" />
-                
+
                 <!-- Nulwaarden (Roots) -->
                 <circle :cx="userRoot1 * 15" cy="0" r="6" fill="#10b981" stroke="white" stroke-width="2" class="transition-all duration-150 shadow-sm" />
                 <circle :cx="userRoot2 * 15" cy="0" r="6" fill="#10b981" stroke="white" stroke-width="2" class="transition-all duration-150 shadow-sm" />

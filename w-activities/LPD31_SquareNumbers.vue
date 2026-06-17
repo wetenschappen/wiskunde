@@ -7,7 +7,7 @@ import {
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Patronen: De Vierhoeksgetallen' },
-  instruction: { type: String, default: 'Niet elk patroon is lineair. Soms groeit iets véél sneller!<br/><br/><strong>Opdracht:</strong> Kijk naar de figuren. Ontdek het patroon en vul het antwoord in.' },
+  instruction: { type: String, default: 'Niet elk patroon is lineair. Soms groeit iets veel sneller!<br/><br/><strong>Opdracht:</strong> Kijk naar de figuren. Ontdek het patroon en vul het antwoord in.' },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
   fullscreen: { type: Boolean, default: true },
@@ -20,17 +20,71 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Ontdek het patroon en vul het antwoord in.' })
 
-// Levels
+const attemptCount = ref(0)
+
+// Levels (generated)
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { name: 'Vierkantsgetallen', sequence: [1, 4, 9, 16], formula: 'n²', exp: 2, fig4Ans: 16, color: 'pink' },
-  { name: 'Driehoeksgetallen', sequence: [1, 3, 6, 10], formula: 'n(n+1)/2', exp: null, fig4Ans: 10, color: 'blue' },
-  { name: 'Vijfhoekgetallen', sequence: [1, 5, 12, 22], formula: 'n(3n-1)/2', exp: null, fig4Ans: 22, color: 'purple' },
-]
+const levels = ref([])
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelIndex) {
+  const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+  let name, sequence, formula, exp, fig4Ans, color
+
+  if (levelIndex === 0) {
+    // Square numbers: n^2
+    name = 'Vierkantsgetallen'
+    color = 'pink'
+    // Pick a base to vary: sequence = [1^2, 2^2, 3^2, 4^2] = [1, 4, 9, 16]
+    // Or we can use 2n^2: [2, 8, 18, 32] - but that looks different visually
+    const multiplier = rng(0, 2) // 0,1,2
+    if (multiplier === 0) {
+      sequence = [1, 4, 9, 16]
+      formula = 'n^2'
+      exp = 2
+      fig4Ans = 16
+    } else if (multiplier === 1) {
+      sequence = [4, 9, 16, 25]
+      formula = '(n+1)^2'
+      exp = null
+      fig4Ans = 25
+    } else {
+      sequence = [1, 4, 9, 16]
+      formula = 'n^2'
+      exp = 2
+      fig4Ans = 16
+    }
+  } else if (levelIndex === 1) {
+    // Triangular numbers: n(n+1)/2
+    name = 'Driehoeksgetallen'
+    color = 'blue'
+    const offset = rng(0, 1)
+    if (offset === 0) {
+      sequence = [1, 3, 6, 10]
+      formula = 'n(n+1)/2'
+      exp = null
+      fig4Ans = 10
+    } else {
+      sequence = [3, 6, 10, 15]
+      formula = '(n+1)(n+2)/2'
+      exp = null
+      fig4Ans = 15
+    }
+  } else {
+    // Pentagonal numbers: n(3n-1)/2
+    name = 'Vijfhoekgetallen'
+    color = 'purple'
+    sequence = [1, 5, 12, 22]
+    formula = 'n(3n-1)/2'
+    exp = null
+    fig4Ans = 22
+  }
+
+  return { name, sequence, formula, exp, fig4Ans, color }
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const ansFig4 = ref(null)
 const ansExp = ref(null)
 const showFig4 = ref(false)
@@ -38,26 +92,42 @@ const showFig4 = ref(false)
 const colorMap = { pink: 'bg-pink-100 text-pink-600 border-pink-200', blue: 'bg-blue-100 text-blue-600 border-blue-200', purple: 'bg-purple-100 text-purple-600 border-purple-200' }
 const colorMapBg = { pink: 'bg-pink-500 border-pink-700', blue: 'bg-blue-500 border-blue-700', purple: 'bg-purple-500 border-purple-700' }
 
+function getHintText(count) {
+  const lvl = currentLevel.value
+  if (count >= 3) {
+    return { type: 'info', text: `Het patroon is: ${lvl.sequence.slice(0,3).join(', ')}, ... Zoek de regelmaat. Figuur 4 heeft ${lvl.fig4Ans} blokjes.` }
+  } else if (count >= 2) {
+    return { type: 'info', text: `Bereken het verschil tussen opeenvolgende getallen: ${lvl.sequence[1] - lvl.sequence[0]}, ${lvl.sequence[2] - lvl.sequence[1]}, ...` }
+  } else {
+    return { type: 'info', text: `Kijk naar de figuur. Hoeveel blokjes komen er bij van figuur naar figuur?` }
+  }
+}
+
 function checkAnswer() {
   isChecked.value = true
   const lvl = currentLevel.value
   if (ansFig4.value === lvl.fig4Ans) {
     if (lvl.exp !== null && ansExp.value !== lvl.exp) {
-      isCorrect.value = false
-      feedback.value = { type: 'error', text: `Figuur 4 klopt (${lvl.fig4Ans})! Maar de formule is n${lvl.exp === 2 ? '²' : ''}. Wat is de exponent?` }
+      attemptCount.value++
+      feedback.value = { type: 'error', text: `Figuur 4 klopt (${lvl.fig4Ans})! Maar de formule is n${lvl.exp === 2 ? '^2' : ''}. Wat is de exponent?` }
     } else {
       isCorrect.value = true
       showFig4.value = true
       feedback.value = { type: 'success', text: `Magistraal! Dit zijn de ${lvl.name}: ${lvl.sequence.slice(0,3).join(', ')}... Het patroon volgt ${lvl.formula}.` }
     }
   } else {
-    isCorrect.value = false
+    attemptCount.value++
     feedback.value = { type: 'error', text: `Het aantal in Figuur 4 klopt niet. Het patroon is: ${lvl.sequence.slice(0,3).join(', ')}, ...` }
+    if (attemptCount.value >= 2) {
+      feedback.value = getHintText(attemptCount.value)
+    }
   }
 }
 
 function resetActivityState() {
+  levels.value[currentInternalLevel.value] = generateLevel(currentInternalLevel.value)
   isCorrect.value = false; isChecked.value = false; showFig4.value = false
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Ontdek het patroon en vul het antwoord in.' }
   ansFig4.value = null; ansExp.value = null
 }
@@ -124,7 +194,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-              :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error'}">
+              :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>

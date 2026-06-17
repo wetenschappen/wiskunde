@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScales, PhArrowClockwise, PhLockKey, PhLockKeyOpen
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScales, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -21,28 +21,37 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
-const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Pas het aantal blokjes in doos x aan met + en -.' })
+const feedback = ref({ type: 'info', text: 'Pas het aantal blokjes in doos x aan met + en - tot de weegschaal in evenwicht is.' })
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
+
+const attemptCount = ref(0)
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function genEquation() {
-  const levels = [
-    { leftLoose: 3, rightLoose: 8, xValue: 5 },       // x + 3 = 8
-    { leftLoose: 7, rightLoose: 15, xValue: 8 },       // x + 7 = 15
-    { leftLoose: 4, rightLoose: 13, xValue: 9 },       // x + 4 = 13
-  ]
-  // Pick one and maybe randomize if replaying
-  return levels[currentInternalLevel.value % levels.length]
+function generateLevel() {
+  const l = [];
+  // Level 1: small numbers
+  let x1 = randomInt(2, 5);
+  let l1 = randomInt(1, 4);
+  l.push({ leftLoose: l1, rightLoose: x1 + l1, xValue: x1 });
+  // Level 2: medium numbers
+  let x2 = randomInt(3, 7);
+  let l2 = randomInt(2, 6);
+  l.push({ leftLoose: l2, rightLoose: x2 + l2, xValue: x2 });
+  // Level 3: larger numbers
+  let x3 = randomInt(4, 9);
+  let l3 = randomInt(3, 7);
+  l.push({ leftLoose: l3, rightLoose: x3 + l3, xValue: x3 });
+  levels.value = l;
 }
 
-const equation = ref(genEquation())
+const equation = computed(() => levels.value[currentInternalLevel.value] || { leftLoose: 3, rightLoose: 8, xValue: 5 })
 
 const xValue = ref(1)
 
@@ -55,47 +64,64 @@ const tiltValue = computed(() => {
   return 0
 })
 
-const boxUnlocked = computed(() => isCorrect.value)
+function getHintText(count, eq) {
+  if (count <= 4) {
+    return `Hint: de weegschaal moet in evenwicht zijn. x + ${eq.leftLoose} = ${eq.rightLoose}.`
+  } else if (count <= 8) {
+    return `Hint: wat moet x zijn zodat x + ${eq.leftLoose} = ${eq.rightLoose}? Trek ${eq.leftLoose} af van ${eq.rightLoose}.`
+  } else {
+    return `Het juiste antwoord is x = ${eq.rightLoose - eq.leftLoose}.`
+  }
+}
 
 function increaseX() {
-  if (!isCorrect.value && xValue.value < 15) xValue.value++
-  isChecked.value = false
+  if (isCorrect.value || xValue.value >= 15) return
+  xValue.value++
+  attemptCount.value++
+  onValueChange()
 }
 
 function decreaseX() {
-  if (!isCorrect.value && xValue.value > 0) xValue.value--
-  isChecked.value = false
+  if (isCorrect.value || xValue.value <= 0) return
+  xValue.value--
+  attemptCount.value++
+  onValueChange()
+}
+
+function onValueChange() {
+  const tv = tiltValue.value
+  if (tv === 0) {
+    isCorrect.value = true
+    const eq = equation.value
+    feedback.value = {
+      type: 'success',
+      text: `Magisch! De doos gaat open. Omdat de weegschaal in evenwicht is, is x = ${eq.xValue}. x + ${eq.leftLoose} = ${eq.rightLoose}.`
+    }
+  } else {
+    isCorrect.value = false
+    if (attemptCount.value % 3 === 0) {
+      const eq = equation.value
+      feedback.value = {
+        type: 'error',
+        text: getHintText(attemptCount.value, eq)
+      }
+    }
+  }
 }
 
 function resetActivityState() {
   isCorrect.value = false
-  isChecked.value = false
-  feedback.value = { type: 'info', text: 'Pas het aantal blokjes in doos x aan met + en -.' }
-  xValue.value = currentInternalLevel.value * 5 + 1
+  attemptCount.value = 0
+  feedback.value = { type: 'info', text: 'Pas het aantal blokjes in doos x aan met + en - tot de weegschaal in evenwicht is.' }
+  xValue.value = 1
 }
 
 function nextLevel() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
     currentInternalLevel.value++
-    equation.value = genEquation()
     resetActivityState()
   } else {
     emit('complete')
-  }
-}
-
-function checkAnswer() {
-  isChecked.value = true
-  if (tiltValue.value === 0) {
-    isCorrect.value = true
-    feedback.value = { type: 'success', text: `Magisch! De doos gaat open. Omdat de weegschaal in evenwicht is, is x = ${equation.value.xValue}. x + ${equation.value.leftLoose} = ${equation.value.rightLoose}.` }
-  } else {
-    isCorrect.value = false
-    if (tiltValue.value === -1) {
-      feedback.value = { type: 'error', text: 'Te zwaar links! Er zitten te veel blokjes in doos x.' }
-    } else {
-      feedback.value = { type: 'error', text: 'Te licht links! Doe meer blokjes in doos x.' }
-    }
   }
 }
 
@@ -108,7 +134,7 @@ function goToNextStep() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
-    equation.value = genEquation()
+    generateLevel()
     resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })
@@ -176,7 +202,6 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Evenwicht</button>
               <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
               <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
@@ -193,9 +218,9 @@ onUnmounted(() => {
                   <div class="absolute left-8 bottom-4 w-40 flex flex-col items-center transform origin-bottom transition-transform duration-700" :style="{ transform: `rotate(${-tiltValue * 8}deg)` }">
                     <div class="flex items-end justify-center gap-2 mb-2 w-full px-2">
                       <div class="w-20 h-20 bg-amber-200 border-4 border-amber-500 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden transition-all duration-500"
-                        :class="boxUnlocked ? 'bg-transparent border-dashed border-amber-300' : ''">
-                        <div v-if="!boxUnlocked" class="flex flex-col items-center">
-                          <PhLockKey weight="bold" class="w-6 h-6 text-amber-600 mb-1" />
+                        :class="isCorrect ? 'bg-transparent border-dashed border-amber-300' : ''">
+                        <div v-if="!isCorrect" class="flex flex-col items-center">
+                          <svg class="w-6 h-6 text-amber-600 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
                           <span class="font-black text-2xl text-amber-800 font-mono">x</span>
                         </div>
                         <div v-else class="flex flex-wrap gap-1 p-1 justify-center items-center h-full w-full">
