@@ -2,7 +2,7 @@
 name: ui-polish
 description: Upgrade Vue 3 educational math activities to publisher-quality UI/UX (KaTeX, animations, a11y, theming, responsive)
 source: auto-skill
-extracted_at: '2026-06-17T12:00:00.000Z'
+extracted_at: '2026-06-17T12:55:00.000Z'
 ---
 
 # UI Polish for Math Activities (Publisher Quality)
@@ -288,37 +288,93 @@ echo "Duplicate resets (expect 0): $(for f in w-activities/LPD*.vue; do count=$(
 
 ## Batch 3: Accessibility
 
-### 3.1 SVG interactive elements
+**⚠️ Execution strategy matters:** Use sed/awk for the consistent patterns (feedback live region, focus management). These cover 100% of files instantly. Reserve agent-based processing ONLY for SVG aria attributes, which are highly file-specific.
 
-For every clickable SVG circle/rect/path, add:
+### 3.1 Feedback live region — USE SED
 
-```vue
-<circle
-  role="button"
-  tabindex="0"
-  :aria-label="`Selecteer punt (${x}, ${y})`"
-  @click="handleClick(x, y)"
-  @keydown.enter.prevent="handleClick(x, y)"
-  @keydown.space.prevent="handleClick(x, y)"
-/>
+All 117 files have a feedback div with either a single-line or multi-line `:class` binding. Add `role="status"` and `aria-live="polite"` directly to the existing div (no wrapping needed).
+
+**Step 1: Check which patterns exist**
+```bash
+# Pattern A (single-line, light theme):
+grep -l ":class=\"{'bg-emerald-100 text-emerald-800': feedback.type === 'success'" w-activities/LPD*.vue | wc -l
+
+# Pattern B (single-line, dark theme):
+grep -l ":class=\"{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success'" w-activities/LPD*.vue | wc -l
+
+# Pattern C (multi-line): files NOT matching patterns A+B
 ```
 
-**Key changes per file:**
-- All `<circle v-for>` in clickable grids/radars get `role="button"` + `tabindex`
-- All SVG `<g>` containers that handle clicks get the same
-- Add `:aria-label` describing the interaction
-- Add `@keydown.enter` and `@keydown.space` alongside `@click`
+**Step 2: Apply sed for single-line patterns**
+```bash
+sed -i "s/:class=\"{'bg-emerald-100 text-emerald-800': feedback.type === 'success'/role='status' aria-live='polite' aria-atomic='true' :class=\"{'bg-emerald-100 text-emerald-800': feedback.type === 'success'/" w-activities/LPD*.vue
 
-### 3.2 Feedback live region
-
-Wrap the feedback container with:
-```vue
-<div aria-live="polite" aria-atomic="true">
-  <!-- existing feedback -->
-</div>
+sed -i "s/:class=\"{'bg-emerald-900\/50 text-emerald-300 border border-emerald-800': feedback.type === 'success'/role='status' aria-live='polite' aria-atomic='true' :class=\"{'bg-emerald-900\/50 text-emerald-300 border border-emerald-800': feedback.type === 'success'/" w-activities/LPD*.vue
 ```
 
-### 3.3 Drag-and-drop accessibility
+**Step 3: Apply perl for multi-line pattern**
+```bash
+for f in w-activities/LPD*.vue; do
+  if ! grep -q 'aria-live' "$f"; then
+    perl -0777 -pi -e 's/(:class="\{\n\s+'\''bg-emerald-100 text-emerald-800'\'')/role="status" aria-live="polite" aria-atomic="true" \1/' "$f"
+  fi
+done
+```
+
+### 3.2 Focus management — USE SED + AWK
+
+**Step 1: Add ref and tabindex to the first content div**
+```bash
+# Target the FIRST occurrence of flex-1 p-6 overflow-y-auto (the sidebar content)
+for f in w-activities/LPD*.vue; do
+  sed -i '0,/class="\(flex\( flex-col\)\? \)\?flex-1 p-6 overflow-y-auto"/{s/class="\(flex\( flex-col\)\? \)\?flex-1 p-6 overflow-y-auto"/ref="mainArea" tabindex="-1" class="\1flex-1 p-6 overflow-y-auto"/}' "$f"
+done
+```
+
+**Step 2: Add nextTick focus in the isOpen watcher**
+Use awk to add after `resetActivityState()` calls but NOT after `function resetActivityState()` definitions:
+
+```bash
+for f in w-activities/LPD*.vue; do
+  awk '{
+    if ($0 ~ /resetActivityState\(\)[[:space:]]*;?[[:space:]]*$/ && prev !~ /function/) {
+      print
+      print "    nextTick(() => mainArea.value?.focus())"
+    } else {
+      print
+    }
+    prev=$0
+  }' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+done
+```
+
+**Step 3: Handle 4 edge-case files** where `resetActivityState()` is on the same line as other code:
+```bash
+# These files have inline watchers: if (...) { resetActivityState(); ... }
+# Manually add nextTick focus after the inline call in the watcher.
+# Files: LPD31_TablePattern, LPD32_PerfectSquare, LPD33_EquationBalance, LPD33_ReverseMachine
+```
+
+### 3.3 SVG interactive elements — USE AGENT FOR THIS PART ONLY
+
+**Do NOT attempt with sed** — the SVG patterns are too varied across 117 files. Use a `general-purpose` subagent per batch of ~39 files.
+
+For each clickable SVG element (`<circle>`, `<rect>`, `<g>` with `@click`), add:
+- `role="button" tabindex="0"` 
+- `:aria-label="..."` (Dutch, describing the interaction)
+- `@keydown.enter.prevent="sameHandler"` 
+- `@keydown.space.prevent="sameHandler"`
+
+**How to launch (3 parallel agents, ~39 files each):**
+```bash
+# Launch agent with clear instructions for its file group.
+# Each agent: read file → add SVG attributes → verify → read next file.
+# Don't include feedback-live-region or focus-management (already done via sed).
+```
+
+**Known challenge:** Each agent processes ~39 files × 3-5 edits = ~156 edits. At 10-20 seconds per edit this takes 30+ min. For time-sensitive work, defer SVG aria.
+
+### 3.4 Drag-and-drop accessibility
 
 HTML5 native drag is not keyboard-accessible. For drag-drop activities, add a **click-to-select, click-to-place** fallback that activates on keyboard focus + Enter:
 
@@ -333,23 +389,13 @@ HTML5 native drag is not keyboard-accessible. For drag-drop activities, add a **
 >
 ```
 
-### 3.4 Focus management
-
-Ensure the main interactive area receives focus when an activity opens:
-```vue
-<div ref="mainArea" tabindex="-1" class="...">
-```
-
-```vue
-// In the isOpen watcher:
-nextTick(() => mainArea.value?.focus())
-```
-
 ### Verification for Batch 3
 
 ```bash
-grep -c "role=\|aria-\|tabindex\|keydown\.enter\|keydown\.space" w-activities/LPD*.vue
-# Expected: all 117 files have at least some a11y attributes
+echo "aria-live: $(grep -l 'aria-live' w-activities/LPD*.vue | wc -l)/117"
+echo "mainArea ref: $(grep -l 'ref="mainArea"' w-activities/LPD*.vue | wc -l)/117"
+echo "mainArea focus: $(grep -l 'mainArea.value' w-activities/LPD*.vue | wc -l)/117"
+echo "role=button: $(grep -l 'role="button"' w-activities/LPD*.vue | wc -l)/117 (may be 0 if SVG pass deferred)"
 ```
 
 ---
