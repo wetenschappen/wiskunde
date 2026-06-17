@@ -190,7 +190,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -229,28 +229,28 @@ onUnmounted(() => {
                <div class="flex items-center gap-2">
                    <span class="font-mono font-bold text-slate-600">KGV({{ currentLevelData.jump1 }}, {{ currentLevelData.jump2 }}) =</span>
                    <input type="number" v-model.number="userAns" placeholder="..." :disabled="isCorrect"
-                          class="flex-1 font-bold text-lg p-2 border border-slate-300 rounded focus:border-sky-500 focus:ring-sky-500" />
+                          class="flex-1 font-bold text-lg p-2 border border-slate-300 rounded-lg focus:border-sky-500 focus:ring-sky-500" />
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -267,11 +267,11 @@ onUnmounted(() => {
                   <!-- Controls -->
                   <div class="flex justify-center gap-6 mb-12">
                       <button @click="jump(frog1, currentLevelData.jump1)" :disabled="isCorrect || frog1.pos + currentLevelData.jump1 > currentLevelData.maxPos"
-                              class="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-blue-300 text-white font-black rounded-xl shadow-md transition-all active:scale-95">
+                              class="flex items-center gap-2 px-6 py-4 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-blue-300 text-white font-black rounded-xl shadow-md transition-all active:scale-95">
                           Blauwe Kikker (+{{ currentLevelData.jump1 }}) <PhCaretDoubleRight weight="bold" />
                       </button>
                       <button @click="jump(frog2, currentLevelData.jump2)" :disabled="isCorrect || frog2.pos + currentLevelData.jump2 > currentLevelData.maxPos"
-                              class="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-300 text-white font-black rounded-xl shadow-md transition-all active:scale-95">
+                              class="flex items-center gap-2 px-6 py-4 bg-math-blue hover:bg-math-blue active:bg-math-blue disabled:bg-math-blue-light text-white font-black rounded-xl shadow-md transition-all active:scale-95">
                           Oranje Kikker (+{{ currentLevelData.jump2 }}) <PhCaretDoubleRight weight="bold" />
                       </button>
                   </div>
@@ -286,7 +286,7 @@ onUnmounted(() => {
 
                               <!-- History trails -->
                               <div v-if="frog1.history.includes(i-1)" class="absolute -top-16 w-3 h-3 bg-blue-400 rounded-full shadow-sm"></div>
-                              <div v-if="frog2.history.includes(i-1)" class="absolute -bottom-12 w-3 h-3 bg-orange-400 rounded-full shadow-sm"></div>
+                              <div v-if="frog2.history.includes(i-1)" class="absolute -bottom-12 w-3 h-3 bg-math-blue rounded-full shadow-sm"></div>
 
                               <!-- Meet point highlight -->
                               <div v-if="meetPoint === i-1" class="absolute -inset-2 bg-emerald-400/30 rounded-full animate-pulse z-0"></div>
@@ -310,7 +310,7 @@ onUnmounted(() => {
                           <!-- Orange Frog -->
                           <div class="absolute transition-all duration-500 ease-out flex items-center justify-center w-8 h-8 bottom-0"
                                :style="{ left: `calc(${(frog2.pos / currentLevelData.maxPos) * 100}% - 0px)` }">
-                              <div class="w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-md animate-bounce" style="animation-delay: 0.1s"></div>
+                              <div class="w-6 h-6 bg-math-blue rounded-full border-2 border-white shadow-md animate-bounce" style="animation-delay: 0.1s"></div>
                           </div>
                       </div>
 

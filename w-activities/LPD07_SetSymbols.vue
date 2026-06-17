@@ -168,12 +168,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -182,7 +182,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -198,9 +198,9 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
-              <div class="mt-3 bg-white p-3 border border-teal-300 rounded shadow-inner text-2xl font-mono font-black text-slate-800">
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
+              <div class="mt-3 bg-white p-4 border border-surface-200 rounded-lg shadow-inner text-2xl font-mono font-black text-slate-800">
                   {{ currentLevelData.expression }}
               </div>
             </div>
@@ -210,7 +210,7 @@ onUnmounted(() => {
                <div class="flex flex-wrap justify-center gap-2">
                    <div v-for="num in numbersAvailable" :key="num"
                         draggable="true" @dragstart="onDragStart(num)"
-                        class="w-12 h-12 flex items-center justify-center border-2 border-slate-300 bg-white rounded-full font-bold text-xl text-slate-700 cursor-grab hover:border-teal-400 hover:text-teal-600 transition-colors shadow-sm"
+                        class="w-12 h-12 flex items-center justify-center border-2 border-slate-300 bg-white rounded-full font-bold text-xl text-slate-700 cursor-grab hover:border-math-blue hover:text-math-blue transition-colors shadow-sm"
                         :class="{'opacity-30 pointer-events-none': placements[num]}">
                        {{ num }}
                    </div>
@@ -220,14 +220,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -238,7 +238,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
-              <div class="relative w-[600px] h-[400px] flex items-center justify-center bg-white p-8 rounded-3xl shadow-sm border-2 border-slate-200/50">
+              <div class="relative w-[600px] h-[400px] flex items-center justify-center bg-white p-8 rounded-xl shadow-sm border-2 border-slate-200/50">
 
                   <div class="relative w-[500px] h-[300px] flex">
 
@@ -260,14 +260,14 @@ onUnmounted(() => {
 
                       <!-- CIRCLE B (Right) / b-only drop zone -->
                       <div @dragover.prevent @drop.prevent.stop="onDrop('b-only')"
-                           class="absolute right-0 w-[300px] h-[300px] rounded-full border-[6px] border-amber-500 bg-amber-500/10 flex flex-col p-8 items-end transition-colors"
-                           :class="draggedNumber ? 'hover:bg-amber-500/30' : ''">
-                           <span class="font-black text-2xl text-amber-700 pointer-events-none">B</span>
+                           class="absolute right-0 w-[300px] h-[300px] rounded-full border-[6px] border-math-blue bg-math-blue/10 flex flex-col p-8 items-end transition-colors"
+                           :class="draggedNumber ? 'hover:bg-math-blue/30' : ''">
+                           <span class="font-black text-2xl text-math-blue pointer-events-none">B</span>
 
                            <!-- Display placed items -->
                            <div class="absolute inset-0 flex flex-wrap items-center justify-center gap-2 pl-[100px] pointer-events-none">
                                <div v-for="num in Object.keys(placements).filter(k => placements[k] === 'b-only')" :key="num"
-                                    class="w-10 h-10 bg-white border-2 border-amber-500 rounded-full flex items-center justify-center font-bold text-lg text-amber-800 shadow-sm pointer-events-auto cursor-pointer"
+                                    class="w-10 h-10 bg-white border-2 border-math-blue rounded-full flex items-center justify-center font-bold text-lg text-math-blue shadow-sm pointer-events-auto cursor-pointer"
                                     @click="removePlacement(num)">
                                    {{ num }}
                                </div>
@@ -277,10 +277,10 @@ onUnmounted(() => {
                       <!-- INTERSECTION drop zone -->
                       <div @dragover.prevent @drop.prevent.stop="onDrop('intersect')"
                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100px] h-[200px] rounded-full z-20 flex flex-col items-center justify-center gap-2 transition-colors cursor-crosshair"
-                           :class="draggedNumber ? 'bg-teal-500/20' : ''">
+                           :class="draggedNumber ? 'bg-math-blue/20' : ''">
 
                            <div v-for="num in Object.keys(placements).filter(k => placements[k] === 'intersect')" :key="num"
-                                class="w-10 h-10 bg-white border-2 border-teal-500 rounded-full flex items-center justify-center font-bold text-lg text-teal-800 shadow-sm cursor-pointer"
+                                class="w-10 h-10 bg-white border-2 border-math-blue rounded-full flex items-center justify-center font-bold text-lg text-math-blue shadow-sm cursor-pointer"
                                 @click="removePlacement(num)">
                                {{ num }}
                            </div>

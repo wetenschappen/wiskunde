@@ -277,12 +277,12 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-rose-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-rose-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -291,7 +291,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-rose-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -310,18 +310,18 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-rose-50 p-4 border border-rose-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-rose-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="mt-8 space-y-4">
               <p class="font-bold text-slate-800 uppercase tracking-wider text-xs">Mogelijke Oppervlaktes</p>
 
-              <div class="flex flex-wrap gap-3">
+              <div class="flex flex-wrap gap-4">
                 <div v-for="opt in currentLevelData.options" :key="opt"
                      draggable="true"
                      @dragstart="onDragStart(opt)"
-                     class="w-16 h-16 border-2 border-slate-300 bg-white rounded-xl flex items-center justify-center font-bold text-xl font-mono text-slate-700 cursor-grab active:cursor-grabbing hover:border-rose-400 hover:text-rose-600 transition-colors shadow-sm"
+                     class="w-16 h-16 border-2 border-slate-300 bg-white rounded-xl flex items-center justify-center font-bold text-xl font-mono text-slate-700 cursor-grab active:cursor-grabbing hover:border-math-blue hover:text-math-blue transition-colors shadow-sm"
                      :class="{ 'opacity-30 pointer-events-none': slotA === opt || slotB === opt || slotC === opt }">
                   {{ opt }}
                 </div>
@@ -331,7 +331,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -343,21 +343,21 @@ onUnmounted(() => {
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-relaxed">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="showHint" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="showHint" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
                 Geef me een hint
               </button>
 
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -368,7 +368,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <!-- Scale visualization -->
               <div class="relative flex items-center justify-center transition-all duration-700 scale-75 md:scale-100">
@@ -380,13 +380,13 @@ onUnmounted(() => {
                   <div class="absolute border-t-4 border-l-4 border-slate-800 w-6 h-6" style="left: 116px; top: 156px; transform: rotate(180deg);"></div>
 
                   <!-- Side A Label (bottom) -->
-                  <div class="absolute font-bold text-blue-800 bg-white/80 px-1 rounded" style="left: 60px; top: 165px;">a = {{ currentLevelData.sideA }}</div>
+                  <div class="absolute font-bold text-blue-800 bg-white/80 px-1 rounded-lg" style="left: 60px; top: 165px;">a = {{ currentLevelData.sideA }}</div>
 
                   <!-- Side B Label (right) -->
-                  <div class="absolute font-bold text-fuchsia-800 bg-white/80 px-1 rounded" style="left: 130px; top: 80px;">b = {{ currentLevelData.sideB }}</div>
+                  <div class="absolute font-bold text-math-blue bg-white/80 px-1 rounded-lg" style="left: 130px; top: 80px;">b = {{ currentLevelData.sideB }}</div>
 
                   <!-- Side C Label (hypotenuse) -->
-                  <div class="absolute font-bold text-emerald-800 bg-white/80 px-1 rounded transform -rotate-[53deg]" style="left: 20px; top: 70px;">c = {{ currentLevelData.sideC }}</div>
+                  <div class="absolute font-bold text-emerald-800 bg-white/80 px-1 rounded-lg transform -rotate-[53deg]" style="left: 20px; top: 70px;">c = {{ currentLevelData.sideC }}</div>
 
                   <!-- Square A (Bottom) -->
                   <div class="absolute flex flex-col items-center justify-center bg-blue-100 border-4 border-blue-400 rounded-lg shadow-inner" style="left: 0px; top: 160px; width: 120px; height: 120px;">
@@ -403,14 +403,14 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Square B (Right) -->
-                  <div class="absolute flex flex-col items-center justify-center bg-fuchsia-100 border-4 border-fuchsia-400 rounded-lg shadow-inner" style="left: 120px; top: 0px; width: 160px; height: 160px;">
-                      <span class="text-fuchsia-400 font-bold mb-1">B (b\u00b2)</span>
-                      <div v-if="currentLevelData.areaB_given !== null" class="text-3xl font-mono font-black text-fuchsia-600">{{ slotB }}</div>
+                  <div class="absolute flex flex-col items-center justify-center bg-math-blue-bg border-4 border-math-blue rounded-lg shadow-inner" style="left: 120px; top: 0px; width: 160px; height: 160px;">
+                      <span class="text-math-blue font-bold mb-1">B (b\u00b2)</span>
+                      <div v-if="currentLevelData.areaB_given !== null" class="text-3xl font-mono font-black text-math-blue">{{ slotB }}</div>
                       <div v-else
                            @dragover.prevent.stop
                            @drop.prevent.stop="onDrop('B')"
                            class="w-16 h-16 border-4 border-dashed rounded-xl flex items-center justify-center bg-white shadow-sm transition-colors cursor-pointer"
-                           :class="slotB ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-fuchsia-500 text-fuchsia-600') : 'border-fuchsia-300'"
+                           :class="slotB ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-math-blue text-math-blue') : 'border-surface-200'"
                            @click="removeSlot('B')">
                            <span v-if="slotB" class="font-mono text-xl font-black">{{ slotB }}</span>
                       </div>

@@ -198,7 +198,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800"
      @mouseup="endDrag" @mouseleave="endDrag" @touchend="endDrag" @mousemove="onDrag" @touchmove.prevent="onDrag">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -235,31 +235,31 @@ onUnmounted(() => {
             <div class="p-4 mt-6 border border-emerald-200 bg-emerald-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-emerald-900 mb-4">Bereken:</label>
                <div class="flex items-center justify-center gap-4 text-3xl font-black text-slate-700">
-                   <span class="bg-white px-3 py-1 rounded shadow-sm border border-emerald-200">|{{ carPos }}|</span>
+                   <span class="bg-white px-4 py-1 rounded-lg shadow-sm border border-emerald-200">|{{ carPos }}|</span>
                    <span>=</span>
                    <input type="number" v-model.number="userAns" placeholder="?" :disabled="isCorrect"
-                          class="w-24 font-bold text-2xl p-2 border-2 border-emerald-300 rounded focus:border-emerald-500 focus:ring-emerald-500 text-center bg-white" />
+                          class="w-24 font-bold text-2xl p-2 border-2 border-emerald-300 rounded-lg focus:border-emerald-500 focus:ring-emerald-500 text-center bg-white" />
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -280,7 +280,7 @@ onUnmounted(() => {
                           <div class="w-1 h-6 bg-slate-400 rounded-full absolute -top-2"></div>
                           <span v-if="(i-1 + axisMin) % 5 === 0 || (i-1) === houseIndex || (i-1) === carIndex"
                                 class="absolute top-6 font-bold text-xs text-slate-500"
-                                :class="{ 'text-slate-800': (i-1) === houseIndex, 'text-indigo-600': (i-1) === carIndex }">
+                                :class="{ 'text-slate-800': (i-1) === houseIndex, 'text-math-blue': (i-1) === carIndex }">
                                 {{ (i - 1) + axisMin }}
                           </span>
                       </div>
@@ -290,7 +290,7 @@ onUnmounted(() => {
                   <div class="absolute top-1/2 -translate-y-full pb-4"
                        :style="{ left: `calc(16px + (100% - 32px) * (${houseIndex} / ${totalTicks-1}))`, transform: 'translateX(-50%) translateY(-100%)' }">
                       <div class="w-16 h-16 bg-white border-4 border-slate-700 rounded-t-[50%] rounded-b-lg flex items-center justify-center shadow-md relative z-10">
-                          <div class="w-6 h-8 bg-amber-500 border-2 border-slate-700 absolute bottom-0 rounded-t-sm"></div>
+                          <div class="w-6 h-8 bg-math-blue border-2 border-slate-700 absolute bottom-0 rounded-t-sm"></div>
                           <span class="absolute -top-6 font-black text-slate-500 bg-white px-2 rounded-full border border-slate-200">0</span>
                       </div>
                   </div>
@@ -298,9 +298,9 @@ onUnmounted(() => {
                   <!-- The Car -->
                   <div class="absolute top-1/2 -translate-y-full pb-4 transition-all duration-700 ease-out"
                        :style="{ left: `calc(16px + (100% - 32px) * (${carIndex} / ${totalTicks-1}))`, transform: 'translateX(-50%) translateY(-100%)' }">
-                      <div class="bg-indigo-500 text-white rounded-xl p-2 shadow-lg border-2 border-indigo-700 animate-pulse relative z-0">
+                      <div class="bg-math-blue text-white rounded-xl p-2 shadow-md border-2 border-math-blue animate-pulse relative z-0">
                           <PhCarProfile weight="fill" class="w-10 h-10" />
-                          <span class="absolute -top-8 left-1/2 -translate-x-1/2 font-black text-indigo-500 bg-indigo-50 px-2 rounded-full border border-indigo-200">{{ carPos }}</span>
+                          <span class="absolute -top-8 left-1/2 -translate-x-1/2 font-black text-math-blue bg-math-blue-bg px-2 rounded-full border border-surface-200">{{ carPos }}</span>
                       </div>
                   </div>
 
@@ -318,13 +318,13 @@ onUnmounted(() => {
                            <div v-for="i in tapeLength" :key="'m'+i" class="h-full border-red-900 w-full" :class="tapeDirection === -1 ? 'border-r-2' : 'border-l-2'"></div>
                        </div>
 
-                       <div v-if="tapeLength > 0" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 rounded font-black text-red-600 shadow-sm border border-red-200 pointer-events-none whitespace-nowrap text-xs md:text-base z-30">
+                       <div v-if="tapeLength > 0" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 rounded-lg font-black text-red-600 shadow-sm border border-red-200 pointer-events-none whitespace-nowrap text-xs md:text-base z-30">
                            {{ tapeLength }} eenheden
                        </div>
                   </div>
 
                   <!-- Tape Pull Handle (Draggable) -->
-                  <div class="absolute top-1/2 w-8 h-12 bg-slate-800 border-2 border-slate-600 rounded cursor-ew-resize shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-30"
+                  <div class="absolute top-1/2 w-8 h-12 bg-slate-800 border-2 border-slate-600 rounded-lg cursor-ew-resize shadow-md flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-30"
                        @mousedown.prevent="startDrag" @touchstart.prevent="startDrag"
                        :style="{
                            left: tapeDirection === 1 ? `calc(16px + (100% - 32px) * (${houseIndex} / ${totalTicks-1}) + (((100% - 32px) / ${totalTicks-1}) * ${tapeLength}))` : 'auto',

@@ -228,12 +228,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -242,7 +242,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -258,15 +258,15 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-indigo-900 mb-2">Jouw Classificatie:</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-math-blue mb-2">Jouw Classificatie:</label>
 
                <div class="flex flex-col gap-2">
-                   <div class="bg-white px-3 py-2 rounded border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedRow !== null ? 'border-indigo-400 bg-indigo-50' : ''">
+                   <div class="bg-white px-4 py-2 rounded-lg border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedRow !== null ? 'border-math-blue bg-math-blue-bg' : ''">
                        <span v-if="selectedRow !== null">{{ rows[selectedRow] }}</span>
                        <span v-else class="text-slate-400 italic">Kies de zijden...</span>
                    </div>
-                   <div class="bg-white px-3 py-2 rounded border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedCol !== null ? 'border-indigo-400 bg-indigo-50' : ''">
+                   <div class="bg-white px-4 py-2 rounded-lg border border-slate-300 font-bold text-slate-700 min-h-[40px] flex items-center transition-colors" :class="selectedCol !== null ? 'border-math-blue bg-math-blue-bg' : ''">
                        <span v-if="selectedCol !== null">{{ cols[selectedCol] }}</span>
                        <span v-else class="text-slate-400 italic">Kies de hoeken...</span>
                    </div>
@@ -275,17 +275,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -296,7 +296,7 @@ onUnmounted(() => {
               <div class="w-full max-w-4xl flex flex-col items-center gap-8">
 
                   <!-- The Triangle to Classify -->
-                  <div class="relative bg-white p-8 rounded-2xl shadow-md border-2 border-slate-200" :key="'tri'+currentInternalLevel">
+                  <div class="relative bg-white p-8 rounded-xl shadow-md border-2 border-slate-200" :key="'tri'+currentInternalLevel">
                       <h4 class="absolute top-2 left-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Te classificeren:</h4>
                       <svg width="200" height="200" viewBox="0 0 200 200" class="mt-4">
                           <!-- Right angle indicator -->
@@ -313,12 +313,12 @@ onUnmounted(() => {
                   </div>
 
                   <!-- The Grid -->
-                  <div class="bg-white rounded-xl shadow-xl border-4 border-slate-800 p-1 flex flex-col overflow-hidden transition-all duration-500" :class="isCorrect ? 'border-emerald-500 shadow-emerald-200' : ''">
+                  <div class="bg-white rounded-xl shadow-md border-4 border-slate-800 p-1 flex flex-col overflow-hidden transition-all duration-500" :class="isCorrect ? 'border-emerald-500 shadow-emerald-200' : ''">
 
                       <!-- Header Row -->
                       <div class="flex bg-slate-800 text-white font-bold transition-colors" :class="isCorrect ? 'bg-emerald-600' : ''">
-                          <div class="w-32 p-3"></div>
-                          <div v-for="col in cols" :key="col" class="w-36 p-3 text-center text-sm uppercase tracking-wider border-l border-slate-600/50">
+                          <div class="w-32 p-4"></div>
+                          <div v-for="col in cols" :key="col" class="w-36 p-4 text-center text-sm uppercase tracking-wider border-l border-slate-600/50">
                               {{ col }}
                           </div>
                       </div>
@@ -327,7 +327,7 @@ onUnmounted(() => {
                       <div v-for="(rowName, rIdx) in rows" :key="rowName" class="flex border-t border-slate-300">
 
                           <!-- Row Header -->
-                          <div class="w-32 p-3 bg-slate-100 font-bold text-slate-700 flex items-center justify-start text-sm uppercase border-r border-slate-300">
+                          <div class="w-32 p-4 bg-slate-100 font-bold text-slate-700 flex items-center justify-start text-sm uppercase border-r border-slate-300">
                               {{ rowName }}
                           </div>
 

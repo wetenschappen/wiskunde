@@ -155,11 +155,11 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -173,28 +173,28 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
-              <label class="block text-sm font-bold text-teal-900 mb-2">Formule (S = ? t + ?):</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+              <label class="block text-sm font-bold text-math-blue mb-2">Formule (S = ? t + ?):</label>
               <div class="flex items-center justify-center gap-2 text-2xl font-black text-slate-700 mb-2">
                 <span>S = </span>
-                <input type="number" v-model.number="multValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
+                <input type="number" v-model.number="multValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-math-blue rounded-lg focus:border-math-blue text-center bg-white" />
                 <span> t + </span>
-                <input type="number" v-model.number="addValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
+                <input type="number" v-model.number="addValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-math-blue rounded-lg focus:border-math-blue text-center bg-white" />
               </div>
-              <p class="text-xs text-teal-700 text-center mt-2 italic">(t = aantal tafels)</p>
+              <p class="text-xs text-math-blue text-center mt-2 italic">(t = aantal tafels)</p>
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="multValue === null || addValue === null">Controleer</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white rounded-lg shadow-md bg-amber-600 hover:bg-amber-500">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="multValue === null || addValue === null">Controleer</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white rounded-lg shadow-md bg-math-blue hover:bg-math-blue">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -205,14 +205,14 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <div class="w-full max-w-4xl flex flex-col items-center">
               <div class="mb-6">
                 <button @click="addTable" :disabled="isCorrect || tables >= currentLevel.maxT"
-                  class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
+                  class="px-6 py-4 font-bold bg-slate-800 text-white rounded-xl shadow-md flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                   <PhPlus weight="bold" class="w-6 h-6" /> Voeg Tafel Toe
                 </button>
               </div>
-              <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-12 min-h-[280px] flex items-center justify-center w-full max-w-3xl transition-all">
+              <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-2 border-slate-200 p-12 min-h-[280px] flex items-center justify-center w-full max-w-3xl transition-all">
                 <div class="flex relative items-center justify-center transition-all duration-500" :style="{ width: `${tables * 100}px` }">
                   <div v-if="currentLevel.addTarget === 0" class="w-6 h-12 bg-slate-300 border-2 border-slate-400 rounded-l-full absolute -left-8 transition-all shadow-sm"></div>
-                  <div v-for="t in tables" :key="'t'+t" class="relative w-[100px] h-[100px] bg-amber-700 border-x border-amber-900 flex shrink-0 animate-fadeIn shadow-inner">
+                  <div v-for="t in tables" :key="'t'+t" class="relative w-[100px] h-[100px] bg-math-blue border-x border-math-blue flex shrink-0 animate-fadeIn shadow-inner">
                     <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-t-full absolute -top-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
                     <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-b-full absolute -bottom-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
                   </div>
@@ -222,7 +222,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <div class="mt-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-8">
                 <div class="flex flex-col items-center">
                   <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tafels (t)</span>
-                  <span class="font-black text-2xl text-amber-700">{{ tables }}</span>
+                  <span class="font-black text-2xl text-math-blue">{{ tables }}</span>
                 </div>
                 <div class="w-px bg-slate-200"></div>
                 <div class="flex flex-col items-center">

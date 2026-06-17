@@ -152,12 +152,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -166,7 +166,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -182,32 +182,32 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center animate-fadeIn">
-               <p class="font-bold text-teal-800 mb-4">{{ currentLevelData.goalText }}</p>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center animate-fadeIn">
+               <p class="font-bold text-math-blue mb-4">{{ currentLevelData.goalText }}</p>
 
                <div class="flex items-center justify-center gap-4 mt-4">
                    <div class="text-3xl font-black text-slate-700 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200">{{ currentLevelData.left }}</div>
 
-                   <div class="w-12 h-12 rounded-full bg-teal-500 text-white flex items-center justify-center text-2xl font-black shadow-md border-4 border-teal-200 transition-all"
+                   <div class="w-12 h-12 rounded-full bg-math-blue text-white flex items-center justify-center text-2xl font-black shadow-md border-4 border-surface-200 transition-all"
                         :class="tiltValue !== 0 ? 'scale-110' : ''">
                        {{ currentSymbol }}
                    </div>
 
                    <div class="text-3xl font-black text-slate-700 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200">{{ currentLevelData.right }}</div>
                </div>
-               <p class="text-xs text-teal-600 mt-4 italic">Het symbool open staat altijd naar het GROOTSTE getal (of de zwaarste kant).</p>
+               <p class="text-xs text-math-blue mt-4 italic">Het symbool open staat altijd naar het GROOTSTE getal (of de zwaarste kant).</p>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -223,7 +223,7 @@ onUnmounted(() => {
                   <div class="relative w-full max-w-lg mb-20 transition-transform duration-500 ease-in-out origin-bottom"
                        :style="{ transform: 'rotate(' + (tiltValue * 15) + 'deg)' }">
 
-                      <div class="w-full h-4 bg-slate-700 rounded-full shadow-lg relative z-10 flex justify-between px-10">
+                      <div class="w-full h-4 bg-slate-700 rounded-full shadow-md relative z-10 flex justify-between px-10">
                           <div class="absolute left-8 bottom-4 flex flex-col items-center transform origin-bottom transition-transform duration-500"
                                :style="{ transform: 'rotate(' + (-tiltValue * 15) + 'deg)' }">
                               <div class="w-24 h-24 bg-sky-200 border-4 border-sky-500 rounded-xl flex items-center justify-center shadow-md mb-2">
@@ -233,8 +233,8 @@ onUnmounted(() => {
 
                           <div class="absolute right-8 bottom-4 flex flex-col items-center transform origin-bottom transition-transform duration-500"
                                :style="{ transform: 'rotate(' + (-tiltValue * 15) + 'deg)' }">
-                              <div class="w-24 h-24 bg-amber-200 border-4 border-amber-500 rounded-xl flex items-center justify-center shadow-md mb-2">
-                                  <span class="font-black text-2xl text-amber-800">{{ currentLevelData.right }}</span>
+                              <div class="w-24 h-24 bg-math-blue-light border-4 border-math-blue rounded-xl flex items-center justify-center shadow-md mb-2">
+                                  <span class="font-black text-2xl text-math-blue">{{ currentLevelData.right }}</span>
                               </div>
                           </div>
                       </div>
@@ -242,7 +242,7 @@ onUnmounted(() => {
                       <div class="absolute left-1/2 bottom-[-60px] -translate-x-1/2 w-0 h-0 border-l-[40px] border-l-transparent border-r-[40px] border-r-transparent border-b-[60px] border-b-slate-400 z-0 drop-shadow-md"></div>
                   </div>
 
-                  <div class="w-full max-w-sm mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                  <div class="w-full max-w-sm mt-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                       <p class="text-center font-bold text-slate-500 mb-4 uppercase tracking-widest text-xs">Kantel de weegschaal</p>
 
                       <div class="flex items-center justify-between mb-2 px-1 text-sm font-bold text-slate-400">
@@ -252,7 +252,7 @@ onUnmounted(() => {
                       </div>
 
                       <input type="range" min="-1" max="1" step="1" v-model.number="tiltValue" :disabled="isCorrect"
-                             class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                             class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500 focus:outline-none focus:ring-2 focus:ring-math-blue" />
                   </div>
 
               </div>

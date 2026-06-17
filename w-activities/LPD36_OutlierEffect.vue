@@ -205,19 +205,19 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
           <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
             {{ currentLevel.name }} ({{ currentInternalLevel + 1 }}/{{ totalInternalLevels }})
           </span>
@@ -233,9 +233,9 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="currentLevel.instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
-               <label class="block text-sm font-bold text-teal-900 mb-2">Conclusie:</label>
-               <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+               <label class="block text-sm font-bold text-math-blue mb-2">Conclusie:</label>
+               <select v-model="userAns" :disabled="isCorrect" class="w-full p-4 border-2 border-surface-200 rounded-lg focus:ring-math-blue focus:border-math-blue font-bold text-slate-700 bg-white">
                    <option value="" disabled>Wat verandert het hardst?</option>
                    <option value="mean">Het gemiddelde schiet omhoog!</option>
                    <option value="median">De mediaan schiet omhoog!</option>
@@ -245,14 +245,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Conclusie</button>
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Conclusie</button>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -267,37 +267,37 @@ onUnmounted(() => {
 
                   <div class="mb-12">
                       <button @click="addOutlier" :disabled="isCorrect || hasOutlier"
-                              class="px-6 py-3 font-bold bg-white text-orange-600 border-2 border-orange-500 rounded-xl shadow-lg flex items-center gap-2 hover:bg-orange-50 active:scale-95 transition-all disabled:opacity-50">
+                              class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50">
                           <PhMoney weight="bold" class="w-6 h-6" /> Voeg Uitschieter Toe (&euro;{{ currentLevel.outlier }})
                       </button>
                   </div>
 
                   <div class="flex w-full gap-8">
                       <!-- Left Panel: Data and Stats -->
-                      <div class="flex-1 bg-white p-6 rounded-2xl shadow-md border-2 border-slate-200 flex flex-col items-center justify-center">
+                      <div class="flex-1 bg-white p-6 rounded-xl shadow-md border-2 border-slate-200 flex flex-col items-center justify-center">
                           <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Centrummaten</h4>
 
                           <div class="flex items-center gap-2 mb-8 flex-wrap justify-center font-mono font-bold text-slate-600">
-                              <span v-for="(val, idx) in currentData" :key="idx" class="bg-slate-100 px-3 py-1 rounded border border-slate-300 shadow-sm animate-fadeIn" :class="val > currentLevel.normalData[4] ? 'bg-orange-100 border-orange-300 text-orange-700' : ''">
+                              <span v-for="(val, idx) in currentData" :key="idx" class="bg-slate-100 px-4 py-1 rounded-lg border border-slate-300 shadow-sm animate-fadeIn" :class="val > currentLevel.normalData[4] ? 'bg-math-blue-bg border-surface-200 text-math-blue' : ''">
                                   {{ val }}
                               </span>
                           </div>
 
                           <div class="w-full space-y-4">
-                              <div class="flex items-center justify-between p-3 rounded-lg border-2 border-blue-200 bg-blue-50 transition-all duration-500">
+                              <div class="flex items-center justify-between p-4 rounded-lg border-2 border-blue-200 bg-blue-50 transition-all duration-500">
                                   <span class="font-bold text-blue-800">Mediaan (Middelste)</span>
                                   <span class="font-black text-2xl text-blue-600" :key="median">{{ median }}</span>
                               </div>
 
-                              <div class="flex items-center justify-between p-3 rounded-lg border-2 border-fuchsia-200 bg-fuchsia-50 transition-all duration-500" :class="hasOutlier ? 'border-red-400 bg-red-100 ring-2 ring-red-200' : ''">
-                                  <span class="font-bold" :class="hasOutlier ? 'text-red-800' : 'text-fuchsia-800'">Gemiddelde (Som / Aantal)</span>
-                                  <span class="font-black text-2xl" :class="hasOutlier ? 'text-red-600 animate-pulse' : 'text-fuchsia-600'" :key="mean">{{ mean }}</span>
+                              <div class="flex items-center justify-between p-4 rounded-lg border-2 border-surface-200 bg-math-blue-bg transition-all duration-500" :class="hasOutlier ? 'border-red-400 bg-red-100 ring-2 ring-red-200' : ''">
+                                  <span class="font-bold" :class="hasOutlier ? 'text-red-800' : 'text-math-blue'">Gemiddelde (Som / Aantal)</span>
+                                  <span class="font-black text-2xl" :class="hasOutlier ? 'text-red-600 animate-pulse' : 'text-math-blue'" :key="mean">{{ mean }}</span>
                               </div>
                           </div>
                       </div>
 
                       <!-- Right Panel: Visual Number Line -->
-                      <div class="flex-1 bg-slate-800 p-6 rounded-2xl shadow-xl border-4 border-slate-900 flex items-center justify-center relative min-h-[300px] overflow-hidden">
+                      <div class="flex-1 bg-slate-800 p-6 rounded-xl shadow-md border-4 border-slate-900 flex items-center justify-center relative min-h-[300px] overflow-hidden">
 
                           <!-- Number Line -->
                           <div class="absolute left-10 right-10 bottom-20 h-2 bg-slate-600 rounded-full"></div>
@@ -311,7 +311,7 @@ onUnmounted(() => {
                           <!-- Dots for data -->
                           <div v-for="(val, idx) in currentData" :key="'d'+idx"
                                class="absolute w-4 h-4 rounded-full border-2 border-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transform -translate-x-1/2 -translate-y-1/2 animate-fadeIn"
-                               :class="val > currentLevel.normalData[4] ? 'bg-orange-500' : 'bg-slate-300'"
+                               :class="val > currentLevel.normalData[4] ? 'bg-math-blue' : 'bg-slate-300'"
                                :style="{ left: `calc(10px + ${val * 1.5}px)`, bottom: 'calc(5rem - 2px)' }">
                           </div>
 
@@ -323,9 +323,9 @@ onUnmounted(() => {
 
                           <!-- Mean Line (Fuchsia/Red) -->
                           <div class="absolute w-1 h-40 transform -translate-x-1/2 bottom-20 transition-all duration-1000 ease-in-out shadow-[0_0_15px_currentColor]"
-                               :class="hasOutlier ? 'bg-red-500 text-red-500' : 'bg-fuchsia-500 text-fuchsia-500'"
+                               :class="hasOutlier ? 'bg-red-500 text-red-500' : 'bg-math-blue text-math-blue'"
                                :style="{ left: `calc(10px + ${mean * 1.5}px)` }">
-                               <span class="absolute -top-6 left-1/2 -translate-x-1/2 font-bold text-xs uppercase tracking-widest bg-slate-800 px-1" :class="hasOutlier ? 'text-red-400' : 'text-fuchsia-400'">Gem</span>
+                               <span class="absolute -top-6 left-1/2 -translate-x-1/2 font-bold text-xs uppercase tracking-widest bg-slate-800 px-1" :class="hasOutlier ? 'text-red-400' : 'text-math-blue'">Gem</span>
                           </div>
 
                       </div>

@@ -165,12 +165,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-pink-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -180,7 +180,7 @@ onUnmounted(() => {
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
           <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
             {{ currentLevel.label }}
           </span>
@@ -196,9 +196,9 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="displayInstruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-pink-200 bg-pink-50 rounded-xl shadow-inner text-center">
-               <label class="block text-sm font-bold text-pink-900 mb-2">Conclusie Formule:</label>
-               <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-pink-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 font-bold text-slate-700 bg-white">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+               <label class="block text-sm font-bold text-math-blue mb-2">Conclusie Formule:</label>
+               <select v-model="userAns" :disabled="isCorrect" class="w-full p-4 border-2 border-surface-200 rounded-lg focus:ring-math-blue focus:border-math-blue font-bold text-slate-700 bg-white">
                    <option value="" disabled>Kies een formule...</option>
                    <option value="direct">y / x = c (Recht evenredig)</option>
                    <option value="inverse">x · y = c (Omgekeerd evenredig)</option>
@@ -207,14 +207,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -231,23 +231,23 @@ onUnmounted(() => {
                       <div class="mb-4 w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                           <div class="flex w-full justify-between items-end mb-2">
                               <label class="font-bold text-slate-500 uppercase tracking-widest text-xs flex items-center gap-2"><PhArrowsLeftRight weight="bold" /> Breedte x</label>
-                              <span class="font-black text-xl text-pink-600">{{ widthX }}</span>
+                              <span class="font-black text-xl text-math-blue">{{ widthX }}</span>
                           </div>
                           <input type="range" min="1" :max="currentLevel.sliderMax" step="1" v-model.number="widthX" :disabled="isCorrect"
                                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-pink-500" />
                       </div>
 
-                      <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8 flex items-end justify-start min-w-[300px] min-h-[350px]">
-                          <div class="absolute bottom-8 left-8 bg-pink-500/20 border-4 border-pink-500 transition-all duration-300 ease-out flex items-center justify-center shadow-inner"
+                      <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-2 border-slate-200 p-8 flex items-end justify-start min-w-[300px] min-h-[350px]">
+                          <div class="absolute bottom-8 left-8 bg-math-blue/20 border-4 border-math-blue transition-all duration-300 ease-out flex items-center justify-center shadow-inner"
                                :style="{ width: `${Math.min(widthX * 20, 250)}px`, height: `${Math.min(heightY * 10, 250)}px` }">
-                              <span class="font-black text-pink-700 text-lg whitespace-nowrap">Opp = {{ currentLevel.area }}</span>
+                              <span class="font-black text-math-blue text-lg whitespace-nowrap">Opp = {{ currentLevel.area }}</span>
                           </div>
-                          <div class="absolute bottom-2 left-8 font-bold text-pink-600">x = {{ widthX }}</div>
-                          <div class="absolute bottom-8 left-0 -translate-x-full font-bold text-pink-600 pr-2 pb-2 -rotate-90 origin-bottom-right" :style="{ bottom: `${8 + Math.min((heightY*10)/2, 125)}px` }">y = {{ heightY.toFixed(1) }}</div>
+                          <div class="absolute bottom-2 left-8 font-bold text-math-blue">x = {{ widthX }}</div>
+                          <div class="absolute bottom-8 left-0 -translate-x-full font-bold text-math-blue pr-2 pb-2 -rotate-90 origin-bottom-right" :style="{ bottom: `${8 + Math.min((heightY*10)/2, 125)}px` }">y = {{ heightY.toFixed(1) }}</div>
                       </div>
                   </div>
 
-                  <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-6 flex items-center justify-center min-w-[350px]">
+                  <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-2 border-slate-200 p-6 flex items-center justify-center min-w-[350px]">
                       <h4 class="absolute top-4 left-4 font-bold text-slate-500 uppercase tracking-widest text-xs">Grafiek (Hyperbool) — {{ currentLevel.label }}</h4>
                       <svg width="300" height="300" viewBox="0 0 300 300" class="mt-8">
                           <g stroke="#e2e8f0" stroke-width="1">

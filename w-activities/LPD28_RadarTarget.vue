@@ -144,7 +144,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-black/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-500/20">
@@ -166,24 +166,24 @@ onUnmounted(() => {
               <label class="block text-sm font-bold text-emerald-400 mb-2">Jouw schot:</label>
               <div class="flex items-center justify-center gap-2 text-3xl font-black text-slate-300 mb-2">
                 <span>(</span>
-                <span class="w-16 p-2 rounded bg-slate-900 border" :class="userX !== null ? 'border-emerald-500 text-emerald-400' : 'border-slate-600 text-slate-500'">{{ userX !== null ? userX : 'x' }}</span>
+                <span class="w-16 p-2 rounded-lg bg-slate-900 border" :class="userX !== null ? 'border-emerald-500 text-emerald-400' : 'border-slate-600 text-slate-500'">{{ userX !== null ? userX : 'x' }}</span>
                 <span>,</span>
-                <span class="w-16 p-2 rounded bg-slate-900 border" :class="userY !== null ? 'border-blue-500 text-blue-400' : 'border-slate-600 text-slate-500'">{{ userY !== null ? userY : 'y' }}</span>
+                <span class="w-16 p-2 rounded-lg bg-slate-900 border" :class="userY !== null ? 'border-blue-500 text-blue-400' : 'border-slate-600 text-slate-500'">{{ userY !== null ? userY : 'y' }}</span>
                 <span>)</span>
               </div>
               <p class="text-xs text-slate-500 mt-2">Klik op de radar om te vuren</p>
             </div>
           </div>
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-amber-400 hover:bg-amber-300 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue-light active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -191,7 +191,7 @@ onUnmounted(() => {
         </div>
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-900">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative">
-            <div class="relative bg-slate-800 shadow-2xl rounded-full overflow-hidden border-8 border-slate-700 p-2">
+            <div class="relative bg-slate-800 shadow-md rounded-full overflow-hidden border-8 border-slate-700 p-2">
               <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_#064e3b_0%,_#020617_100%)]"></div>
               <svg width="400" height="400" viewBox="0 0 400 400" class="block relative z-10">
                 <circle cx="200" cy="200" r="200" fill="none" stroke="#10b981" stroke-width="2" opacity="0.3" />

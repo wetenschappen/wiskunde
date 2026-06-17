@@ -226,12 +226,12 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-fuchsia-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-fuchsia-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -240,7 +240,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-fuchsia-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -261,14 +261,14 @@ onUnmounted(() => {
 
             <div class="p-4 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl shadow-inner">
               <p class="font-bold text-slate-800 mb-2">Gelogde Data:</p>
-              <div class="bg-white rounded border border-slate-200 overflow-hidden shadow-sm">
+              <div class="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
                 <div class="flex bg-slate-800 text-white border-b border-slate-200">
                   <div class="flex-1 p-2 font-bold text-center border-r border-slate-600">Input (x)</div>
                   <div class="flex-1 p-2 font-bold text-center">Output f(x)</div>
                 </div>
                 <div v-for="h in history" :key="h.in" class="flex border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                   <div class="flex-1 p-2 text-center border-r border-slate-200 font-mono font-bold">{{ h.in }}</div>
-                  <div class="flex-1 p-2 text-center font-mono text-fuchsia-600 font-black">{{ h.out }}</div>
+                  <div class="flex-1 p-2 text-center font-mono text-math-blue font-black">{{ h.out }}</div>
                 </div>
                 <div v-if="history.length === 0" class="p-4 text-center text-sm text-slate-400 italic">
                   Tabel is leeg.
@@ -278,14 +278,14 @@ onUnmounted(() => {
               <div class="mt-8 space-y-6">
                 <p class="font-bold text-slate-800 mb-2 uppercase text-xs tracking-wider">Bouw de formule</p>
 
-                <div class="text-center bg-white p-3 rounded-lg border-2 border-fuchsia-200 shadow-sm font-mono font-black text-xl text-fuchsia-600">
+                <div class="text-center bg-white p-4 rounded-lg border-2 border-surface-200 shadow-sm font-mono font-black text-xl text-math-blue">
                   f(x) = {{ userA }}x {{ userB >= 0 ? '+ ' + userB : '- ' + Math.abs(userB) }}
                 </div>
 
                 <div>
                   <label class="block mb-2 text-sm font-bold text-slate-700 flex justify-between">
                     <span>Vermenigvuldiger (a)</span>
-                    <span class="text-fuchsia-600">{{ userA }}</span>
+                    <span class="text-math-blue">{{ userA }}</span>
                   </label>
                   <input type="range" v-model.number="userA" min="-5" max="5" step="0.5" class="w-full accent-fuchsia-600">
                 </div>
@@ -305,7 +305,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -315,16 +315,16 @@ onUnmounted(() => {
                <span class="leading-relaxed">{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
 
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -335,14 +335,14 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
+            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
 
               <!-- Inputs Panel -->
               <div class="flex gap-6">
                 <div v-for="num in inputs" :key="num"
                      draggable="true"
                      @dragstart="onDragStart(num)"
-                     class="w-16 h-16 bg-white border-4 border-slate-300 rounded-xl flex items-center justify-center text-2xl font-black text-slate-700 cursor-grab hover:border-fuchsia-400 hover:text-fuchsia-600 active:cursor-grabbing shadow-sm z-20 relative transition-colors"
+                     class="w-16 h-16 bg-white border-4 border-slate-300 rounded-xl flex items-center justify-center text-2xl font-black text-slate-700 cursor-grab hover:border-math-blue hover:text-math-blue active:cursor-grabbing shadow-sm z-20 relative transition-colors"
                      :class="{ 'opacity-30 pointer-events-none': history.some(h => h.in === num) }">
                   {{ num }}
                 </div>
@@ -357,12 +357,12 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Funnel (Drop zone) -->
-                <div @dragover.prevent @drop="onDrop" class="w-40 h-20 bg-slate-300 rounded-t-full border-t-8 border-l-8 border-r-8 border-slate-500 flex items-center justify-center z-10 transition-colors shadow-inner" :class="draggedItem !== null ? 'bg-fuchsia-200 border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)]' : ''">
-                  <span class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-6" :class="draggedItem !== null ? 'text-fuchsia-700' : ''">Sleep Hier</span>
+                <div @dragover.prevent @drop="onDrop" class="w-40 h-20 bg-slate-300 rounded-t-full border-t-8 border-l-8 border-r-8 border-slate-500 flex items-center justify-center z-10 transition-colors shadow-inner" :class="draggedItem !== null ? 'bg-math-blue-light border-math-blue shadow-[0_0_15px_rgba(217,70,239,0.5)]' : ''">
+                  <span class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-6" :class="draggedItem !== null ? 'text-math-blue' : ''">Sleep Hier</span>
                 </div>
 
                 <!-- Body -->
-                <div class="w-64 h-56 bg-slate-800 rounded-3xl shadow-2xl flex flex-col items-center justify-center relative z-20 border-b-[12px] border-slate-900 overflow-hidden">
+                <div class="w-64 h-56 bg-slate-800 rounded-xl shadow-md flex flex-col items-center justify-center relative z-20 border-b-[12px] border-slate-900 overflow-hidden">
 
                    <!-- Internal visual flair -->
                    <div class="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#fff_10px,#fff_20px)] pointer-events-none"></div>
@@ -374,7 +374,7 @@ onUnmounted(() => {
                    <div class="absolute top-6 right-6 text-slate-600 animate-spin-slow" style="animation-direction: reverse;">⚙️</div>
 
                    <!-- Lights/Details -->
-                   <div class="absolute top-4 left-4 w-4 h-4 rounded-full shadow-[0_0_15px_rgba(239,68,68,1)]" :class="draggedItem !== null ? 'bg-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,1)]' : 'bg-red-500'"></div>
+                   <div class="absolute top-4 left-4 w-4 h-4 rounded-full shadow-[0_0_15px_rgba(239,68,68,1)]" :class="draggedItem !== null ? 'bg-math-blue shadow-[0_0_15px_rgba(217,70,239,1)]' : 'bg-red-500'"></div>
                    <div class="absolute top-4 left-10 w-4 h-4 rounded-full bg-slate-700"></div>
                    <div class="absolute top-4 right-4 w-4 h-4 rounded-full shadow-[0_0_15px_rgba(16,185,129,1)]" :class="isCorrect ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600'"></div>
                 </div>
@@ -382,7 +382,7 @@ onUnmounted(() => {
                 <!-- Output pipe -->
                 <div class="w-24 h-16 bg-slate-400 border-l-8 border-r-8 border-slate-500 z-10 relative flex justify-center shadow-inner">
                   <!-- The Output Number dropping out -->
-                  <div :key="currentOutput" class="absolute -bottom-8 w-20 h-20 bg-white border-4 border-fuchsia-500 rounded-xl flex items-center justify-center text-3xl font-black text-fuchsia-600 shadow-xl animate-popOut z-0 origin-top">
+                  <div :key="currentOutput" class="absolute -bottom-8 w-20 h-20 bg-white border-4 border-math-blue rounded-xl flex items-center justify-center text-3xl font-black text-math-blue shadow-md animate-popOut z-0 origin-top">
                     {{ currentOutput }}
                   </div>
                 </div>

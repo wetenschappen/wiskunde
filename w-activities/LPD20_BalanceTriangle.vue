@@ -245,12 +245,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -259,7 +259,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -275,8 +275,8 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <span class="text-xs font-bold text-orange-800 uppercase tracking-widest block mb-2">{{ currentLevelData.goalText }}</span>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <span class="text-xs font-bold text-math-blue uppercase tracking-widest block mb-2">{{ currentLevelData.goalText }}</span>
               <p class="font-medium text-sm text-slate-800">{{ currentLevelData.problemDesc }}</p>
             </div>
 
@@ -284,26 +284,26 @@ onUnmounted(() => {
                <h4 class="font-bold text-slate-700 mb-3">Teken de lijnen:</h4>
 
                <div class="flex flex-col gap-2">
-                   <button @click="setLines('hoogte')" :disabled="isCorrect" class="py-3 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'hoogte' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Hoogtelijnen</button>
-                   <button @click="setLines('zwaarte')" :disabled="isCorrect" class="py-3 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'zwaarte' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Zwaartelijnen</button>
-                   <button @click="setLines('middel')" :disabled="isCorrect" class="py-3 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'middel' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Middelloodlijnen</button>
-                   <button @click="setLines('bissec')" :disabled="isCorrect" class="py-3 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'bissec' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Bissectrices (Deellijnen)</button>
+                   <button @click="setLines('hoogte')" :disabled="isCorrect" class="py-4 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'hoogte' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Hoogtelijnen</button>
+                   <button @click="setLines('zwaarte')" :disabled="isCorrect" class="py-4 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'zwaarte' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Zwaartelijnen</button>
+                   <button @click="setLines('middel')" :disabled="isCorrect" class="py-4 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'middel' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Middelloodlijnen</button>
+                   <button @click="setLines('bissec')" :disabled="isCorrect" class="py-4 px-4 rounded-lg border-2 font-bold text-left transition-all active:scale-[0.98] shadow-sm" :class="activeLines === 'bissec' ? (isCorrect ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">Bissectrices (Deellijnen)</button>
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -318,7 +318,7 @@ onUnmounted(() => {
                        :class="currentInternalLevel >= 0 && activeLines && !isCorrect ? 'rotate-12 translate-y-12' : ''">
 
                       <!-- Contextual backdrop -->
-                      <div v-if="currentLevelData.context === 'finger'" class="absolute w-12 h-32 bg-[#fcd34d] border-4 border-[#d97706] rounded-t-full shadow-2xl z-20 flex flex-col items-center pt-2 transition-all duration-700"
+                      <div v-if="currentLevelData.context === 'finger'" class="absolute w-12 h-32 bg-[#fcd34d] border-4 border-[#d97706] rounded-t-full shadow-md z-20 flex flex-col items-center pt-2 transition-all duration-700"
                            :class="!activeLines ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'"
                            style="left: calc(183.3px - 24px); top: 250px;">
                            <div class="w-6 h-4 bg-white/40 rounded-full mb-1"></div>
@@ -327,7 +327,7 @@ onUnmounted(() => {
                       <div v-if="currentLevelData.context === 'map'" class="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
 
                       <!-- The Triangle -->
-                      <svg width="500" height="400" viewBox="0 0 500 400" class="absolute inset-0 z-30 drop-shadow-2xl">
+                      <svg width="500" height="400" viewBox="0 0 500 400" class="absolute inset-0 z-30 drop-shadow-md">
 
                           <polygon points="100,50 50,350 400,350"
                                    :fill="currentLevelData.context === 'finger' ? '#b45309' : (currentLevelData.context === 'spider' ? 'rgba(0,0,0,0.05)' : (currentLevelData.context === 'map' ? '#4ade80' : '#94a3b8'))"

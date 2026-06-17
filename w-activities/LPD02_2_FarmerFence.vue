@@ -175,7 +175,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -213,21 +213,21 @@ onUnmounted(() => {
                <label class="block text-sm font-bold text-emerald-900 mb-2">Conclusie: De maximale oppervlakte is:</label>
                <div class="flex items-center gap-2">
                    <input type="number" v-model.number="userMaxArea" placeholder="..." :disabled="isCorrect"
-                          class="w-full font-bold text-2xl p-3 border-2 border-emerald-300 rounded-lg focus:border-emerald-500 focus:ring-emerald-500 text-center" />
+                          class="w-full font-bold text-2xl p-4 border-2 border-emerald-300 rounded-lg focus:border-emerald-500 focus:ring-emerald-500 text-center" />
                    <span class="font-black text-2xl text-slate-500">m²</span>
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userMaxArea === null" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Maximum</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userMaxArea === null" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Maximum</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -253,7 +253,7 @@ onUnmounted(() => {
                       </div>
 
                       <!-- Visualisation Area -->
-                      <div class="relative bg-[#f8fafc] shadow-2xl rounded-2xl overflow-hidden border-4 border-slate-800 w-[500px] h-[400px] flex items-end justify-center">
+                      <div class="relative bg-[#f8fafc] shadow-md rounded-xl overflow-hidden border-4 border-slate-800 w-[500px] h-[400px] flex items-end justify-center">
 
                           <!-- The River (Top) ONLY IF hasRiver is true -->
                           <div v-if="currentLevelData.hasRiver" class="absolute top-0 inset-x-0 h-16 bg-blue-400 opacity-80 flex flex-col items-center justify-center z-0 overflow-hidden">
@@ -278,7 +278,7 @@ onUnmounted(() => {
                                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#047857 2px, transparent 2px); background-size: 15px 15px;"></div>
 
                                <!-- Internal Label -->
-                               <div class="bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow border border-slate-300 flex flex-col items-center"
+                               <div class="bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow-sm border border-slate-300 flex flex-col items-center"
                                     :class="currentArea === currentLevelData.maxArea ? 'border-emerald-500 scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : ''">
                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Oppervlakte</span>
                                    <span class="font-black text-3xl" :class="currentArea === currentLevelData.maxArea ? 'text-emerald-600' : 'text-slate-700'">{{ currentArea }} m²</span>

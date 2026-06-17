@@ -132,11 +132,11 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-500/20">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-400" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
@@ -152,29 +152,29 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <MathText :content="props.instruction" class="mb-6 prose prose-sm prose-invert text-slate-300" />
             <div class="p-4 mt-6 border border-slate-600 bg-slate-700/50 rounded-xl shadow-inner text-center">
               <label class="block text-sm font-bold text-slate-300 mb-2">Conclusie: (a+b)(a-b) = ...</label>
-              <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-slate-500 bg-slate-900 text-white rounded-lg focus:ring-orange-500 focus:border-orange-500 font-bold">
+              <select v-model="userAns" :disabled="isCorrect" class="w-full p-4 border-2 border-slate-500 bg-slate-900 text-white rounded-lg focus:ring-math-blue focus:border-math-blue font-bold">
                 <option value="" disabled>Kies de juiste formule...</option>
                 <option value="wrong1">a\u00b2 + b\u00b2</option>
                 <option value="correct">a\u00b2 - b\u00b2</option>
                 <option value="wrong2">a\u00b2 - a\u00b2b\u00b2 - b\u00b2</option>
               </select>
-              <div v-if="isCorrect" class="mt-4 p-3 bg-slate-800 rounded-lg border border-slate-600">
+              <div v-if="isCorrect" class="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-600">
                 <span class="text-sm font-mono">Numeriek: {{ currentLevel.formula }} = {{ numericResult }} = {{ numericResult }}</span>
               </div>
             </div>
           </div>
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="userAns === ''" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
-                :class="userAns === '' ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Controleer</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 rounded-lg bg-amber-400 hover:bg-amber-300">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="userAns === ''" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
+                :class="userAns === '' ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Controleer</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 rounded-lg bg-math-blue hover:bg-math-blue-light">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -186,27 +186,27 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <div class="mb-6 text-2xl font-mono font-bold text-slate-300">{{ currentLevel.formula }}</div>
               <div class="mb-8">
                 <button @click="annihilateTerms" :disabled="isCorrect || isAnnihilated"
-                  class="px-6 py-3 font-bold bg-white text-orange-600 border-2 border-orange-500 rounded-xl shadow-lg flex items-center gap-2 hover:bg-orange-50 active:scale-95 transition-all disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600">
+                  class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600">
                   <PhArrowsInLineHorizontal weight="bold" class="w-6 h-6" /> Botsing: Vernietig Tegengestelden
                 </button>
               </div>
-              <div class="relative w-full max-w-2xl h-48 bg-slate-800 border-4 border-slate-700 rounded-2xl shadow-xl flex items-center justify-between px-8 overflow-hidden">
-                <div class="w-24 h-24 bg-blue-500/20 border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-lg transition-transform" :class="isAnnihilated ? 'translate-x-12' : ''">
+              <div class="relative w-full max-w-2xl h-48 bg-slate-800 border-4 border-slate-700 rounded-xl shadow-md flex items-center justify-between px-8 overflow-hidden">
+                <div class="w-24 h-24 bg-blue-500/20 border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-md transition-transform" :class="isAnnihilated ? 'translate-x-12' : ''">
                   <span class="font-black text-3xl text-blue-400">{{ currentLevel.a }}\u00b2</span>
                 </div>
-                <div class="absolute left-[30%] w-24 h-24 bg-red-500/20 border-2 border-red-500 rounded-lg flex items-center justify-center shadow-lg transition-all duration-700 ease-in"
+                <div class="absolute left-[30%] w-24 h-24 bg-red-500/20 border-2 border-red-500 rounded-lg flex items-center justify-center shadow-md transition-all duration-700 ease-in"
                   :class="isAnnihilated ? 'translate-x-[150px] opacity-0 scale-50 rotate-45' : ''">
                   <span class="font-black text-2xl text-red-400">-{{ currentLevel.a }}{{ currentLevel.b }}</span>
                 </div>
-                <div class="absolute right-[30%] w-24 h-24 bg-emerald-500/20 border-2 border-emerald-500 rounded-lg flex items-center justify-center shadow-lg transition-all duration-700 ease-in"
+                <div class="absolute right-[30%] w-24 h-24 bg-emerald-500/20 border-2 border-emerald-500 rounded-lg flex items-center justify-center shadow-md transition-all duration-700 ease-in"
                   :class="isAnnihilated ? '-translate-x-[150px] opacity-0 scale-50 -rotate-45' : ''">
                   <span class="font-black text-2xl text-emerald-400">+{{ currentLevel.b }}{{ currentLevel.a }}</span>
                 </div>
                 <div v-if="isAnnihilated" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                  <div class="w-32 h-32 bg-orange-500 rounded-full mix-blend-screen filter blur-xl animate-pulse" style="animation: explode 1s ease-out forwards;"></div>
+                  <div class="w-32 h-32 bg-math-blue rounded-full mix-blend-screen filter blur-xl animate-pulse" style="animation: explode 1s ease-out forwards;"></div>
                 </div>
-                <div class="w-24 h-24 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center shadow-lg transition-transform" :class="isAnnihilated ? '-translate-x-12' : ''">
-                  <span class="font-black text-3xl text-pink-400">-{{ currentLevel.b }}\u00b2</span>
+                <div class="w-24 h-24 bg-math-blue/20 border-2 border-math-blue rounded-lg flex items-center justify-center shadow-md transition-transform" :class="isAnnihilated ? '-translate-x-12' : ''">
+                  <span class="font-black text-3xl text-math-blue">-{{ currentLevel.b }}\u00b2</span>
                 </div>
               </div>
             </div>

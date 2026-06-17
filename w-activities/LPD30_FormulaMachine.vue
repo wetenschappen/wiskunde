@@ -167,11 +167,11 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-500/20">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-400" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
@@ -190,25 +190,25 @@ onUnmounted(() => {
               <div class="flex items-center gap-4 bg-slate-800 p-2 rounded-lg border border-slate-600 mb-6">
                 <input type="range" min="1" max="10" step="1" v-model.number="xValue" :disabled="isChecked"
                   class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-orange-500" />
-                <span class="font-black text-xl text-orange-400 w-8 text-center">{{ xValue }}</span>
+                <span class="font-black text-xl text-math-blue w-8 text-center">{{ xValue }}</span>
               </div>
               <label class="block text-sm font-bold text-slate-300 mb-2">Jouw Output y:</label>
               <input type="number" v-model.number="userAns" placeholder="..." :disabled="isChecked && isCorrect"
-                class="w-full font-bold text-2xl p-3 border-2 border-slate-500 bg-slate-900 text-white rounded-lg focus:border-orange-500 text-center" />
+                class="w-full font-bold text-2xl p-4 border-2 border-slate-500 bg-slate-900 text-white rounded-lg focus:border-math-blue text-center" />
             </div>
           </div>
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="runMachine" :disabled="userAns === null" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
-                :class="userAns === null ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Start Machine</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-slate-900 transition-all rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 rounded-lg bg-amber-400 hover:bg-amber-300">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="runMachine" :disabled="userAns === null" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg"
+                :class="userAns === null ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Start Machine</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-slate-900 transition-all rounded-lg bg-emerald-400 hover:bg-emerald-300">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 rounded-lg bg-math-blue hover:bg-math-blue-light">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -225,12 +225,12 @@ onUnmounted(() => {
                   <span class="font-bold text-slate-400 mt-2">Input x</span>
                 </div>
                 <div class="h-4 flex-1 bg-slate-600"></div>
-                <div class="bg-blue-900/50 border-4 border-blue-500 p-6 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)] flex flex-col items-center justify-center min-w-[120px] transition-transform" :class="step === 1 ? 'scale-110 shadow-[0_0_30px_rgba(59,130,246,0.8)]' : ''">
+                <div class="bg-blue-900/50 border-4 border-blue-500 p-6 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] flex flex-col items-center justify-center min-w-[120px] transition-transform" :class="step === 1 ? 'scale-110 shadow-[0_0_30px_rgba(59,130,246,0.8)]' : ''">
                   <span class="font-black text-4xl text-blue-400">{{ currentLevel.steps[0] }}</span>
                 </div>
                 <div class="h-4 flex-1 bg-slate-600"></div>
-                <div class="bg-fuchsia-900/50 border-4 border-fuchsia-500 p-6 rounded-2xl shadow-[0_0_20px_rgba(217,70,239,0.3)] flex flex-col items-center justify-center min-w-[120px] transition-transform" :class="step === 2 ? 'scale-110 shadow-[0_0_30px_rgba(217,70,239,0.8)]' : ''">
-                  <span class="font-black text-4xl text-fuchsia-400">{{ currentLevel.steps[1] }}</span>
+                <div class="bg-math-blue/50 border-4 border-math-blue p-6 rounded-xl shadow-[0_0_20px_rgba(217,70,239,0.3)] flex flex-col items-center justify-center min-w-[120px] transition-transform" :class="step === 2 ? 'scale-110 shadow-[0_0_30px_rgba(217,70,239,0.8)]' : ''">
+                  <span class="font-black text-4xl text-math-blue">{{ currentLevel.steps[1] }}</span>
                 </div>
                 <div class="h-4 flex-1 bg-slate-600"></div>
                 <div class="flex flex-col items-center">
@@ -240,8 +240,8 @@ onUnmounted(() => {
                   <span class="font-bold text-slate-400 mt-2">Output y</span>
                 </div>
               </div>
-              <div class="absolute top-[215px] -translate-y-1/2 w-12 h-12 rounded-full border-4 border-white flex items-center justify-center font-black text-xl shadow-lg transition-all duration-1000 ease-in-out z-20"
-                :class="{ 'bg-orange-500 text-white left-[8%]': step === 0, 'bg-blue-500 text-white left-[42%]': step === 1, 'bg-emerald-500 text-white left-[88%]': step === 2 }">
+              <div class="absolute top-[215px] -translate-y-1/2 w-12 h-12 rounded-full border-4 border-white flex items-center justify-center font-black text-xl shadow-md transition-all duration-1000 ease-in-out z-20"
+                :class="{ 'bg-math-blue text-white left-[8%]': step === 0, 'bg-blue-500 text-white left-[42%]': step === 1, 'bg-emerald-500 text-white left-[88%]': step === 2 }">
                 <span :key="currentNumber" class="animate-fadeIn">{{ currentNumber }}</span>
               </div>
             </div>

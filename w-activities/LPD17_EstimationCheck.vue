@@ -216,12 +216,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -230,7 +230,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -246,25 +246,25 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
-            <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner flex flex-col gap-4">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner flex flex-col gap-4">
 
                <div class="flex flex-col gap-2">
-                   <label class="text-sm font-bold text-orange-900">Stap 1: Schatting maken</label>
+                   <label class="text-sm font-bold text-math-blue">Stap 1: Schatting maken</label>
                    <div class="flex items-center gap-2">
                        <input type="number" v-model.number="userRound1" :placeholder="`${currentLevelData.num1}`" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-orange-300 rounded focus:border-orange-500 focus:ring-orange-500 text-center" />
+                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
                        <span class="font-black text-slate-400">{{ currentLevelData.op }}</span>
                        <input type="number" v-model.number="userRound2" :placeholder="`${currentLevelData.num2}`" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-orange-300 rounded focus:border-orange-500 focus:ring-orange-500 text-center" />
+                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
                    </div>
                </div>
 
-               <div class="flex flex-col gap-2 border-t border-orange-200 pt-4">
-                   <label class="text-sm font-bold text-orange-900">Stap 2: Beoordeling Rekenmachine</label>
+               <div class="flex flex-col gap-2 border-t border-surface-200 pt-4">
+                   <label class="text-sm font-bold text-math-blue">Stap 2: Beoordeling Rekenmachine</label>
                    <div class="flex gap-2">
                        <button @click="userVerdict = 'correct'" :disabled="isCorrect"
                                class="flex-1 py-2 rounded-lg font-bold transition-colors border-2"
@@ -283,14 +283,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (userRound1 === null || userRound2 === null || userVerdict === '')" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (userRound1 === null || userRound2 === null || userVerdict === '')" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -302,18 +302,18 @@ onUnmounted(() => {
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
               <!-- Calculator Visual -->
-              <div class="w-72 bg-slate-800 rounded-3xl p-6 shadow-2xl border-b-8 border-slate-900 flex flex-col relative" :class="isCorrect && userVerdict === 'nonsense' ? 'animate-shake' : ''">
+              <div class="w-72 bg-slate-800 rounded-xl p-6 shadow-md border-b-8 border-slate-900 flex flex-col relative" :class="isCorrect && userVerdict === 'nonsense' ? 'animate-shake' : ''">
 
-                  <div v-if="isCorrect && userVerdict === 'nonsense'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500 text-white font-black px-6 py-2 rounded-full shadow border-4 border-white rotate-12 z-20 whitespace-nowrap text-xl">
+                  <div v-if="isCorrect && userVerdict === 'nonsense'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500 text-white font-black px-6 py-2 rounded-full shadow-sm border-4 border-white rotate-12 z-20 whitespace-nowrap text-xl">
                       GEBUISD!
                   </div>
 
-                  <div v-if="isCorrect && userVerdict === 'correct'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-black px-6 py-2 rounded-full shadow border-4 border-white -rotate-6 z-20 whitespace-nowrap text-xl">
+                  <div v-if="isCorrect && userVerdict === 'correct'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-black px-6 py-2 rounded-full shadow-sm border-4 border-white -rotate-6 z-20 whitespace-nowrap text-xl">
                       GOEDGEKEURD!
                   </div>
 
                   <!-- Screen -->
-                  <div class="h-28 bg-[#a3c2b8] rounded-xl border-4 border-slate-700 shadow-inner flex flex-col p-3 mb-6 relative overflow-hidden">
+                  <div class="h-28 bg-[#a3c2b8] rounded-xl border-4 border-slate-700 shadow-inner flex flex-col p-4 mb-6 relative overflow-hidden">
                       <div class="absolute inset-0 opacity-10 bg-stripes pointer-events-none"></div>
                       <span class="text-[10px] font-mono text-slate-600 font-bold">MATH</span>
                       <span class="text-right text-base font-mono text-slate-600 mb-1" :key="currentInternalLevel + 'eq'">{{ currentLevelData.num1 }} {{ currentLevelData.op }} {{ currentLevelData.num2 }}</span>
@@ -321,26 +321,26 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Buttons Grid -->
-                  <div class="grid grid-cols-4 gap-3">
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-orange-500 rounded-lg shadow border-b-4 border-orange-600"></div>
+                  <div class="grid grid-cols-4 gap-4">
+                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
+                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
+                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
+                      <div class="w-full aspect-square bg-math-blue rounded-lg shadow-sm border-b-4 border-math-blue"></div>
 
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow border-b-4 border-blue-600"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow-sm border-b-4 border-blue-600"></div>
 
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow border-b-4 border-blue-600"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow-sm border-b-4 border-blue-600"></div>
 
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-700 rounded-lg shadow border-b-4 border-slate-900 flex items-center justify-center font-black text-white text-2xl">=</div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
+                      <div class="w-full aspect-square bg-slate-700 rounded-lg shadow-sm border-b-4 border-slate-900 flex items-center justify-center font-black text-white text-2xl">=</div>
                   </div>
 
               </div>

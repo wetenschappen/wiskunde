@@ -235,7 +235,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -246,7 +246,7 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
-          <div class="flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
+          <div class="flex items-center gap-1.5 ml-4 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
             <span v-for="i in totalInternalLevels" :key="i"
                   class="w-2.5 h-2.5 rounded-full border"
                   :class="i <= currentInternalLevel + 1 ? 'bg-sky-500 border-sky-600' : 'bg-slate-200 border-slate-300'">
@@ -270,7 +270,7 @@ onUnmounted(() => {
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
               <p class="font-bold text-slate-800">Logische Poorten:</p>
-              <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm text-center">
+              <div class="bg-white p-4 border border-slate-200 rounded-lg font-mono text-lg shadow-sm text-center">
                 {{ currentLevel.operatorText }}
               </div>
               <p class="text-sm text-slate-600 italic">{{ currentLevel.description }}</p>
@@ -279,7 +279,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-center gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -289,16 +289,16 @@ onUnmounted(() => {
                <span>{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 text-center text-xs text-slate-400">Vul alle cellen in voor automatische controle</div>
+              <div v-else class="flex-1 py-4 text-center text-xs text-slate-400">Vul alle cellen in voor automatische controle</div>
             </div>
           </div>
         </div>
@@ -306,9 +306,9 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
-              <div class="bg-white rounded-2xl shadow-xl border-2 border-slate-300 overflow-hidden w-full max-w-lg">
+              <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 overflow-hidden w-full max-w-lg">
 
                 <div class="flex bg-slate-800 text-white text-xl font-bold">
                   <div class="flex-1 p-4 text-center border-r border-slate-600">A</div>
@@ -328,7 +328,7 @@ onUnmounted(() => {
 
                   <div class="flex-1 text-center font-mono text-2xl font-bold h-full flex items-center justify-center p-2">
                     <button @click="toggleAns(index)"
-                            class="w-full h-full rounded border-2 border-dashed flex items-center justify-center transition-colors font-black text-3xl"
+                            class="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center transition-colors font-black text-3xl"
                             :class="{
                               'border-slate-300 hover:border-sky-400 bg-slate-50 text-transparent': row.ans === null,
                               'border-sky-500 bg-sky-50 text-sky-700': row.ans !== null

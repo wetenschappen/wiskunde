@@ -239,12 +239,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-fuchsia-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-fuchsia-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -253,7 +253,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-fuchsia-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -269,8 +269,8 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-fuchsia-50 p-4 border border-fuchsia-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-fuchsia-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner relative overflow-visible">
@@ -281,12 +281,12 @@ onUnmounted(() => {
                    <button v-for="item in bankItems" :key="item.id"
                            @click="selectItem(item.id)"
                            class="w-12 h-12 rounded-full font-bold text-xl flex items-center justify-center transition-all shadow-sm border-2"
-                           :class="selectedItemId === item.id ? 'bg-fuchsia-500 border-fuchsia-600 text-white scale-110 shadow-lg' : 'bg-white border-slate-300 text-slate-700 hover:border-fuchsia-300 hover:bg-fuchsia-50'">
+                           :class="selectedItemId === item.id ? 'bg-math-blue border-math-blue text-white scale-110 shadow-md' : 'bg-white border-slate-300 text-slate-700 hover:border-surface-200 hover:bg-math-blue-bg'">
                        {{ item.value }}
                    </button>
                </div>
 
-               <div v-if="selectedItemId" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
+               <div v-if="selectedItemId" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md flex items-center gap-2 animate-bounce">
                    <PhHandGrabbing weight="fill" /> Klik nu in de juiste zone
                    <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
                </div>
@@ -294,14 +294,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -315,8 +315,8 @@ onUnmounted(() => {
 
               <div class="relative w-[600px] h-[400px] flex items-center justify-center">
 
-                  <div class="absolute inset-0 border-4 border-dashed border-slate-300 rounded-2xl cursor-pointer transition-colors"
-                       :class="selectedItemId ? 'bg-slate-200/40 hover:bg-slate-300/60 border-fuchsia-400/50' : 'hover:bg-slate-200/20'"
+                  <div class="absolute inset-0 border-4 border-dashed border-slate-300 rounded-xl cursor-pointer transition-colors"
+                       :class="selectedItemId ? 'bg-slate-200/40 hover:bg-slate-300/60 border-math-blue/50' : 'hover:bg-slate-200/20'"
                        @click.self="placeInRegion('outside')">
                       <div class="absolute top-4 left-4 text-slate-400 font-bold uppercase tracking-widest text-sm pointer-events-none">Buitengebied (Noch A, noch B)</div>
 
@@ -330,7 +330,7 @@ onUnmounted(() => {
                   <div class="relative w-[450px] h-[300px] flex">
 
                       <div class="absolute left-0 w-[300px] h-[300px] rounded-full border-[6px] border-blue-500 bg-blue-500/20 flex items-center justify-start p-8 cursor-pointer transition-all"
-                           :class="selectedItemId ? 'ring-4 ring-fuchsia-400/50 ring-offset-4 ring-offset-slate-100 hover:bg-blue-500/40' : 'hover:bg-blue-500/30'"
+                           :class="selectedItemId ? 'ring-4 ring-math-blue/50 ring-offset-4 ring-offset-slate-100 hover:bg-blue-500/40' : 'hover:bg-blue-500/30'"
                            @click="placeInRegion('aOnly')">
                            <span class="absolute top-8 left-12 font-black text-2xl text-blue-700 pointer-events-none">A</span>
                            <span class="absolute top-16 left-12 font-bold text-sm text-blue-800 pointer-events-none">{{ currentLevelData.labelA }}</span>
@@ -342,25 +342,25 @@ onUnmounted(() => {
                            </div>
                       </div>
 
-                      <div class="absolute right-0 w-[300px] h-[300px] rounded-full border-[6px] border-amber-500 bg-amber-500/20 flex items-center justify-end p-8 cursor-pointer transition-all"
-                           :class="selectedItemId ? 'ring-4 ring-fuchsia-400/50 ring-offset-4 ring-offset-slate-100 hover:bg-amber-500/40' : 'hover:bg-amber-500/30'"
+                      <div class="absolute right-0 w-[300px] h-[300px] rounded-full border-[6px] border-math-blue bg-math-blue/20 flex items-center justify-end p-8 cursor-pointer transition-all"
+                           :class="selectedItemId ? 'ring-4 ring-math-blue/50 ring-offset-4 ring-offset-slate-100 hover:bg-math-blue/40' : 'hover:bg-math-blue/30'"
                            @click="placeInRegion('bOnly')">
-                           <span class="absolute top-8 right-12 font-black text-2xl text-amber-700 pointer-events-none">B</span>
-                           <span class="absolute top-16 right-6 font-bold text-sm text-amber-800 pointer-events-none">{{ currentLevelData.labelB }}</span>
+                           <span class="absolute top-8 right-12 font-black text-2xl text-math-blue pointer-events-none">B</span>
+                           <span class="absolute top-16 right-6 font-bold text-sm text-math-blue pointer-events-none">{{ currentLevelData.labelB }}</span>
 
                            <div class="flex flex-wrap gap-2 justify-end w-32 pointer-events-none">
-                               <button v-for="item in bOnlyItems" :key="item.id" @click.stop="selectItem(item.id)" class="w-10 h-10 rounded-full font-bold bg-white border-2 border-amber-500 text-amber-700 pointer-events-auto shadow-sm hover:scale-110 transition-transform">
+                               <button v-for="item in bOnlyItems" :key="item.id" @click.stop="selectItem(item.id)" class="w-10 h-10 rounded-full font-bold bg-white border-2 border-math-blue text-math-blue pointer-events-auto shadow-sm hover:scale-110 transition-transform">
                                   {{ item.value }}
                                </button>
                            </div>
                       </div>
 
-                      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120px] h-[200px] rounded-[100%] cursor-pointer z-10 flex flex-col items-center justify-center hover:bg-fuchsia-500/20 transition-all"
-                           :class="selectedItemId ? 'ring-4 ring-fuchsia-400/50 hover:bg-fuchsia-500/40 bg-fuchsia-500/10' : ''"
+                      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120px] h-[200px] rounded-[100%] cursor-pointer z-10 flex flex-col items-center justify-center hover:bg-math-blue/20 transition-all"
+                           :class="selectedItemId ? 'ring-4 ring-math-blue/50 hover:bg-math-blue/40 bg-math-blue/10' : ''"
                            @click.stop="placeInRegion('intersection')">
-                           <span class="text-[10px] font-bold text-fuchsia-800 uppercase tracking-widest pointer-events-none mb-1">A ∩ B</span>
+                           <span class="text-[10px] font-bold text-math-blue uppercase tracking-widest pointer-events-none mb-1">A ∩ B</span>
                            <div class="flex flex-wrap gap-2 justify-center pointer-events-none max-w-[80px]">
-                               <button v-for="item in intersectionItems" :key="item.id" @click.stop="selectItem(item.id)" class="w-10 h-10 rounded-full font-bold bg-white border-2 border-fuchsia-500 text-fuchsia-700 pointer-events-auto shadow-sm hover:scale-110 transition-transform">
+                               <button v-for="item in intersectionItems" :key="item.id" @click.stop="selectItem(item.id)" class="w-10 h-10 rounded-full font-bold bg-white border-2 border-math-blue text-math-blue pointer-events-auto shadow-sm hover:scale-110 transition-transform">
                                   {{ item.value }}
                                </button>
                            </div>

@@ -209,7 +209,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -257,17 +257,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 px-4 text-center text-sm font-medium text-slate-400 bg-slate-100 rounded-lg border border-slate-200">
+              <div v-else class="flex-1 py-4 px-4 text-center text-sm font-medium text-slate-400 bg-slate-100 rounded-lg border border-slate-200">
                 Plaats alle stempels op de objecten
               </div>
             </div>
@@ -279,7 +279,7 @@ onUnmounted(() => {
 
               <div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                  <div v-for="item in currentItems" :key="item.id" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center animate-fadeIn transform transition-transform">
+                  <div v-for="item in currentItems" :key="item.id" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center animate-fadeIn transform transition-transform">
 
                       <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4" :class="item.bg">
                           <component :is="item.icon" weight="duotone" class="w-10 h-10" :class="item.color" />
@@ -287,7 +287,7 @@ onUnmounted(() => {
 
                       <h3 class="font-bold text-slate-800 text-lg mb-1 text-center h-14 flex items-center">{{ item.name }}</h3>
 
-                      <div class="mt-2 flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 w-full justify-center">
+                      <div class="mt-2 flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 w-full justify-center">
                           <span class="text-3xl font-black text-slate-700">{{ item.val }}</span>
 
                           <!-- Drop Zone -->

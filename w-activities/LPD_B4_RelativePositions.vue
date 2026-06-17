@@ -305,12 +305,12 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -320,9 +320,9 @@ onUnmounted(() => {
           <div class="flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-200">
             <div v-for="(level, i) in levels" :key="i"
                  class="w-2.5 h-2.5 rounded-full transition-all duration-300"
-                 :class="i === currentInternalLevel ? 'bg-orange-500 ring-2 ring-orange-200 scale-125' : i < currentInternalLevel ? 'bg-orange-300' : 'bg-slate-300'">
+                 :class="i === currentInternalLevel ? 'bg-math-blue ring-2 ring-math-blue scale-125' : i < currentInternalLevel ? 'bg-math-blue-light' : 'bg-slate-300'">
             </div>
-            <span class="text-xs font-bold text-orange-700 ml-1.5 uppercase">{{ currentLevel.name }}</span>
+            <span class="text-xs font-bold text-math-blue ml-1.5 uppercase">{{ currentLevel.name }}</span>
           </div>
         </div>
         <button @click="emit('close')"
@@ -337,26 +337,26 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <p class="mb-2 text-xs font-semibold text-orange-600">Level {{ currentInternalLevel + 1 }} &mdash; {{ currentLevel.name }}</p>
+            <p class="mb-2 text-xs font-semibold text-math-blue">Level {{ currentInternalLevel + 1 }} &mdash; {{ currentLevel.name }}</p>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl">
 
-              <div class="bg-white p-4 border border-slate-200 rounded mb-6 font-mono text-lg shadow-sm">
+              <div class="bg-white p-4 border border-slate-200 rounded-lg mb-6 font-mono text-lg shadow-sm">
                 <p class="text-blue-600">l&8321;: {{ currentScenario.l1 }}</p>
                 <p class="text-emerald-600 mt-2">l&#x2082;: {{ currentScenario.l2 }}</p>
               </div>
 
               <!-- Auto-correct: click-on-target, no Controleer button needed -->
-              <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-4">
                 <button v-for="opt in options" :key="opt"
                         @click="selectOption(opt)"
                         class="p-4 border-2 rounded-xl text-left font-bold transition-all capitalize"
                         :class="{
-                          'border-orange-500 bg-orange-50 text-orange-700': userChoice === opt && !isCorrect,
+                          'border-math-blue bg-math-blue-bg text-math-blue': userChoice === opt && !isCorrect,
                           'border-emerald-500 bg-emerald-50 text-emerald-700': isCorrect && opt === currentScenario.correct,
                           'border-red-300 bg-red-50 text-red-600': userChoice === opt && isChecked && !isCorrect,
-                          'border-slate-200 hover:border-orange-300 text-slate-700': userChoice !== opt || isCorrect
+                          'border-slate-200 hover:border-surface-200 text-slate-700': userChoice !== opt || isCorrect
                         }">
                   {{ opt }}
                 </button>
@@ -366,7 +366,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -376,17 +376,17 @@ onUnmounted(() => {
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
               <!-- No Controleer button -- auto-correct on click -->
-              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -394,9 +394,9 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
-              <div class="w-64 h-64 relative bg-white border-2 border-slate-300 rounded shadow-inner overflow-hidden">
+              <div class="w-64 h-64 relative bg-white border-2 border-slate-300 rounded-lg shadow-inner overflow-hidden">
                 <!-- Graphical hint of the situation -->
                 <svg width="100%" height="100%" viewBox="0 0 100 100">
                   <g v-if="currentScenario.correct === 'evenwijdig'">

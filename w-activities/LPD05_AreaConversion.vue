@@ -171,12 +171,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -185,7 +185,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -201,8 +201,8 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
@@ -210,7 +210,7 @@ onUnmounted(() => {
                <div class="flex flex-wrap gap-2">
                    <div v-for="opt in currentLevelData.options" :key="opt"
                         draggable="true" @dragstart="onDragStart(opt)"
-                        class="px-4 py-2 border-2 border-slate-300 bg-white rounded-lg font-bold text-lg text-slate-700 cursor-grab hover:border-orange-400 hover:text-orange-600 transition-colors shadow-sm"
+                        class="px-4 py-2 border-2 border-slate-300 bg-white rounded-lg font-bold text-lg text-slate-700 cursor-grab hover:border-math-blue hover:text-math-blue transition-colors shadow-sm"
                         :class="{'opacity-30 pointer-events-none': droppedAns === opt || isCorrect}">
                        {{ opt }}
                    </div>
@@ -219,17 +219,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 px-4 text-center text-sm font-medium text-slate-400 bg-slate-100 rounded-lg border border-slate-200">
+              <div v-else class="flex-1 py-4 px-4 text-center text-sm font-medium text-slate-400 bg-slate-100 rounded-lg border border-slate-200">
                 Sleep het juiste getal naar de vergelijking
               </div>
             </div>
@@ -240,14 +240,14 @@ onUnmounted(() => {
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid gap-10">
 
               <!-- Vergelijking Drop Zone -->
-              <div class="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+              <div class="flex items-center gap-4 bg-white p-6 rounded-xl shadow-md border border-slate-200">
                   <span class="font-black text-3xl text-slate-800">{{ currentLevelData.baseUnit }}</span>
                   <span class="font-bold text-2xl text-slate-400">=</span>
 
                   <div @dragover.prevent @drop="onDrop"
                        class="w-32 h-16 border-4 border-dashed rounded-xl flex items-center justify-center relative transition-all"
-                       :class="droppedAns ? (isCorrect ? 'border-emerald-400 bg-emerald-50' : 'border-slate-800 bg-slate-100') : 'border-orange-300 bg-orange-50 hover:bg-orange-100'">
-                       <span v-if="!droppedAns" class="text-xs font-bold text-orange-400 uppercase tracking-widest">Sleep hier</span>
+                       :class="droppedAns ? (isCorrect ? 'border-emerald-400 bg-emerald-50' : 'border-slate-800 bg-slate-100') : 'border-surface-200 bg-math-blue-bg hover:bg-math-blue-bg'">
+                       <span v-if="!droppedAns" class="text-xs font-bold text-math-blue uppercase tracking-widest">Sleep hier</span>
                        <span v-else class="text-2xl font-black text-slate-800">{{ droppedAns }}</span>
                        <button v-if="droppedAns && !isCorrect" @click="removeDrop" class="absolute -top-3 -right-3 bg-slate-200 rounded-full p-1 hover:bg-red-200 hover:text-red-700 border-2 border-white shadow-sm">
                            <PhX weight="bold" class="w-3 h-3" />
@@ -259,26 +259,26 @@ onUnmounted(() => {
 
               <!-- Interactive Visual Controls -->
               <div class="flex bg-white p-2 rounded-xl shadow-sm border border-slate-200 z-20">
-                  <button @click="visualState = 'm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm" :class="visualState === 'm' ? 'bg-orange-100 text-orange-700' : 'text-slate-500 hover:bg-slate-100'">Toon Geheel</button>
-                  <button @click="visualState = 'dm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'dm' ? 'bg-orange-100 text-orange-700' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 10</button>
-                  <button @click="visualState = 'cm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'cm' ? 'bg-orange-100 text-orange-700' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 100</button>
+                  <button @click="visualState = 'm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm" :class="visualState === 'm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'">Toon Geheel</button>
+                  <button @click="visualState = 'dm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'dm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 10</button>
+                  <button @click="visualState = 'cm'" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-1" :class="visualState === 'cm' ? 'bg-math-blue-bg text-math-blue' : 'text-slate-500 hover:bg-slate-100'"><PhMagnifyingGlassPlus weight="bold" /> Verdeel per 100</button>
               </div>
 
               <!-- The Square (1m^2 representation) -->
-              <div class="w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-orange-100 border-4 border-orange-500 shadow-xl relative transition-all duration-700">
+              <div class="w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-math-blue-bg border-4 border-math-blue shadow-md relative transition-all duration-700">
 
                   <!-- Labels -->
-                  <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-orange-700 whitespace-nowrap text-sm">
+                  <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-math-blue whitespace-nowrap text-sm">
                       Lengte x {{ visualState === 'dm' ? '10' : (visualState === 'cm' ? '100' : '1') }}
                   </div>
-                  <div class="absolute -left-12 top-1/2 -translate-y-1/2 font-bold text-orange-700 whitespace-nowrap transform -rotate-90 origin-center text-sm">
+                  <div class="absolute -left-12 top-1/2 -translate-y-1/2 font-bold text-math-blue whitespace-nowrap transform -rotate-90 origin-center text-sm">
                       Breedte x {{ visualState === 'dm' ? '10' : (visualState === 'cm' ? '100' : '1') }}
                   </div>
 
                   <!-- The Grid -->
                   <!-- Decimeter grid (10x10 = 100 squares) -->
                   <div v-if="visualState === 'dm' || visualState === 'cm'" class="absolute inset-0 grid grid-cols-10 grid-rows-10 opacity-60">
-                      <div v-for="i in 100" :key="'dm'+i" class="border border-orange-500/40"></div>
+                      <div v-for="i in 100" :key="'dm'+i" class="border border-math-blue/40"></div>
                   </div>
 
                   <!-- Centimeter grid (100x100 = 10000 squares) - Simulated for performance -->
@@ -287,11 +287,11 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Central info box -->
-                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur p-4 rounded-xl shadow-lg border border-orange-200 text-center animate-fadeIn">
-                      <h3 class="text-2xl font-black text-orange-600 mb-1">Oppervlakte</h3>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur p-4 rounded-xl shadow-md border border-surface-200 text-center animate-fadeIn">
+                      <h3 class="text-2xl font-black text-math-blue mb-1">Oppervlakte</h3>
                       <p v-if="visualState === 'm'" class="font-bold text-slate-600 text-sm">Geen deling</p>
-                      <p v-if="visualState === 'dm'" class="font-bold text-slate-600 text-sm">10 x 10 = <span class="text-orange-500">100 blokjes</span></p>
-                      <p v-if="visualState === 'cm'" class="font-bold text-slate-600 text-sm">100 x 100 = <span class="text-orange-500">10.000 blokjes</span></p>
+                      <p v-if="visualState === 'dm'" class="font-bold text-slate-600 text-sm">10 x 10 = <span class="text-math-blue">100 blokjes</span></p>
+                      <p v-if="visualState === 'cm'" class="font-bold text-slate-600 text-sm">100 x 100 = <span class="text-math-blue">10.000 blokjes</span></p>
                   </div>
 
               </div>

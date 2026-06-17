@@ -150,7 +150,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -193,7 +193,7 @@ onUnmounted(() => {
                    </div>
                    <span>=</span>
 
-                   <div class="flex items-start bg-white p-2 rounded border-2 border-emerald-300">
+                   <div class="flex items-start bg-white p-2 rounded-lg border-2 border-emerald-300">
                        <span class="text-emerald-700">{{ currentLevelData.base }}</span>
                        <input type="number" v-model.number="userAns" placeholder="?" :disabled="isCorrect"
                               class="w-16 font-bold text-2xl p-1 -mt-2 -mr-1 border-b-2 border-emerald-200 focus:border-emerald-500 focus:outline-none text-center text-emerald-600 bg-transparent" />
@@ -203,14 +203,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -224,7 +224,7 @@ onUnmounted(() => {
               <div class="w-full max-w-4xl flex flex-col items-center">
 
                   <button v-if="!isExpanded" @click="expandPowers"
-                          class="mb-12 px-6 py-3 font-bold bg-slate-800 text-white rounded-full shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all">
+                          class="mb-12 px-6 py-4 font-bold bg-slate-800 text-white rounded-full shadow-md flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all">
                       <PhArrowsOutLineHorizontal weight="bold" class="w-5 h-5" /> Vouw Open
                   </button>
 
@@ -233,7 +233,7 @@ onUnmounted(() => {
 
                       <!-- Block 1 -->
                       <div class="flex items-center justify-center transition-all duration-700"
-                           :class="isExpanded ? 'gap-2' : 'bg-blue-100 border-4 border-blue-400 p-6 rounded-2xl shadow-md'">
+                           :class="isExpanded ? 'gap-2' : 'bg-blue-100 border-4 border-blue-400 p-6 rounded-xl shadow-md'">
 
                           <div v-if="!isExpanded" class="font-black text-4xl text-blue-700">
                               {{ currentLevelData.base }}<sup class="text-2xl">{{ currentLevelData.exp1 }}</sup>
@@ -251,15 +251,15 @@ onUnmounted(() => {
 
                       <!-- Block 2 -->
                       <div class="flex items-center justify-center transition-all duration-700"
-                           :class="isExpanded ? 'gap-2' : 'bg-orange-100 border-4 border-orange-400 p-6 rounded-2xl shadow-md'">
+                           :class="isExpanded ? 'gap-2' : 'bg-math-blue-bg border-4 border-math-blue p-6 rounded-xl shadow-md'">
 
-                          <div v-if="!isExpanded" class="font-black text-4xl text-orange-700">
+                          <div v-if="!isExpanded" class="font-black text-4xl text-math-blue">
                               {{ currentLevelData.base }}<sup class="text-2xl">{{ currentLevelData.exp2 }}</sup>
                           </div>
 
                           <!-- Expanded -->
                           <template v-else>
-                              <div v-for="i in currentLevelData.exp2" :key="'e2'+i" class="w-16 h-16 bg-orange-100 border-4 border-orange-400 rounded-xl flex items-center justify-center font-black text-3xl text-orange-700 shadow-sm animate-fadeIn" :style="`animation-delay: ${(i+currentLevelData.exp1)*0.1}s`">
+                              <div v-for="i in currentLevelData.exp2" :key="'e2'+i" class="w-16 h-16 bg-math-blue-bg border-4 border-math-blue rounded-xl flex items-center justify-center font-black text-3xl text-math-blue shadow-sm animate-fadeIn" :style="`animation-delay: ${(i+currentLevelData.exp1)*0.1}s`">
                                   {{ currentLevelData.base }}
                               </div>
 </template>
@@ -270,7 +270,7 @@ onUnmounted(() => {
                   <!-- Connector bracket when expanded -->
                   <div v-if="isExpanded" class="mt-8 w-full max-w-2xl flex flex-col items-center animate-fadeIn" style="animation-delay: 1s">
                       <div class="w-[80%] h-4 border-b-4 border-x-4 border-emerald-500 rounded-b-xl"></div>
-                      <span class="mt-4 font-black text-2xl text-emerald-600 bg-emerald-50 px-4 py-1 rounded shadow-sm border border-emerald-200">
+                      <span class="mt-4 font-black text-2xl text-emerald-600 bg-emerald-50 px-4 py-1 rounded-lg shadow-sm border border-emerald-200">
                           {{ currentLevelData.exp1 }} + {{ currentLevelData.exp2 }} = {{ currentLevelData.exactAns }} stuks
                       </span>
                   </div>

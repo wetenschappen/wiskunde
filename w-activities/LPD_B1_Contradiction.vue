@@ -197,7 +197,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
@@ -206,7 +206,7 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
-            <div class="flex items-center gap-3 mt-0.5">
+            <div class="flex items-center gap-4 mt-0.5">
               <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
               <div class="flex items-center gap-2 text-xs text-slate-500">
                 <span class="font-medium">Level {{ currentInternalLevel + 1 }}/{{ totalInternalLevels }}</span>
@@ -240,17 +240,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -264,7 +264,7 @@ onUnmounted(() => {
                   <div class="flex gap-4 mb-12" :class="step > 0 ? 'opacity-30 pointer-events-none' : ''">
                       <button v-for="(btn, idx) in currentLevelData.shuffledButtons" :key="idx"
                               @click="runProof(btn.role)"
-                              class="flex-1 p-6 bg-slate-800 border-4 rounded-2xl hover:bg-slate-700 transition-all active:scale-95 shadow-lg text-left group"
+                              class="flex-1 p-6 bg-slate-800 border-4 rounded-xl hover:bg-slate-700 transition-all active:scale-95 shadow-md text-left group"
                               :class="btn.role === 'opposite' ? 'border-emerald-600' : 'border-slate-600'">
                           <span class="block text-xs font-bold uppercase tracking-widest mb-2"
                                 :class="btn.role === 'opposite' ? 'text-emerald-500' : 'text-slate-400'">
@@ -278,12 +278,12 @@ onUnmounted(() => {
                   <div class="relative w-full max-w-2xl min-h-[300px] flex flex-col items-center" :class="step === 0 ? 'opacity-0' : 'animate-fadeIn'">
 
                       <!-- Conveyor Belt -->
-                      <div class="w-8 h-20 bg-slate-700 border-x-4 border-slate-500 rounded flex items-center justify-center relative overflow-hidden z-0">
+                      <div class="w-8 h-20 bg-slate-700 border-x-4 border-slate-500 rounded-lg flex items-center justify-center relative overflow-hidden z-0">
                           <div class="absolute inset-0 bg-slate-600 opacity-50" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 10px, #94a3b8 10px, #94a3b8 20px); animation: belt 1s linear infinite;"></div>
                       </div>
 
                       <!-- The Box (Theory) -->
-                      <div class="w-64 bg-slate-800 border-4 border-emerald-500 rounded-2xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.3)] z-10 relative mt-[-10px] transition-all duration-700"
+                      <div class="w-64 bg-slate-800 border-4 border-emerald-500 rounded-xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.3)] z-10 relative mt-[-10px] transition-all duration-700"
                            :class="step === 2 ? 'border-red-500 bg-red-900/30 animate-shake shadow-[0_0_50px_rgba(239,68,68,0.8)]' : ''">
 
                           <p v-if="step === 1" class="font-bold text-center text-emerald-400 animate-pulse">
@@ -296,7 +296,7 @@ onUnmounted(() => {
 
                           <!-- Explosion FX -->
                           <div v-if="step === 2" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                              <div class="w-full h-2 bg-amber-400 rotate-12 transform scale-150 animate-slash"></div>
+                              <div class="w-full h-2 bg-math-blue rotate-12 transform scale-150 animate-slash"></div>
                               <div class="w-full h-2 bg-red-500 -rotate-12 transform scale-150 animate-slash" style="animation-delay: 0.1s"></div>
                           </div>
 

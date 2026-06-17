@@ -163,10 +163,10 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100"><component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" /></div>
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg"><component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" /></div>
           <div><h2 class="text-lg font-bold text-slate-900">{{ title }}</h2><p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }} — {{ currentLevel.eq }}</p></div>
         </div>
         <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
@@ -176,38 +176,38 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner">
-              <label class="block text-sm font-bold text-orange-900 mb-4">Acties (op beide kanten):</label>
-              <div class="flex flex-col gap-3">
-                <button @click="performOperation('sub')" :disabled="isCorrect" class="py-2 px-4 rounded border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600">\u2212 1 blokje</button>
-                <button @click="performOperation('add')" :disabled="isCorrect" class="py-2 px-4 rounded border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600">+ 1 blokje</button>
-                <button @click="performOperation('div')" :disabled="isCorrect" class="py-2 px-4 rounded border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600">\u00f7 {{ currentLevel.divisor }}</button>
-                <button @click="performOperation('mult')" :disabled="isCorrect" class="py-2 px-4 rounded border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600">\u00d7 2</button>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+              <label class="block text-sm font-bold text-math-blue mb-4">Acties (op beide kanten):</label>
+              <div class="flex flex-col gap-4">
+                <button @click="performOperation('sub')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u2212 1 blokje</button>
+                <button @click="performOperation('add')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">+ 1 blokje</button>
+                <button @click="performOperation('div')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u00f7 {{ currentLevel.divisor }}</button>
+                <button @click="performOperation('mult')" :disabled="isCorrect" class="py-2 px-4 rounded-lg border-2 font-bold bg-white border-slate-300 text-slate-600 hover:border-math-blue hover:text-math-blue">\u00d7 2</button>
               </div>
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
-              <button v-else-if="isCorrect" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white rounded-lg shadow-md bg-amber-600 hover:bg-amber-500"><span>Afronden</span><PhArrowRight weight="bold" /></button>
-              <div v-else class="flex-1 py-3"></div>
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
+              <button v-else-if="isCorrect" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white rounded-lg shadow-md bg-math-blue hover:bg-math-blue"><span>Afronden</span><PhArrowRight weight="bold" /></button>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
             <div class="w-full max-w-4xl flex flex-col items-center">
-              <div class="font-mono font-black text-4xl text-slate-700 bg-white px-8 py-4 rounded-full shadow border-2 border-slate-200 mb-12 flex gap-4 transition-all">
+              <div class="font-mono font-black text-4xl text-slate-700 bg-white px-8 py-4 rounded-full shadow-sm border-2 border-slate-200 mb-12 flex gap-4 transition-all">
                 <span><span v-if="xCount > 1">{{xCount}}</span>x</span>
                 <span v-if="constLeft > 0" class="text-slate-400">+</span><span v-if="constLeft > 0">{{ constLeft }}</span>
-                <span class="text-orange-500">=</span><span>{{ constRight }}</span>
+                <span class="text-math-blue">=</span><span>{{ constRight }}</span>
               </div>
               <div class="relative w-full max-w-2xl min-h-[300px]">
-                <div class="absolute bottom-20 left-0 w-full h-4 bg-slate-700 rounded-full shadow-lg z-10 flex justify-between px-16 transition-transform duration-500">
+                <div class="absolute bottom-20 left-0 w-full h-4 bg-slate-700 rounded-full shadow-md z-10 flex justify-between px-16 transition-transform duration-500">
                   <div class="absolute left-16 bottom-4 w-48 flex-col items-center flex">
                     <div class="flex items-end justify-center gap-2 mb-2 w-full flex-wrap transition-all">
                       <div v-for="i in xCount" :key="'x'+i" class="w-16 h-16 bg-blue-100 border-4 border-blue-500 rounded-xl flex items-center justify-center shadow-sm animate-fadeIn"><span class="font-black text-2xl text-blue-600 font-mono">x</span></div>

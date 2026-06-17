@@ -198,12 +198,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-rose-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-rose-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -212,7 +212,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-rose-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -228,14 +228,14 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-rose-50 p-4 border border-rose-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-rose-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
-            <div class="p-4 mt-6 border border-rose-200 bg-rose-50 rounded-xl shadow-inner">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-slate-700 mb-2">Berekening:</label>
                <div class="flex items-center gap-2 mb-4">
-                   <div class="flex-1 font-mono font-black text-2xl text-slate-800 text-center bg-white p-3 rounded-lg border border-slate-300">
+                   <div class="flex-1 font-mono font-black text-2xl text-slate-800 text-center bg-white p-4 rounded-lg border border-slate-300">
                        {{ currentLevelData.expression }}
                    </div>
                </div>
@@ -243,28 +243,28 @@ onUnmounted(() => {
                <label class="block text-sm font-bold text-slate-700 mb-2">Jouw antwoord (hoogte):</label>
                <div class="flex items-center gap-2">
                    <input type="number" v-model.number="userAns" placeholder="..." :disabled="isCorrect"
-                          class="w-full font-bold text-lg p-3 border border-slate-300 rounded-lg focus:border-rose-500 focus:ring-rose-500" />
+                          class="w-full font-bold text-lg p-4 border border-slate-300 rounded-lg focus:border-math-blue focus:ring-math-blue" />
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -281,7 +281,7 @@ onUnmounted(() => {
                   <div class="absolute top-0 right-0 bg-white p-4 rounded-xl shadow-md border border-slate-200 z-30">
                       <button @click="performAction" :disabled="actionDone || isCorrect"
                               class="flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-white transition-all shadow-sm active:scale-95"
-                              :class="actionDone || isCorrect ? 'bg-slate-300' : 'bg-rose-500 hover:bg-rose-600'">
+                              :class="actionDone || isCorrect ? 'bg-slate-300' : 'bg-math-blue hover:bg-math-blue'">
                           <PhHandGrabbing v-if="!currentLevelData.isAdd" weight="fill" />
                           <PhPlus v-if="currentLevelData.isAdd" weight="bold" />
                           {{ currentLevelData.actionBtn }}
@@ -289,8 +289,8 @@ onUnmounted(() => {
                   </div>
 
                   <!-- The Sky background -->
-                  <div class="absolute inset-0 bg-gradient-to-b from-sky-200 to-sky-50 rounded-3xl overflow-hidden border-2 border-slate-300">
-                      <div class="absolute bottom-0 w-full h-[30%] bg-gradient-to-b from-amber-100 to-amber-700 opacity-50"></div>
+                  <div class="absolute inset-0 from-sky-200 to-sky-50 rounded-xl overflow-hidden border-2 border-slate-300">
+                      <div class="absolute bottom-0 w-full h-[30%] opacity-50"></div>
 
                       <!-- Altitude Ruler -->
                       <div class="absolute left-0 top-0 bottom-0 w-24 bg-white/60 border-r border-slate-300 flex flex-col justify-between py-10">
@@ -306,16 +306,16 @@ onUnmounted(() => {
                            :style="{ top: `${100 - ((altitude + 4) * 10)}%` }">
 
                           <!-- Balloon Envelope -->
-                          <div class="w-24 h-28 bg-rose-500 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] shadow-inner border-2 border-rose-700 relative overflow-hidden">
-                              <div class="absolute inset-x-0 top-1/3 h-4 bg-yellow-400"></div>
-                              <div class="absolute inset-x-0 top-2/3 h-4 bg-yellow-400"></div>
+                          <div class="w-24 h-28 bg-math-blue rounded-[50%_50%_50%_50%/60%_60%_40%_40%] shadow-inner border-2 border-math-blue relative overflow-hidden">
+                              <div class="absolute inset-x-0 top-1/3 h-4 bg-math-blue"></div>
+                              <div class="absolute inset-x-0 top-2/3 h-4 bg-math-blue"></div>
                           </div>
 
                           <!-- Ropes -->
                           <div class="w-12 h-6 border-x-2 border-slate-700 mx-auto"></div>
 
                           <!-- Basket -->
-                          <div class="w-16 h-12 bg-amber-700 rounded-b shadow-md border-2 border-amber-900 relative">
+                          <div class="w-16 h-12 bg-math-blue rounded-b shadow-md border-2 border-math-blue relative">
                               <!-- Sandbags (The negative number) -->
                               <div class="absolute -right-2 top-2 w-6 h-8 bg-stone-300 rounded-[50%_50%_40%_40%] border border-stone-500 flex items-center justify-center transition-all duration-1000 origin-top z-10"
                                    :class="actionDone && !currentLevelData.isAdd ? 'translate-y-[400px] rotate-45 opacity-0' : (actionDone && currentLevelData.isAdd ? 'scale-125' : '')">

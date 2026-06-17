@@ -202,7 +202,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -241,7 +241,7 @@ onUnmounted(() => {
                <div class="flex flex-col gap-2">
                  <button v-for="opt in currentLevelData.options" :key="opt"
                          @click="selectOption(opt)"
-                         class="p-3 border-2 rounded-lg font-bold transition-all text-left"
+                         class="p-4 border-2 rounded-lg font-bold transition-all text-left"
                          :class="userSelection === opt ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-red-500 bg-red-50 text-red-700') : 'border-slate-200 hover:border-blue-300 bg-white text-slate-700'">
                    {{ opt }}
                  </button>
@@ -250,17 +250,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 text-center text-sm font-medium text-slate-400">Klik op een antwoord hiernaast</div>
+              <div v-else class="flex-1 py-4 text-center text-sm font-medium text-slate-400">Klik op een antwoord hiernaast</div>
             </div>
           </div>
         </div>
@@ -268,15 +268,15 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="flex-1 flex flex-col items-center justify-center w-full min-h-[500px] bg-white rounded-2xl border-2 border-slate-200/50 p-6 shadow-sm">
+            <div class="flex-1 flex flex-col items-center justify-center w-full min-h-[500px] bg-white rounded-xl border-2 border-slate-200/50 p-6 shadow-sm">
 
               <!-- ICT Controls -->
               <div class="w-full max-w-4xl flex gap-4 mb-6">
                   <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-inner">
-                      <button @click="currentView = 'table'" class="flex items-center gap-2 px-4 py-2 rounded font-bold transition-all text-sm" :class="currentView === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
+                      <button @click="currentView = 'table'" class="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all text-sm" :class="currentView === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
                           <PhTable weight="bold" /> Ruwe Tabel
                       </button>
-                      <button @click="currentView = 'bar'" class="flex items-center gap-2 px-4 py-2 rounded font-bold transition-all text-sm" :class="currentView === 'bar' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
+                      <button @click="currentView = 'bar'" class="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all text-sm" :class="currentView === 'bar' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
                           <PhChartBar weight="bold" /> Staafdiagram
                       </button>
                   </div>
@@ -294,14 +294,14 @@ onUnmounted(() => {
                       <table class="w-full text-left border-collapse">
                           <thead>
                               <tr class="border-b-2 border-slate-300 text-slate-500 uppercase text-xs tracking-wider">
-                                  <th class="p-3">Maand</th>
-                                  <th class="p-3">Neerslag (mm)</th>
+                                  <th class="p-4">Maand</th>
+                                  <th class="p-4">Neerslag (mm)</th>
                               </tr>
                           </thead>
                           <tbody>
                               <tr v-for="d in displayData" :key="d.month" class="border-b border-slate-200 hover:bg-white transition-colors">
-                                  <td class="p-3 font-bold text-slate-700">{{ d.month }}</td>
-                                  <td class="p-3 text-slate-600">{{ d.value }} mm</td>
+                                  <td class="p-4 font-bold text-slate-700">{{ d.month }}</td>
+                                  <td class="p-4 text-slate-600">{{ d.value }} mm</td>
                               </tr>
                           </tbody>
                       </table>
@@ -320,7 +320,7 @@ onUnmounted(() => {
                       <div v-for="d in displayData" :key="d.month" class="flex-1 flex flex-col items-center justify-end h-full z-10 group relative transition-all duration-500 ease-out"
                            :style="{ height: `${(d.value / maxValue) * 100}%` }">
                           <div class="w-full bg-blue-500 rounded-t-sm shadow-md group-hover:bg-blue-400 transition-colors h-full flex flex-col items-center justify-start pt-2">
-                              <span class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-white bg-slate-800 px-2 py-1 rounded -translate-y-8 absolute pointer-events-none transition-opacity">
+                              <span class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-white bg-slate-800 px-2 py-1 rounded-lg -translate-y-8 absolute pointer-events-none transition-opacity">
                                   {{ d.value }}mm
                               </span>
                           </div>

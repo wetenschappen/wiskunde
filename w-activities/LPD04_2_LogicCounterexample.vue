@@ -208,12 +208,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-500/20">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-400" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
@@ -222,7 +222,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-600'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-600'"></div>
               </div>
             </div>
           </div>
@@ -241,17 +241,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] animate-fadeIn">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -262,7 +262,7 @@ onUnmounted(() => {
               <!-- The Rule to Shatter -->
               <div class="relative mb-24 w-full flex flex-col items-center">
 
-                  <div :key="currentInternalLevel" class="bg-slate-800 border-2 border-slate-600 px-8 py-6 rounded-3xl shadow-2xl relative z-10 transition-all duration-700 ease-in-out animate-fadeIn"
+                  <div :key="currentInternalLevel" class="bg-slate-800 border-2 border-slate-600 px-8 py-6 rounded-xl shadow-md relative z-10 transition-all duration-700 ease-in-out animate-fadeIn"
                        :class="ruleShattered ? 'opacity-30 scale-110 filter blur-sm rotate-3' : 'opacity-100 scale-100'">
                       <p class="text-xl text-slate-400 font-bold uppercase tracking-widest mb-2 text-center">Bewering</p>
                       <h1 class="text-2xl md:text-4xl font-black text-center text-white font-mono" v-html="currentLevelData.ruleHTML">
@@ -271,8 +271,8 @@ onUnmounted(() => {
 
                   <!-- Shatter lines when rule is broken -->
                   <div v-if="ruleShattered" class="absolute inset-0 pointer-events-none z-20 flex items-center justify-center">
-                      <div class="w-full max-w-xl h-2 bg-amber-400 rotate-12 transform scale-150 animate-slash shadow-[0_0_20px_#fbbf24]"></div>
-                      <div class="absolute w-full max-w-xl h-2 bg-amber-400 -rotate-6 transform scale-150 animate-slash shadow-[0_0_20px_#fbbf24]" style="animation-delay: 0.1s"></div>
+                      <div class="w-full max-w-xl h-2 bg-math-blue rotate-12 transform scale-150 animate-slash shadow-[0_0_20px_#fbbf24]"></div>
+                      <div class="absolute w-full max-w-xl h-2 bg-math-blue -rotate-6 transform scale-150 animate-slash shadow-[0_0_20px_#fbbf24]" style="animation-delay: 0.1s"></div>
                   </div>
               </div>
 
@@ -289,7 +289,7 @@ onUnmounted(() => {
                           <!-- The Tick Point -->
                           <div class="w-4 h-4 rounded-full border-4 border-slate-800 transition-all z-20"
                                :class="{
-                                   'bg-slate-400 group-hover:bg-amber-400 group-hover:scale-150': selectedNumber !== num,
+                                   'bg-slate-400 group-hover:bg-math-blue group-hover:scale-150': selectedNumber !== num,
                                    'bg-emerald-500 border-emerald-200 scale-150 shadow-[0_0_15px_#10b981]': isCorrect && selectedNumber === num,
                                    'bg-red-500 border-red-200 scale-150 shadow-[0_0_15px_#ef4444] animate-shake': !isCorrect && selectedNumber === num
                                }">
@@ -297,7 +297,7 @@ onUnmounted(() => {
 
                           <!-- The Number Label -->
                           <span class="absolute top-8 font-bold font-mono transition-colors text-sm"
-                                :class="selectedNumber === num ? (isCorrect ? 'text-emerald-400' : 'text-red-400') : 'text-slate-500 group-hover:text-amber-400'">
+                                :class="selectedNumber === num ? (isCorrect ? 'text-emerald-400' : 'text-red-400') : 'text-slate-500 group-hover:text-math-blue'">
                               {{ num }}
                           </span>
 

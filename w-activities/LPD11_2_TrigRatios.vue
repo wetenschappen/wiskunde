@@ -282,12 +282,12 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -296,7 +296,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -315,8 +315,8 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-5 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800 text-lg">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-5 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue text-lg">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
@@ -324,11 +324,11 @@ onUnmounted(() => {
 
               <div class="flex gap-2 justify-center">
                  <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold"
-                      :class="selectedSides.length >= 1 ? 'bg-teal-500 text-white' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'">
+                      :class="selectedSides.length >= 1 ? 'bg-math-blue text-white' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'">
                    1
                  </div>
                  <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold"
-                      :class="selectedSides.length >= 2 ? 'bg-teal-500 text-white' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'">
+                      :class="selectedSides.length >= 2 ? 'bg-math-blue text-white' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'">
                    2
                  </div>
               </div>
@@ -338,7 +338,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -350,21 +350,21 @@ onUnmounted(() => {
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-relaxed">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="showHint" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="showHint" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
                 Geef me een hint
               </button>
 
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -375,7 +375,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <div class="relative w-80 h-64">
                 <!-- Transform container for rotation/mirroring based on level -->
@@ -431,7 +431,7 @@ onUnmounted(() => {
                           'absolute top-1 right-8': currentLevelData.transform.includes('rotate(180')
                         }">\u03b1</div>
                    <!-- beta label -->
-                   <div class="text-rose-500 font-black text-2xl font-serif"
+                   <div class="text-math-blue font-black text-2xl font-serif"
                         :class="{
                           'absolute top-8 right-6': currentLevelData.transform === 'scale(1, 1)',
                           'absolute top-8 left-6': currentLevelData.transform.includes('scale(-1'),

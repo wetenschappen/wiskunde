@@ -153,11 +153,11 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-orange-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -171,40 +171,40 @@ onUnmounted(() => {
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner text-center">
-              <label class="block text-sm font-bold text-orange-900 mb-2">Jouw klik:</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+              <label class="block text-sm font-bold text-math-blue mb-2">Jouw klik:</label>
               <div class="flex items-center justify-center gap-2 text-3xl font-black text-slate-700">
                 <span>(</span>
-                <div class="w-16 p-2 rounded shadow-sm border" :class="userX !== null ? 'border-orange-300 bg-white text-orange-600' : 'border-slate-200 bg-slate-50 text-slate-300'">{{ userX !== null ? userX : 'x' }}</div>
+                <div class="w-16 p-2 rounded-lg shadow-sm border" :class="userX !== null ? 'border-surface-200 bg-white text-math-blue' : 'border-slate-200 bg-slate-50 text-slate-300'">{{ userX !== null ? userX : 'x' }}</div>
                 <span>,</span>
-                <div class="w-16 p-2 rounded shadow-sm border" :class="userY !== null ? 'border-blue-300 bg-white text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-300'">{{ userY !== null ? userY : 'y' }}</div>
+                <div class="w-16 p-2 rounded-lg shadow-sm border" :class="userY !== null ? 'border-blue-300 bg-white text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-300'">{{ userY !== null ? userY : 'y' }}</div>
                 <span>)</span>
               </div>
-              <p v-if="currentLevel.targetX > 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant I (x>0, y>0)</p>
-              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant II (x&lt;0, y>0)</p>
-              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY < 0" class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant III (x&lt;0, y&lt;0)</p>
-              <p v-else class="mt-3 text-xs text-orange-700 font-medium">Tip: de schat ligt in Kwadrant IV (x>0, y&lt;0)</p>
+              <p v-if="currentLevel.targetX > 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-math-blue font-medium">Tip: de schat ligt in Kwadrant I (x>0, y>0)</p>
+              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY > 0" class="mt-3 text-xs text-math-blue font-medium">Tip: de schat ligt in Kwadrant II (x&lt;0, y>0)</p>
+              <p v-else-if="currentLevel.targetX < 0 && currentLevel.targetY < 0" class="mt-3 text-xs text-math-blue font-medium">Tip: de schat ligt in Kwadrant III (x&lt;0, y&lt;0)</p>
+              <p v-else class="mt-3 text-xs text-math-blue font-medium">Tip: de schat ligt in Kwadrant IV (x>0, y&lt;0)</p>
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
-              <div v-if="!isCorrect" class="flex-1 py-3"></div>
+              <div v-if="!isCorrect" class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-map">
-            <div class="relative bg-[#fdfbf7] shadow-xl rounded-2xl overflow-hidden border-4 border-slate-800 p-4">
+            <div class="relative bg-[#fdfbf7] shadow-md rounded-xl overflow-hidden border-4 border-slate-800 p-4">
               <svg width="500" height="500" viewBox="0 0 500 500" class="block">
                 <g stroke="#cbd5e1" stroke-width="1">
                   <line v-for="i in 11" :key="'vg'+i" :x1="(i-1) * 50" y1="0" :x2="(i-1) * 50" y2="500" />

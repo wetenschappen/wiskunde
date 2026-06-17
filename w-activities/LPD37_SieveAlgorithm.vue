@@ -188,23 +188,23 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-500/20">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-400" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
-            <div class="flex items-center gap-3 mt-0.5">
+            <div class="flex items-center gap-4 mt-0.5">
               <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
               <div class="flex items-center gap-2 text-xs text-slate-500">
                 <span class="font-medium">Level {{ currentInternalLevel + 1 }}/{{ totalInternalLevels }}</span>
                 <div class="flex items-center gap-1">
                   <span v-for="lvl in totalInternalLevels" :key="lvl"
                         class="w-2 h-2 rounded-full transition-all duration-300"
-                        :class="lvl - 1 <= currentInternalLevel ? 'bg-indigo-400' : 'bg-slate-600'">
+                        :class="lvl - 1 <= currentInternalLevel ? 'bg-math-blue' : 'bg-slate-600'">
                   </span>
                 </div>
               </div>
@@ -226,18 +226,18 @@ onUnmounted(() => {
                <h4 class="font-bold text-slate-300 mb-4 uppercase tracking-widest text-xs">Legende:</h4>
 
                <div class="flex flex-col gap-4 font-mono text-sm">
-                   <div class="flex items-center gap-3">
-                       <div class="w-8 h-8 rounded border-2 border-slate-500 bg-slate-700 flex items-center justify-center text-slate-400 font-bold">1</div>
+                   <div class="flex items-center gap-4">
+                       <div class="w-8 h-8 rounded-lg border-2 border-slate-500 bg-slate-700 flex items-center justify-center text-slate-400 font-bold">1</div>
                        <span class="text-slate-400">Nog te controleren (0 kliks)</span>
                    </div>
-                   <div class="flex items-center gap-3">
-                       <div class="w-8 h-8 rounded border-2 border-red-500/50 bg-red-900/30 flex items-center justify-center text-slate-600 font-bold relative">
+                   <div class="flex items-center gap-4">
+                       <div class="w-8 h-8 rounded-lg border-2 border-red-500/50 bg-red-900/30 flex items-center justify-center text-slate-600 font-bold relative">
                            <span class="opacity-50">1</span>
                            <div class="absolute inset-0 flex items-center justify-center"><PhX weight="bold" class="text-red-500 w-6 h-6" /></div>
                        </div>
                        <span class="text-red-400">Geen priemgetal (1 klik)</span>
                    </div>
-                   <div class="flex items-center gap-3">
+                   <div class="flex items-center gap-4">
                        <div class="w-8 h-8 rounded-full border-4 border-emerald-500 bg-emerald-900/30 flex items-center justify-center text-emerald-400 font-bold">
                            1
                        </div>
@@ -248,18 +248,18 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
               <!-- Auto-correct: no check button, grid clicks auto-verify -->
-              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 font-bold text-slate-400 transition-all rounded-lg shadow-md bg-slate-700 text-center select-none text-sm">
+              <div v-else class="flex-1 py-4 font-bold text-slate-400 transition-all rounded-lg shadow-md bg-slate-700 text-center select-none text-sm">
                 Klik getallen om te markeren
               </div>
             </div>
@@ -271,7 +271,7 @@ onUnmounted(() => {
 
               <div class="w-full max-w-3xl flex flex-col items-center">
 
-                  <div class="grid grid-cols-5 gap-4 md:gap-6 bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-700">
+                  <div class="grid grid-cols-5 gap-4 md:gap-6 bg-slate-800 p-8 rounded-xl shadow-md border border-slate-700">
 
                       <button v-for="(state, idx) in numStates" :key="idx"
                               @click="cycleState(idx)" :disabled="isCorrect"

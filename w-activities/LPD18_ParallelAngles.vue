@@ -193,12 +193,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -207,7 +207,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -223,19 +223,19 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-slate-700 mb-2">Hoekgrootte (Snijlijn):</label>
-               <div class="font-black text-3xl text-teal-600 mb-4 bg-white px-4 py-2 rounded shadow-sm inline-block border border-teal-200">
+               <div class="font-black text-3xl text-math-blue mb-4 bg-white px-4 py-2 rounded-lg shadow-sm inline-block border border-surface-200">
                    {{ transversalAngle }}°
                </div>
 
                <div class="flex gap-2">
                    <div v-for="i in 2" :key="i" class="flex-1 h-12 rounded-lg border-2 border-dashed flex items-center justify-center font-bold text-xl transition-all"
-                        :class="selectedAngles[i-1] ? 'border-teal-500 bg-teal-100 text-teal-800' : 'border-slate-300 bg-white text-slate-400'">
+                        :class="selectedAngles[i-1] ? 'border-math-blue bg-math-blue-bg text-math-blue' : 'border-slate-300 bg-white text-slate-400'">
                        {{ selectedAngles[i-1] ? `Hoek ${selectedAngles[i-1]}` : '?' }}
                    </div>
                </div>
@@ -243,18 +243,18 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
               <!-- Auto-correct on 2-angle selection — no check button -->
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -267,14 +267,14 @@ onUnmounted(() => {
                   <div class="mb-12 w-full max-w-md bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                       <div class="flex w-full justify-between items-end mb-2">
                           <label class="font-bold text-slate-500 uppercase tracking-widest text-xs">Draai de snijlijn</label>
-                          <span class="font-black text-xl text-teal-600">{{ transversalAngle }}°</span>
+                          <span class="font-black text-xl text-math-blue">{{ transversalAngle }}°</span>
                       </div>
                       <input type="range" min="30" max="150" step="1" v-model.number="transversalAngle" :disabled="isCorrect"
                              class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500" />
                   </div>
 
                   <!-- Visualisation Area -->
-                  <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8">
+                  <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-2 border-slate-200 p-8">
                       <svg width="500" height="300" viewBox="0 0 500 300">
 
                           <!-- Definitions for arrow heads -->
@@ -303,19 +303,19 @@ onUnmounted(() => {
                       <!-- Intersection Top -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 - 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 100px)' }">
-                          <div @click="toggleAngle(1)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(1) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">1</div>
-                          <div @click="toggleAngle(2)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(2) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">2</div>
-                          <div @click="toggleAngle(3)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(3) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">3</div>
-                          <div @click="toggleAngle(4)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(4) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">4</div>
+                          <div @click="toggleAngle(1)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(1) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">1</div>
+                          <div @click="toggleAngle(2)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(2) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">2</div>
+                          <div @click="toggleAngle(3)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(3) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">3</div>
+                          <div @click="toggleAngle(4)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(4) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">4</div>
                       </div>
 
                       <!-- Intersection Bottom -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 + 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 200px)' }">
-                          <div @click="toggleAngle(5)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(5) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">5</div>
-                          <div @click="toggleAngle(6)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(6) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">6</div>
-                          <div @click="toggleAngle(7)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(7) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">7</div>
-                          <div @click="toggleAngle(8)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(8) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">8</div>
+                          <div @click="toggleAngle(5)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(5) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">5</div>
+                          <div @click="toggleAngle(6)" class="cursor-pointer flex items-end justify-start p-2 rounded-tr-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(6) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">6</div>
+                          <div @click="toggleAngle(7)" class="cursor-pointer flex items-start justify-end p-2 rounded-bl-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(7) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">7</div>
+                          <div @click="toggleAngle(8)" class="cursor-pointer flex items-start justify-start p-2 rounded-br-full hover:bg-math-blue/20 transition-colors" :class="selectedAngles.includes(8) ? 'bg-math-blue/40 text-math-blue' : 'text-slate-500'">8</div>
                       </div>
 
                   </div>

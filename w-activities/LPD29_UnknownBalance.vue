@@ -165,11 +165,11 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -183,33 +183,33 @@ onUnmounted(() => {
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border border-amber-200 bg-amber-50 rounded-xl shadow-inner text-center">
-              <label class="block text-sm font-bold text-amber-900 mb-2">Vergelijking:</label>
-              <div class="font-mono font-black text-2xl text-slate-800 flex items-center justify-center gap-3">
-                <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">x + {{ equation.leftLoose }}</span>
-                <span class="text-amber-500">=</span>
-                <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">{{ equation.rightLoose }}</span>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+              <label class="block text-sm font-bold text-math-blue mb-2">Vergelijking:</label>
+              <div class="font-mono font-black text-2xl text-slate-800 flex items-center justify-center gap-4">
+                <span class="bg-white px-4 py-1 rounded-lg shadow-sm border border-slate-200">x + {{ equation.leftLoose }}</span>
+                <span class="text-math-blue">=</span>
+                <span class="bg-white px-4 py-1 rounded-lg shadow-sm border border-slate-200">{{ equation.rightLoose }}</span>
               </div>
               <div class="mt-6 flex items-center justify-center gap-4">
                 <button @click="decreaseX" :disabled="isCorrect || xValue <= 0" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">-</button>
                 <div class="flex flex-col items-center">
                   <span class="text-xs font-bold text-slate-400 uppercase">Doos x</span>
-                  <span class="text-3xl font-black text-amber-600 w-12">{{ xValue }}</span>
+                  <span class="text-3xl font-black text-math-blue w-12">{{ xValue }}</span>
                 </div>
                 <button @click="increaseX" :disabled="isCorrect || xValue >= 15" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">+</button>
               </div>
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -219,22 +219,22 @@ onUnmounted(() => {
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
             <div class="w-full max-w-2xl min-h-[500px] flex items-center justify-center relative">
               <div class="relative w-full max-w-lg transition-transform duration-700 ease-in-out origin-bottom" :style="{ transform: `rotate(${tiltValue * 8}deg)` }">
-                <div class="w-full h-4 bg-slate-700 rounded-full shadow-lg relative z-10 flex justify-between px-8">
+                <div class="w-full h-4 bg-slate-700 rounded-full shadow-md relative z-10 flex justify-between px-8">
                   <!-- Left Pan (x + leftLoose) -->
                   <div class="absolute left-8 bottom-4 w-40 flex flex-col items-center transform origin-bottom transition-transform duration-700" :style="{ transform: `rotate(${-tiltValue * 8}deg)` }">
                     <div class="flex items-end justify-center gap-2 mb-2 w-full px-2">
-                      <div class="w-20 h-20 bg-amber-200 border-4 border-amber-500 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden transition-all duration-500"
-                        :class="isCorrect ? 'bg-transparent border-dashed border-amber-300' : ''">
+                      <div class="w-20 h-20 bg-math-blue-light border-4 border-math-blue rounded-xl flex items-center justify-center shadow-md relative overflow-hidden transition-all duration-500"
+                        :class="isCorrect ? 'bg-transparent border-dashed border-surface-200' : ''">
                         <div v-if="!isCorrect" class="flex flex-col items-center">
-                          <svg class="w-6 h-6 text-amber-600 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                          <span class="font-black text-2xl text-amber-800 font-mono">x</span>
+                          <svg class="w-6 h-6 text-math-blue mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                          <span class="font-black text-2xl text-math-blue font-mono">x</span>
                         </div>
                         <div v-else class="flex flex-wrap gap-1 p-1 justify-center items-center h-full w-full">
-                          <div v-for="i in xValue" :key="'xb'+i" class="w-5 h-5 bg-amber-400 border border-amber-600 rounded-sm shadow-sm animate-fadeIn" :style="`animation-delay: ${i*0.05}s`"></div>
+                          <div v-for="i in xValue" :key="'xb'+i" class="w-5 h-5 bg-math-blue border border-math-blue rounded-lg shadow-sm animate-fadeIn" :style="`animation-delay: ${i*0.05}s`"></div>
                         </div>
                       </div>
                       <div class="flex flex-col gap-1 justify-end h-full mb-1">
-                        <div v-for="i in equation.leftLoose" :key="'ll'+i" class="w-6 h-6 bg-slate-200 border-2 border-slate-400 rounded shadow-sm flex items-center justify-center font-bold text-slate-500 text-[10px]">1</div>
+                        <div v-for="i in equation.leftLoose" :key="'ll'+i" class="w-6 h-6 bg-slate-200 border-2 border-slate-400 rounded-lg shadow-sm flex items-center justify-center font-bold text-slate-500 text-[10px]">1</div>
                       </div>
                     </div>
                     <div class="w-full h-2 bg-slate-300 rounded-full border border-slate-400"></div>
@@ -242,7 +242,7 @@ onUnmounted(() => {
                   <!-- Right Pan -->
                   <div class="absolute right-8 bottom-4 w-40 flex flex-col items-center transform origin-bottom transition-transform duration-700" :style="{ transform: `rotate(${-tiltValue * 8}deg)` }">
                     <div class="flex items-end justify-center gap-1 mb-2 w-full px-2 flex-wrap">
-                      <div v-for="i in equation.rightLoose" :key="'rl'+i" class="w-8 h-8 bg-slate-200 border-2 border-slate-400 rounded shadow-sm flex items-center justify-center font-bold text-slate-500 text-xs">1</div>
+                      <div v-for="i in equation.rightLoose" :key="'rl'+i" class="w-8 h-8 bg-slate-200 border-2 border-slate-400 rounded-lg shadow-sm flex items-center justify-center font-bold text-slate-500 text-xs">1</div>
                     </div>
                     <div class="w-full h-2 bg-slate-300 rounded-full border border-slate-400"></div>
                   </div>

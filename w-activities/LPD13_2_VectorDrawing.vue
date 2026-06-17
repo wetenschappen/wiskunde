@@ -213,7 +213,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -252,24 +252,24 @@ onUnmounted(() => {
 
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-4 shadow-inner">
               <p class="font-bold text-slate-800 mb-2 uppercase tracking-wider text-xs">Gegeven Vectoren:</p>
-              <ul class="text-lg font-mono font-bold text-slate-700 space-y-3">
+              <ul class="text-lg font-mono font-bold text-slate-700 space-y-4">
                 <li class="flex items-center gap-2">
-                  <span class="inline-block w-4 h-4 bg-blue-500 rounded-sm"></span>
+                  <span class="inline-block w-4 h-4 bg-blue-500 rounded-lg"></span>
                   a = ({{ currentLevelData.vecA.x }}, {{ currentLevelData.vecA.y }})
                 </li>
                 <li v-if="currentLevelData.vecB" class="flex items-center gap-2">
-                  <span class="inline-block w-4 h-4 bg-emerald-500 rounded-sm"></span>
+                  <span class="inline-block w-4 h-4 bg-emerald-500 rounded-lg"></span>
                   b = ({{ currentLevelData.vecB.x }}, {{ currentLevelData.vecB.y }})
                 </li>
 
                 <li class="pt-4 mt-2 border-t-2 border-dashed border-slate-300"></li>
 
                 <li v-if="userPoint" class="flex items-center gap-2 text-sky-600">
-                  <span class="inline-block w-4 h-4 bg-sky-500 rounded-sm"></span>
+                  <span class="inline-block w-4 h-4 bg-sky-500 rounded-lg"></span>
                   v = ({{ userPoint.x }}, {{ userPoint.y }})
                 </li>
                 <li v-else class="flex items-center gap-2 text-slate-400">
-                  <span class="inline-block w-4 h-4 border-2 border-dashed border-slate-400 rounded-sm"></span>
+                  <span class="inline-block w-4 h-4 border-2 border-dashed border-slate-400 rounded-lg"></span>
                   v = (?, ?)
                 </li>
               </ul>
@@ -278,7 +278,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-center gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -288,17 +288,17 @@ onUnmounted(() => {
                <span class="leading-relaxed">{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
               <!-- Auto-correct: no Controleer button needed; click on grid is the answer -->
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <button v-else disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-70">
+              <button v-else disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-70">
                 Klik op het raster
               </button>
             </div>
@@ -308,7 +308,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid">
 
               <div class="relative bg-white rounded-lg shadow-sm border border-slate-300 overflow-hidden cursor-crosshair"
                    style="width: 400px; height: 400px;"

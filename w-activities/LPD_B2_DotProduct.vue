@@ -241,23 +241,23 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-3 mt-0.5">
+            <div class="flex items-center gap-4 mt-0.5">
               <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
               <div class="flex items-center gap-2 text-xs text-slate-400">
                 <span class="font-medium">Level {{ currentInternalLevel + 1 }}/{{ totalInternalLevels }}</span>
                 <div class="flex items-center gap-1">
                   <span v-for="lvl in totalInternalLevels" :key="lvl"
                         class="w-2 h-2 rounded-full transition-all duration-300"
-                        :class="lvl - 1 <= currentInternalLevel ? 'bg-indigo-400' : 'bg-slate-300'">
+                        :class="lvl - 1 <= currentInternalLevel ? 'bg-math-blue' : 'bg-slate-300'">
                   </span>
                 </div>
               </div>
@@ -293,7 +293,7 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div class="bg-white p-4 rounded border border-slate-200">
+              <div class="bg-white p-4 rounded-lg border border-slate-200">
                 <p class="text-sm font-bold text-slate-500 mb-2">Inproduct a &middot; b:</p>
                 <p class="font-mono text-sm text-slate-600">(x&8321; &middot; x&#x2082;) + (y&8321; &middot; y&#x2082;)</p>
                 <p class="font-mono text-sm text-slate-600">({{ vecA.x }} &middot; {{ vecB_x }}) + ({{ vecA.y }} &middot; {{ vecB_y }})</p>
@@ -304,7 +304,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -314,17 +314,17 @@ onUnmounted(() => {
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
               <!-- Slider + check button: keep Controleer for number/slider interaction -->
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
 
-              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -335,11 +335,11 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <div class="relative w-80 h-80 flex items-center justify-center">
                 <!-- SVG Vector Grid -->
-                <svg width="320" height="320" viewBox="-160 -160 320 320" class="overflow-visible bg-white/50 rounded shadow-sm border border-slate-300">
+                <svg width="320" height="320" viewBox="-160 -160 320 320" class="overflow-visible bg-white/50 rounded-lg shadow-sm border border-slate-300">
                   <defs>
                     <marker id="head-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                       <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />

@@ -161,7 +161,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -194,18 +194,18 @@ onUnmounted(() => {
             <div class="p-4 mt-6 border border-emerald-200 bg-emerald-50 rounded-xl shadow-inner text-center">
                <span class="text-xs font-bold text-emerald-800 uppercase tracking-widest block mb-2">Uitspraak {{ currentInternalLevel + 1 }}</span>
 
-               <p class="font-bold text-lg text-slate-800 mb-6 bg-white p-3 rounded-lg shadow-sm border border-emerald-100">
+               <p class="font-bold text-lg text-slate-800 mb-6 bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
                    "{{ currentLevelData.text }}"
                </p>
 
                <div class="flex gap-2">
                    <button @click="checkAnswer(true)" :disabled="isCorrect"
-                           class="flex-1 py-3 rounded-lg font-bold transition-colors border-2"
+                           class="flex-1 py-4 rounded-lg font-bold transition-colors border-2"
                            :class="userAns === true ? (userAns === currentLevelData.isTrue ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        WAAR
                    </button>
                    <button @click="checkAnswer(false)" :disabled="isCorrect"
-                           class="flex-1 py-3 rounded-lg font-bold transition-colors border-2"
+                           class="flex-1 py-4 rounded-lg font-bold transition-colors border-2"
                            :class="userAns === false ? (userAns === currentLevelData.isTrue ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-red-500 border-red-600 text-white') : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        VALS
                    </button>
@@ -214,18 +214,18 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
               <!-- No check button — WAAR/VALS auto-checks -->
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -236,13 +236,13 @@ onUnmounted(() => {
               <div class="w-full h-full flex flex-col items-center justify-center relative">
 
                   <!-- Base Outer Box -->
-                  <div class="w-64 h-64 border-4 border-slate-700 bg-white rounded-xl shadow-lg relative flex items-start justify-center pt-4 transition-all duration-1000 z-0"
+                  <div class="w-64 h-64 border-4 border-slate-700 bg-white rounded-xl shadow-md relative flex items-start justify-center pt-4 transition-all duration-1000 z-0"
                        :class="showNesting && currentLevelData.isTrue ? 'scale-110 border-emerald-500' : (showNesting && !currentLevelData.isTrue ? 'border-red-500 animate-shake' : '')">
                       <span class="font-black text-xl text-slate-800 uppercase tracking-widest">{{ currentLevelData.outer }}</span>
                   </div>
 
                   <!-- Inner Box (Floating initially, then nests) -->
-                  <div class="w-48 h-48 border-4 border-blue-500 bg-blue-50 rounded-xl shadow-xl flex items-center justify-center absolute transition-all duration-1000 ease-in-out z-10"
+                  <div class="w-48 h-48 border-4 border-blue-500 bg-blue-50 rounded-xl shadow-md flex items-center justify-center absolute transition-all duration-1000 ease-in-out z-10"
                        :class="showNesting && currentLevelData.isTrue ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-[40%]' : 'top-12 -left-12 -translate-y-12'">
                       <span class="font-black text-lg text-blue-700 uppercase tracking-widest">{{ currentLevelData.inner }}</span>
 

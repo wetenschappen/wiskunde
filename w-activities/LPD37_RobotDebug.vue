@@ -256,7 +256,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
@@ -300,10 +300,10 @@ onUnmounted(() => {
                    <button @click="addCommand('right')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretRight weight="bold" class="w-6 h-6 text-white" /></button>
                </div>
 
-               <div class="min-h-[60px] bg-slate-900 border-2 border-slate-600 rounded-xl p-3 flex flex-wrap gap-2 items-center">
+               <div class="min-h-[60px] bg-slate-900 border-2 border-slate-600 rounded-xl p-4 flex flex-wrap gap-2 items-center">
                    <span v-if="algorithm.length === 0" class="text-slate-500 text-sm italic">Code is leeg...</span>
 
-                   <div v-for="(cmd, idx) in algorithm" :key="idx" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold shadow-sm animate-fadeIn">
+                   <div v-for="(cmd, idx) in algorithm" :key="idx" class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold shadow-sm animate-fadeIn">
                        <PhCaretUp v-if="cmd==='up'" weight="bold" />
                        <PhCaretDown v-if="cmd==='down'" weight="bold" />
                        <PhCaretLeft v-if="cmd==='left'" weight="bold" />
@@ -319,15 +319,15 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetPosition" :disabled="isRunning" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+            <div class="flex items-center gap-4">
+              <button @click="resetPosition" :disabled="isRunning" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
 
-              <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Voer Uit</button>
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+              <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-4 font-bold tracking-widest uppercase transition-all shadow-md border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-math-blue border-math-blue text-white hover:bg-math-blue'">Voer Uit</button>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -340,19 +340,19 @@ onUnmounted(() => {
 
               <div class="w-full max-w-2xl flex flex-col items-center">
 
-                  <div class="relative bg-slate-800 shadow-2xl rounded-xl overflow-hidden border-8 border-slate-700 p-2" style="width: 400px; height: 400px;">
+                  <div class="relative bg-slate-800 shadow-md rounded-xl overflow-hidden border-8 border-slate-700 p-2" style="width: 400px; height: 400px;">
 
                       <!-- Grid Layout -->
                       <div class="absolute inset-2 grid grid-cols-4 grid-rows-4 gap-1 z-0">
                           <template v-for="y in 4" :key="'ry'+y">
                               <template v-for="x in 4" :key="'rx'+x">
-                                  <div class="bg-slate-900/50 rounded-sm relative flex items-center justify-center">
+                                  <div class="bg-slate-900/50 rounded-lg relative flex items-center justify-center">
 
                                       <!-- Goal highlight -->
-                                      <div v-if="x-1 === goalX && 4-y === goalY" class="absolute inset-1 bg-emerald-500/30 rounded border-2 border-emerald-500 animate-pulse"></div>
+                                      <div v-if="x-1 === goalX && 4-y === goalY" class="absolute inset-1 bg-emerald-500/30 rounded-lg border-2 border-emerald-500 animate-pulse"></div>
 
                                       <!-- Wall block -->
-                                      <div v-if="hasWall(x-1, 4-y)" class="absolute inset-0 bg-red-500/80 border-4 border-red-700 rounded-sm shadow-inner flex items-center justify-center">
+                                      <div v-if="hasWall(x-1, 4-y)" class="absolute inset-0 bg-red-500/80 border-4 border-red-700 rounded-lg shadow-inner flex items-center justify-center">
                                           <PhX weight="bold" class="w-8 h-8 text-red-900/50" />
                                       </div>
 
@@ -366,7 +366,7 @@ onUnmounted(() => {
                            :class="crashStatus ? 'animate-shake' : ''"
                            :style="{ left: `${robotX * 25}%`, bottom: `${robotY * 25}%` }">
 
-                           <div class="w-16 h-16 bg-blue-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center relative"
+                           <div class="w-16 h-16 bg-blue-500 border-4 border-white rounded-full shadow-md flex items-center justify-center relative"
                                 :class="crashStatus ? 'bg-red-500' : ''">
                                <PhRobot weight="fill" class="w-10 h-10 text-white" />
                                <div v-if="crashStatus" class="absolute inset-0 flex items-center justify-center">

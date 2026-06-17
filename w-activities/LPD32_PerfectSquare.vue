@@ -108,10 +108,10 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100"><component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" /></div>
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg"><component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" /></div>
           <div><h2 class="text-lg font-bold text-slate-900">{{ title }}</h2><p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p></div>
         </div>
         <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
@@ -121,9 +121,9 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
-              <label class="block text-sm font-bold text-teal-900 mb-2">Conclusie: (a + b)\u00b2 = ...</label>
-              <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+              <label class="block text-sm font-bold text-math-blue mb-2">Conclusie: (a + b)\u00b2 = ...</label>
+              <select v-model="userAns" :disabled="isCorrect" class="w-full p-4 border-2 border-surface-200 rounded-lg focus:ring-math-blue focus:border-math-blue font-bold text-slate-700 bg-white">
                 <option value="" disabled>Kies de formule...</option>
                 <option value="wrong2">a\u00b2 + b\u00b2</option>
                 <option value="wrong1">a\u00b2 + ab + b\u00b2</option>
@@ -132,14 +132,14 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="userAns === ''">Controleer</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white rounded-lg shadow-md bg-amber-600 hover:bg-amber-500"><span>Afronden</span><PhArrowRight weight="bold" /></button>
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="userAns === ''">Controleer</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white rounded-lg shadow-md bg-math-blue hover:bg-math-blue"><span>Afronden</span><PhArrowRight weight="bold" /></button>
             </div>
           </div>
         </div>
@@ -148,23 +148,23 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             <div class="w-full max-w-4xl flex flex-col items-center">
               <div class="font-mono font-black text-2xl text-slate-600 mb-4">(a + b)\u00b2 = ({{currentLevel.a}} + {{currentLevel.b}})\u00b2</div>
               <div class="mb-8">
-                <button @click="splitSquare" :disabled="isCorrect || isSplit" class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
+                <button @click="splitSquare" :disabled="isCorrect || isSplit" class="px-6 py-4 font-bold bg-slate-800 text-white rounded-xl shadow-md flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                   <PhHandGrabbing weight="bold" class="w-6 h-6" /> Splits Vierkant
                 </button>
               </div>
-              <div class="relative bg-white shadow-xl rounded-2xl border-4 border-slate-300 p-12 flex items-center justify-center">
+              <div class="relative bg-white shadow-md rounded-xl border-4 border-slate-300 p-12 flex items-center justify-center">
                 <div class="relative" :style="{ width: (currentLevel.aPx + currentLevel.bPx) + 'px', height: (currentLevel.aPx + currentLevel.bPx) + 'px' }">
                   <div class="absolute top-0 left-0 flex items-center justify-center shadow-sm transition-all duration-700 ease-in-out" :style="{ width: currentLevel.aPx + 'px', height: currentLevel.aPx + 'px' }" :class="isSplit ? '-translate-x-4 -translate-y-4' : ''" style="background: rgba(59,130,246,0.15); border: 4px solid #3b82f6;">
                     <span class="font-black text-4xl text-blue-600">a\u00b2</span>
                   </div>
                   <div class="absolute top-0 flex items-center justify-center shadow-sm transition-all duration-700 ease-in-out" :style="{ left: currentLevel.aPx + 'px', width: currentLevel.bPx + 'px', height: currentLevel.aPx + 'px' }" :class="isSplit ? 'translate-x-4 -translate-y-4' : ''" style="background: rgba(251,146,60,0.15); border: 4px solid #f97316;">
-                    <span class="font-black text-2xl text-orange-600">ab</span>
+                    <span class="font-black text-2xl text-math-blue">ab</span>
                   </div>
                   <div class="absolute left-0 flex items-center justify-center shadow-sm transition-all duration-700 ease-in-out" :style="{ top: currentLevel.aPx + 'px', width: currentLevel.aPx + 'px', height: currentLevel.bPx + 'px' }" :class="isSplit ? '-translate-x-4 translate-y-4' : ''" style="background: rgba(251,146,60,0.15); border: 4px solid #f97316;">
-                    <span class="font-black text-2xl text-orange-600">ab</span>
+                    <span class="font-black text-2xl text-math-blue">ab</span>
                   </div>
                   <div class="absolute flex items-center justify-center shadow-sm transition-all duration-700 ease-in-out" :style="{ top: currentLevel.aPx + 'px', left: currentLevel.aPx + 'px', width: currentLevel.bPx + 'px', height: currentLevel.bPx + 'px' }" :class="isSplit ? 'translate-x-4 translate-y-4' : ''" style="background: rgba(236,72,153,0.15); border: 4px solid #ec4899;">
-                    <span class="font-black text-2xl text-pink-600">b\u00b2</span>
+                    <span class="font-black text-2xl text-math-blue">b\u00b2</span>
                   </div>
                   <div class="absolute -top-8 font-black text-xl text-slate-500 transition-opacity" :class="isSplit ? 'opacity-0' : 'opacity-100'" :style="{ left: (currentLevel.aPx / 2 - 10) + 'px' }">a</div>
                   <div class="absolute -top-8 font-black text-xl text-slate-500 transition-opacity" :class="isSplit ? 'opacity-0' : 'opacity-100'" :style="{ left: (currentLevel.aPx + currentLevel.bPx / 2) + 'px' }">b</div>

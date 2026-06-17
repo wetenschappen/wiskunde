@@ -286,7 +286,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -326,13 +326,13 @@ onUnmounted(() => {
             <div class="space-y-4">
               <p class="font-bold text-slate-800">Gegeven Meetwaarden:</p>
 
-              <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-4">
                 <button v-for="data in currentLevelData.data" :key="data.id"
                         @click="selectData(data.id)"
                         class="p-4 border-2 rounded-xl text-left font-bold transition-all flex items-center justify-between shadow-sm"
                         :class="selectedDataId === data.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-4 ring-emerald-100' : 'border-slate-200 hover:border-emerald-300 bg-white text-slate-700'">
                   <span>{{ data.label }}</span>
-                  <span class="font-mono text-xl" :class="data.type === 'zijde' ? 'text-blue-600' : 'text-rose-500'">{{ data.val }}</span>
+                  <span class="font-mono text-xl" :class="data.type === 'zijde' ? 'text-blue-600' : 'text-math-blue'">{{ data.val }}</span>
                 </button>
               </div>
             </div>
@@ -341,7 +341,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -351,12 +351,12 @@ onUnmounted(() => {
                <span class="leading-relaxed">{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -368,10 +368,10 @@ onUnmounted(() => {
           <div class="flex flex-col flex-1 p-8 overflow-y-auto gap-8 items-center justify-center pattern-grid">
 
             <!-- Cosinusregel Box -->
-            <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-md p-6">
+            <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-xl shadow-md p-6">
               <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Cosinusregel</h3>
 
-              <div class="flex items-center justify-center gap-3 text-2xl font-mono font-bold text-slate-700 flex-wrap">
+              <div class="flex items-center justify-center gap-4 text-2xl font-mono font-bold text-slate-700 flex-wrap">
                 <!-- a^2 -->
                 <button @click="fillSlot('cosinus', 'side_a', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.side_a ? cosRuleSlots.side_a.val : 'a' }}
@@ -404,7 +404,7 @@ onUnmounted(() => {
                 <span>·</span>
                 <span>cos(</span>
                 <!-- alpha -->
-                <button @click="fillSlot('cosinus', 'angle_alpha', 'hoek')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.angle_alpha ? 'border-rose-500 bg-rose-50 text-rose-700 border-solid' : (selectedDataId ? 'border-rose-300 hover:bg-rose-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                <button @click="fillSlot('cosinus', 'angle_alpha', 'hoek')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                   {{ cosRuleSlots.angle_alpha ? cosRuleSlots.angle_alpha.val : 'α' }}
                 </button>
                 <span>)</span>
@@ -412,7 +412,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Sinusregel Box -->
-            <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-md p-6">
+            <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-xl shadow-md p-6">
               <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Sinusregel</h3>
 
               <div class="flex items-center justify-center gap-6 text-2xl font-mono font-bold text-slate-700 flex-wrap">
@@ -423,11 +423,11 @@ onUnmounted(() => {
                   <button @click="fillSlot('sinus', 'side_a', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                     {{ sinRuleSlots.side_a ? sinRuleSlots.side_a.val : 'a' }}
                   </button>
-                  <div class="w-24 h-1 bg-slate-300 rounded"></div>
+                  <div class="w-24 h-1 bg-slate-300 rounded-lg"></div>
                   <!-- sin(alpha) -->
                   <div class="flex items-center gap-1">
                     <span>sin(</span>
-                    <button @click="fillSlot('sinus', 'angle_alpha', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_alpha ? 'border-rose-500 bg-rose-50 text-rose-700 border-solid' : (selectedDataId ? 'border-rose-300 hover:bg-rose-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                    <button @click="fillSlot('sinus', 'angle_alpha', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_alpha ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                       {{ sinRuleSlots.angle_alpha ? sinRuleSlots.angle_alpha.val : 'α' }}
                     </button>
                     <span>)</span>
@@ -442,11 +442,11 @@ onUnmounted(() => {
                   <button @click="fillSlot('sinus', 'side_b', 'zijde')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.side_b ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
                     {{ sinRuleSlots.side_b ? sinRuleSlots.side_b.val : 'b' }}
                   </button>
-                  <div class="w-24 h-1 bg-slate-300 rounded"></div>
+                  <div class="w-24 h-1 bg-slate-300 rounded-lg"></div>
                   <!-- sin(beta) -->
                   <div class="flex items-center gap-1">
                     <span>sin(</span>
-                    <button @click="fillSlot('sinus', 'angle_beta', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_beta ? 'border-rose-500 bg-rose-50 text-rose-700 border-solid' : (selectedDataId ? 'border-rose-300 hover:bg-rose-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
+                    <button @click="fillSlot('sinus', 'angle_beta', 'hoek')" class="h-12 min-w-[4rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="sinRuleSlots.angle_beta ? 'border-math-blue bg-math-blue-bg text-math-blue border-solid' : (selectedDataId ? 'border-surface-200 hover:bg-math-blue-bg cursor-pointer' : 'border-slate-300 text-slate-300')">
                       {{ sinRuleSlots.angle_beta ? sinRuleSlots.angle_beta.val : 'β' }}
                     </button>
                     <span>)</span>

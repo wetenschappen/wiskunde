@@ -229,12 +229,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-fuchsia-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-fuchsia-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -243,7 +243,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-fuchsia-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -259,13 +259,13 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-fuchsia-50 p-4 border border-fuchsia-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-fuchsia-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
-            <div class="p-4 mt-6 border border-fuchsia-200 bg-fuchsia-50 rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-fuchsia-900 mb-2">Conclusie over de figuur:</label>
-               <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-fuchsia-300 rounded-lg focus:ring-fuchsia-500 focus:border-fuchsia-500 font-bold text-slate-700 bg-white">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-math-blue mb-2">Conclusie over de figuur:</label>
+               <select v-model="userAns" :disabled="isCorrect" class="w-full p-4 border-2 border-surface-200 rounded-lg focus:ring-math-blue focus:border-math-blue font-bold text-slate-700 bg-white">
                    <option value="" disabled>Kies een eigenschap...</option>
                    <option value="line">Enkel Lijnsymmetrisch (Spiegelas)</option>
                    <option value="point">Enkel Puntsymmetrisch (180° draai)</option>
@@ -276,14 +276,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Eigenschap</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Eigenschap</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -297,19 +297,19 @@ onUnmounted(() => {
               <div class="w-full max-w-4xl flex flex-col items-center">
 
                   <div class="flex gap-4 mb-12">
-                      <button @click="runTest('line')" :disabled="isCorrect" class="px-6 py-3 font-bold bg-white text-fuchsia-700 border-2 border-fuchsia-500 rounded-xl shadow-md flex items-center gap-2 hover:bg-fuchsia-50 active:scale-95 transition-all">
+                      <button @click="runTest('line')" :disabled="isCorrect" class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all">
                           <PhSplitHorizontal weight="bold" class="w-6 h-6" /> Test Lijnsymmetrie
                       </button>
-                      <button @click="runTest('point')" :disabled="isCorrect" class="px-6 py-3 font-bold bg-white text-indigo-700 border-2 border-indigo-500 rounded-xl shadow-md flex items-center gap-2 hover:bg-indigo-50 active:scale-95 transition-all">
+                      <button @click="runTest('point')" :disabled="isCorrect" class="px-6 py-4 font-bold bg-white text-math-blue border-2 border-math-blue rounded-xl shadow-md flex items-center gap-2 hover:bg-math-blue-bg active:scale-95 transition-all">
                           <PhArrowsClockwise weight="bold" class="w-6 h-6" /> Test Puntsymmetrie
                       </button>
                   </div>
 
                   <!-- Visualisation Area -->
-                  <div class="relative w-[500px] h-[300px] bg-white shadow-xl border-4 border-slate-200 rounded-2xl flex items-center justify-center overflow-hidden" :key="currentInternalLevel">
+                  <div class="relative w-[500px] h-[300px] bg-white shadow-md border-4 border-slate-200 rounded-xl flex items-center justify-center overflow-hidden" :key="currentInternalLevel">
 
                       <!-- Center Point for Point Symmetry -->
-                      <circle v-if="testState === 'point'" cx="250" cy="150" r="4" fill="#6366f1" class="absolute z-30 top-[146px] left-[246px] rounded-full w-2 h-2 bg-indigo-500" />
+                      <circle v-if="testState === 'point'" cx="250" cy="150" r="4" fill="#6366f1" class="absolute z-30 top-[146px] left-[246px] rounded-full w-2 h-2 bg-math-blue" />
 
                       <!-- Axis of Symmetry for Line Symmetry -->
                       <div v-if="testState === 'line'" class="absolute w-1 h-full bg-slate-400 border-x border-white border-dashed z-30"></div>

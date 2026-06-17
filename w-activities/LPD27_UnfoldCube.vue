@@ -153,12 +153,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -167,7 +167,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -183,25 +183,25 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
-               <label class="block text-sm font-bold text-teal-900 mb-2">Totale Oppervlakte:</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner text-center">
+               <label class="block text-sm font-bold text-math-blue mb-2">Totale Oppervlakte:</label>
                <div class="flex items-center gap-2">
                    <input type="number" v-model.number="userAns" placeholder="..." :disabled="isCorrect"
-                          class="w-full font-bold text-2xl p-3 border-2 border-teal-300 rounded-lg focus:border-teal-500 focus:ring-teal-500 text-center bg-white" />
+                          class="w-full font-bold text-2xl p-4 border-2 border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center bg-white" />
                    <span class="font-black text-2xl text-slate-500">cm²</span>
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -216,7 +216,7 @@ onUnmounted(() => {
 
                   <div class="mb-12">
                       <button @click="unfoldCube" :disabled="isCorrect || isUnfolded"
-                              class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
+                              class="px-6 py-4 font-bold bg-slate-800 text-white rounded-xl shadow-md flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                           <PhCornersOut weight="bold" class="w-6 h-6" /> Ontvouw Kubus
                       </button>
                   </div>
@@ -237,7 +237,7 @@ onUnmounted(() => {
                            </div>
 
                            <!-- Back -->
-                           <div class="face back bg-indigo-500 border-2 border-indigo-700 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
+                           <div class="face back bg-math-blue border-2 border-math-blue flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateX(180deg) translateZ(0px) translateY(256px)' : 'rotateY(180deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80" style="transform: rotate(180deg)">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>
@@ -255,7 +255,7 @@ onUnmounted(() => {
                            </div>
 
                            <!-- Left -->
-                           <div class="face left bg-teal-500 border-2 border-teal-700 flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
+                           <div class="face left bg-math-blue border-2 border-math-blue flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]"
                                 :style="{ transform: isUnfolded ? 'rotateY(0deg) translateZ(0px) translateX(-128px)' : 'rotateY(-90deg) translateZ(64px)' }">
                                 <span v-if="isUnfolded" class="font-black text-2xl text-white opacity-80">{{ currentLevelData.side }}×{{ currentLevelData.side }}</span>
                            </div>

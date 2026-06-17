@@ -175,12 +175,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -189,7 +189,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -205,14 +205,14 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner flex flex-col gap-6">
 
-               <div class="font-mono font-black text-xl text-slate-700 bg-white p-4 rounded shadow border-2 border-slate-200 text-center">
-                   c = √( <span class="text-blue-500">{{ baseA }}²</span> + <span class="text-fuchsia-500">{{ heightB }}²</span> ) = <span class="text-emerald-500">√{{ currentC2 }}</span>
+               <div class="font-mono font-black text-xl text-slate-700 bg-white p-4 rounded-lg shadow-sm border-2 border-slate-200 text-center">
+                   c = √( <span class="text-blue-500">{{ baseA }}²</span> + <span class="text-math-blue">{{ heightB }}²</span> ) = <span class="text-emerald-500">√{{ currentC2 }}</span>
                </div>
 
                <!-- Slider A -->
@@ -226,21 +226,21 @@ onUnmounted(() => {
 
                <!-- Slider B -->
                <div class="flex flex-col gap-1">
-                   <label class="text-sm font-bold text-fuchsia-700 flex justify-between">
+                   <label class="text-sm font-bold text-math-blue flex justify-between">
                        <span>Hoogte (b)</span>
                        <span>{{ heightB }}</span>
                    </label>
-                   <input type="range" min="1" max="5" step="1" v-model.number="heightB" :disabled="step === 2" class="w-full h-2 bg-fuchsia-200 rounded-lg appearance-none cursor-pointer accent-fuchsia-500" />
+                   <input type="range" min="1" max="5" step="1" v-model.number="heightB" :disabled="step === 2" class="w-full h-2 bg-math-blue-light rounded-lg appearance-none cursor-pointer accent-fuchsia-500" />
                </div>
 
             </div>
 
             <!-- Contextual Actions -->
             <div class="mt-6 flex flex-col gap-2">
-                <button @click="checkTriangle" v-if="step === 0" class="py-3 px-4 bg-teal-600 text-white font-bold rounded-lg shadow hover:bg-teal-500 active:scale-95 transition-all">
+                <button @click="checkTriangle" v-if="step === 0" class="py-4 px-4 bg-math-blue text-white font-bold rounded-lg shadow-sm hover:bg-math-blue active:scale-95 transition-all">
                     1. Valideer Driehoek
                 </button>
-                <button @click="dropToAxis" v-if="step === 1" class="py-3 px-4 bg-emerald-500 text-white font-bold rounded-lg shadow hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2 animate-pulse">
+                <button @click="dropToAxis" v-if="step === 1" class="py-4 px-4 bg-emerald-500 text-white font-bold rounded-lg shadow-sm hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2 animate-pulse">
                     2. Klap Neer <PhCaretDown weight="bold" />
                 </button>
             </div>
@@ -248,17 +248,17 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
 
-              <button v-if="!isCorrect || step !== 2" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 opacity-50">
+              <button v-if="!isCorrect || step !== 2" disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 opacity-50">
                 Afronden
               </button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -275,7 +275,7 @@ onUnmounted(() => {
                   <!-- Number Line & Triangle -->
                   <!-- 0 to 5 on axis. 1 unit = 80px. -->
                   <!-- Origin at (100, 350) inside a 600x450 box -->
-                  <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8 min-w-[600px] min-h-[450px]">
+                  <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-2 border-slate-200 p-8 min-w-[600px] min-h-[450px]">
 
                       <svg width="600" height="450" viewBox="0 0 600 450" class="block relative z-10">
 

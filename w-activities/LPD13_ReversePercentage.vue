@@ -190,12 +190,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -204,7 +204,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -220,25 +220,25 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner flex flex-col gap-4">
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner flex flex-col gap-4">
 
-               <p class="font-bold text-indigo-900">{{ currentLevelData.goalText }}</p>
+               <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
 
                <div class="flex flex-col gap-2">
-                   <label class="text-sm font-bold text-indigo-800">Stap 1: Waarde van 1 blokje</label>
+                   <label class="text-sm font-bold text-math-blue">Stap 1: Waarde van 1 blokje</label>
                    <div class="flex items-center gap-2">
                        <span class="font-black text-xl text-slate-500">€</span>
                        <input type="number" v-model.number="ansBlock" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-xl p-2 border border-indigo-300 rounded focus:border-indigo-500 focus:ring-indigo-500 bg-white" />
+                              class="w-full font-bold text-xl p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue bg-white" />
                    </div>
                </div>
 
-               <div class="flex flex-col gap-2 border-t border-indigo-200 pt-4">
-                   <label class="text-sm font-bold text-indigo-800">Stap 2: Originele prijs (100%)</label>
+               <div class="flex flex-col gap-2 border-t border-surface-200 pt-4">
+                   <label class="text-sm font-bold text-math-blue">Stap 2: Originele prijs (100%)</label>
                    <div class="flex items-center gap-2">
                        <span class="font-black text-2xl text-slate-500">€</span>
                        <input type="number" v-model.number="ansTotal" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-2xl p-3 border-2 border-indigo-400 rounded-lg focus:border-indigo-600 focus:ring-indigo-600 bg-white" />
+                              class="w-full font-bold text-2xl p-4 border-2 border-math-blue rounded-lg focus:border-math-blue focus:ring-math-blue bg-white" />
                    </div>
                </div>
 
@@ -246,14 +246,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (ansBlock === null || ansTotal === null)" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (ansBlock === null || ansTotal === null)" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -277,7 +277,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- The Bar Blocks -->
-                  <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-lg bg-white relative overflow-hidden">
+                  <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-md bg-white relative overflow-hidden">
 
                       <!-- Remaining Blocks (e.g. 3 blocks = 75%) -->
                       <div v-for="i in currentLevelData.blocksRemaining" :key="'b'+i" class="border-r-2 border-slate-700 bg-blue-500 relative flex items-center justify-center"
@@ -289,7 +289,7 @@ onUnmounted(() => {
                       <!-- Discount Blocks (e.g. 1 block = 25%) -->
                       <div v-for="i in (currentLevelData.blocksTotal - currentLevelData.blocksRemaining)" :key="'d'+i" class="border-r-2 border-slate-700 bg-red-100 relative flex items-center justify-center pattern-diagonal"
                            :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">
-                          <span class="font-bold text-red-500 text-lg bg-white/80 px-2 rounded">{{ 100 / currentLevelData.blocksTotal }}% (Korting)</span>
+                          <span class="font-bold text-red-500 text-lg bg-white/80 px-2 rounded-lg">{{ 100 / currentLevelData.blocksTotal }}% (Korting)</span>
                           <span v-if="ansBlock" class="absolute bottom-2 font-black text-red-500 bg-white/80 px-2 rounded-full animate-fadeIn">€{{ ansBlock }}</span>
                       </div>
 
@@ -297,8 +297,8 @@ onUnmounted(() => {
 
                   <!-- Price helper labels below -->
                   <div class="absolute -bottom-16 left-0 flex flex-col items-center" :style="{ width: `${(currentLevelData.blocksRemaining / currentLevelData.blocksTotal) * 100}%` }">
-                      <div class="w-full h-4 border-b-4 border-x-4 border-indigo-500 rounded-b-xl mt-1 relative">
-                          <span class="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-50 px-4 py-1 rounded-full font-black text-2xl text-indigo-700 shadow-sm border border-indigo-200 whitespace-nowrap">
+                      <div class="w-full h-4 border-b-4 border-x-4 border-math-blue rounded-b-xl mt-1 relative">
+                          <span class="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-50 px-4 py-1 rounded-full font-black text-2xl text-math-blue shadow-sm border border-surface-200 whitespace-nowrap">
                               Nieuw = €{{ currentLevelData.newPrice }}
                           </span>
                       </div>

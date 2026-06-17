@@ -298,7 +298,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -336,7 +336,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -346,17 +346,17 @@ onUnmounted(() => {
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
               <!-- No Controleer button: auto-correct on match completion -->
-              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -364,7 +364,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid">
+            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid">
 
               <div class="flex w-full max-w-4xl gap-12 justify-center">
 
@@ -377,8 +377,8 @@ onUnmounted(() => {
                           class="p-4 text-xl font-bold bg-white rounded-xl shadow-sm border-2 transition-all text-center"
                           :class="{
                             'border-emerald-500 bg-emerald-50 text-emerald-700 opacity-50': matchedPairs.includes(item.id),
-                            'border-indigo-500 ring-4 ring-indigo-100': selectedExpr === item.id && !matchedPairs.includes(item.id),
-                            'border-slate-200 hover:border-indigo-300': selectedExpr !== item.id && !matchedPairs.includes(item.id)
+                            'border-math-blue ring-4 ring-math-blue': selectedExpr === item.id && !matchedPairs.includes(item.id),
+                            'border-slate-200 hover:border-surface-200': selectedExpr !== item.id && !matchedPairs.includes(item.id)
                           }">
                     {{ item.expr }}
                   </button>
@@ -393,8 +393,8 @@ onUnmounted(() => {
                           class="p-4 text-xl font-bold bg-white rounded-xl shadow-sm border-2 transition-all text-center"
                           :class="{
                             'border-emerald-500 bg-emerald-50 text-emerald-700 opacity-50': matchedPairs.includes(item.id),
-                            'border-amber-500 ring-4 ring-amber-100': selectedAns === item.id && !matchedPairs.includes(item.id),
-                            'border-slate-200 hover:border-amber-300': selectedAns !== item.id && !matchedPairs.includes(item.id)
+                            'border-math-blue ring-4 ring-math-blue': selectedAns === item.id && !matchedPairs.includes(item.id),
+                            'border-slate-200 hover:border-surface-200': selectedAns !== item.id && !matchedPairs.includes(item.id)
                           }">
                     {{ item.ans }}
                   </button>

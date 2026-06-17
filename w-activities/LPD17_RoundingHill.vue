@@ -181,12 +181,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -195,7 +195,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -211,30 +211,30 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-teal-900 mb-2">Jouw afronding:</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-math-blue mb-2">Jouw afronding:</label>
                <div class="flex items-center gap-4 text-3xl font-black text-slate-700 justify-center">
-                   <div class="bg-white p-2 rounded border border-slate-300 w-24 text-center">{{ currentLevelData.targetDecimal }}</div>
+                   <div class="bg-white p-2 rounded-lg border border-slate-300 w-24 text-center">{{ currentLevelData.targetDecimal }}</div>
                    <span class="text-slate-400">≈</span>
                    <input type="number" v-model.number="userAns" placeholder="?" :disabled="isCorrect"
-                          class="w-24 font-bold text-2xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 focus:ring-teal-500 text-center bg-white" />
+                          class="w-24 font-bold text-2xl p-2 border-2 border-math-blue rounded-lg focus:border-math-blue focus:ring-math-blue text-center bg-white" />
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === null" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -256,7 +256,7 @@ onUnmounted(() => {
                              class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
 
                       <button @click="dropBall" :disabled="isDropped || decimalValue !== currentLevelData.targetDecimal"
-                              class="mt-6 px-6 py-2 bg-slate-800 text-white font-bold rounded-lg shadow flex items-center gap-2 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95">
+                              class="mt-6 px-6 py-2 bg-slate-800 text-white font-bold rounded-lg shadow-sm flex items-center gap-2 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95">
                           <PhHandGrabbing weight="fill" /> Laat Los (Zwaartekracht)
                       </button>
                   </div>
@@ -291,7 +291,7 @@ onUnmounted(() => {
                       <!-- We need to calculate its x and y based on its value (4.0 to 5.0) -->
                       <!-- Mapping: val 4.0 -> x=50, val 5.0 -> x=550. Ratio: (val - 4.0) / 1.0 -->
                       <!-- Y mapping uses the bezier approximation or simple quadratic for visual sync -->
-                      <div class="absolute w-10 h-10 bg-red-500 rounded-full shadow-lg border-2 border-white transition-all duration-[1500ms] ease-bounce z-10 flex items-center justify-center font-bold text-white text-sm"
+                      <div class="absolute w-10 h-10 bg-red-500 rounded-full shadow-md border-2 border-white transition-all duration-[1500ms] ease-bounce z-10 flex items-center justify-center font-bold text-white text-sm"
                            :style="{
                                left: `calc(50% - 300px + 50px + ${(finalValue - 4.0) * 500}px - 20px)`,
                                bottom: `${finalValue <= 4.5 ? Math.pow((finalValue - 4.0)/0.5, 1.5) * 150 : Math.pow((5.0 - finalValue)/0.5, 1.5) * 150}px`,
@@ -301,7 +301,7 @@ onUnmounted(() => {
                       </div>
 
                       <!-- Wind indicator if exactly 4.5 and dropped -->
-                      <div v-if="isDropped && decimalValue === 4.5" class="absolute top-[10%] left-1/2 -translate-x-1/2 text-sky-500 font-bold animate-pulse flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow border border-sky-200">
+                      <div v-if="isDropped && decimalValue === 4.5" class="absolute top-[10%] left-1/2 -translate-x-1/2 text-sky-500 font-bold animate-pulse flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow-sm border border-sky-200">
                           Wiskunde-wind! <PhArrowRight weight="bold" class="w-5 h-5" />
                       </div>
 

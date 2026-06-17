@@ -218,7 +218,7 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -258,20 +258,20 @@ onUnmounted(() => {
                <div class="space-y-4">
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-600">Breuk</span>
-                       <span class="font-black text-2xl text-blue-700 bg-white px-3 py-1 rounded shadow-sm border border-blue-200">{{ currentLevelData.fractionDisplay }}</span>
+                       <span class="font-black text-2xl text-blue-700 bg-white px-4 py-1 rounded-lg shadow-sm border border-blue-200">{{ currentLevelData.fractionDisplay }}</span>
                    </div>
 
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-600">Kommagetal</span>
                        <input type="text" v-model="userDecimal" placeholder="0..." :disabled="isCorrect"
-                              class="w-24 font-bold text-lg p-2 border border-blue-300 rounded focus:border-blue-500 focus:ring-blue-500 text-center" />
+                              class="w-24 font-bold text-lg p-2 border border-blue-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-center" />
                    </div>
 
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-600">Procent</span>
                        <div class="flex items-center gap-1">
                            <input type="number" v-model.number="userPercent" placeholder="..." :disabled="isCorrect"
-                                  class="w-20 font-bold text-lg p-2 border border-blue-300 rounded focus:border-blue-500 focus:ring-blue-500 text-center" />
+                                  class="w-20 font-bold text-lg p-2 border border-blue-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-center" />
                            <span class="font-black text-xl text-slate-500">%</span>
                        </div>
                    </div>
@@ -280,14 +280,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Alles</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Alles</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -306,7 +306,7 @@ onUnmounted(() => {
                            @mouseenter.prevent="onEnter(index)"
                            @touchstart.prevent="startDrag(index)"
                            @touchmove.prevent
-                           class="w-8 h-8 sm:w-10 sm:h-10 border transition-colors cursor-crosshair rounded-sm"
+                           class="w-8 h-8 sm:w-10 sm:h-10 border transition-colors cursor-crosshair rounded-lg"
                            :class="block ? (isCorrect ? 'bg-emerald-500 border-emerald-600 shadow-inner' : 'bg-blue-500 border-blue-600 shadow-inner') : 'bg-slate-100 border-slate-300 hover:bg-slate-200'">
                       </div>
                   </div>

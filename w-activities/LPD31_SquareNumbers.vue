@@ -163,7 +163,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg" :class="colorMap[currentLevel.color]">
@@ -181,15 +181,15 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
-            <div class="p-4 mt-6 border rounded-xl shadow-inner flex flex-col gap-6" :class="`${currentLevel.color === 'pink' ? 'border-pink-200 bg-pink-50' : currentLevel.color === 'blue' ? 'border-blue-200 bg-blue-50' : 'border-purple-200 bg-purple-50'}`">
+            <div class="p-4 mt-6 border rounded-xl shadow-inner flex flex-col gap-6" :class="`${currentLevel.color === 'pink' ? 'border-surface-200 bg-math-blue-bg' : currentLevel.color === 'blue' ? 'border-blue-200 bg-blue-50' : 'border-surface-200 bg-math-blue-bg'}`">
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-bold" :class="`text-${currentLevel.color}-900`">1. Hoeveel blokjes in Figuur 4?</label>
-                <input type="number" v-model.number="ansFig4" placeholder="..." :disabled="isCorrect" class="w-full font-bold text-lg p-2 border-2 rounded focus:border-${currentLevel.color}-500 text-center"
+                <input type="number" v-model.number="ansFig4" placeholder="..." :disabled="isCorrect" class="w-full font-bold text-lg p-2 border-2 rounded-lg focus:border-${currentLevel.color}-500 text-center"
                   :class="`border-${currentLevel.color}-300`" />
               </div>
               <div v-if="currentLevel.exp !== null" class="flex flex-col gap-2 border-t pt-4" :class="`border-${currentLevel.color}-200`">
                 <label class="text-sm font-bold" :class="`text-${currentLevel.color}-900`">2. Algemene Formule (Figuur n):</label>
-                <div class="flex items-center justify-center gap-2 font-black text-3xl text-slate-700 bg-white p-3 rounded-lg border" :class="`border-${currentLevel.color}-200`">
+                <div class="flex items-center justify-center gap-2 font-black text-3xl text-slate-700 bg-white p-4 rounded-lg border" :class="`border-${currentLevel.color}-200`">
                   <span>A = n</span>
                   <input type="number" v-model.number="ansExp" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-1 -mt-4 border-b-2 focus:outline-none text-center"
                     :class="`border-${currentLevel.color}-300 focus:border-${currentLevel.color}-500 text-${currentLevel.color}-600`" />
@@ -198,16 +198,16 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
             </div>
           </div>
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
               role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
               <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="ansFig4 === null">Controleer</button>
-              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
-              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="ansFig4 === null">Controleer</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-math-blue hover:bg-math-blue active:scale-[0.98]">
                 <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
@@ -219,7 +219,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
               <div v-for="(figCount, figIdx) in 4" :key="'fig'+figIdx" class="flex flex-col items-center gap-4"
                 :class="figIdx === 3 ? 'transition-all duration-1000' + (showFig4 ? ' opacity-100 translate-y-0' : ' opacity-30 translate-y-4 blur-sm') : ''">
                 <div v-if="figIdx < 3 || showFig4 || currentInternalLevel === 1" class="grid gap-1" :style="{ gridTemplateColumns: `repeat(${figIdx + 1}, 1fr)` }">
-                  <div v-for="i in currentLevel.sequence[figIdx]" :key="'f'+(figIdx+1)+i" class="w-10 h-10 rounded-sm shadow-sm" :class="colorMapBg[currentLevel.color]"></div>
+                  <div v-for="i in currentLevel.sequence[figIdx]" :key="'f'+(figIdx+1)+i" class="w-10 h-10 rounded-lg shadow-sm" :class="colorMapBg[currentLevel.color]"></div>
                 </div>
                 <div v-else class="w-[176px] h-[176px] border-4 border-dashed border-slate-300 rounded-xl flex items-center justify-center">
                   <span class="font-black text-4xl text-slate-300">?</span>

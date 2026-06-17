@@ -204,12 +204,12 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-indigo-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -218,7 +218,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -237,18 +237,18 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="mt-8 space-y-4">
               <p class="font-bold text-slate-800 uppercase tracking-wider text-xs">Jouw Stempels</p>
 
-              <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-4">
                 <div v-for="stamp in stamps" :key="stamp"
                      draggable="true"
                      @dragstart="onDragStart(stamp)"
-                     class="p-4 border-2 border-slate-300 bg-white rounded-xl text-center font-bold text-2xl font-mono text-slate-700 cursor-grab active:cursor-grabbing hover:border-indigo-400 hover:text-indigo-600 transition-colors shadow-sm"
+                     class="p-4 border-2 border-slate-300 bg-white rounded-xl text-center font-bold text-2xl font-mono text-slate-700 cursor-grab active:cursor-grabbing hover:border-math-blue hover:text-math-blue transition-colors shadow-sm"
                      :class="{ 'opacity-30 pointer-events-none': droppedStamp === stamp }">
                   {{ stamp }}
                 </div>
@@ -258,7 +258,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -268,14 +268,14 @@ onUnmounted(() => {
                <span class="leading-relaxed">{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
+              <button v-if="!isCorrect" disabled class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
 
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -286,7 +286,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
+            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
 
               <div class="flex flex-col md:flex-row items-center justify-center gap-16 w-full relative z-0">
 
@@ -301,13 +301,13 @@ onUnmounted(() => {
                     H3: {{ currentLevelData.t1.angles[2] }}°
                   </div>
 
-                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t1.sides[0] }}
                   </div>
-                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t1.sides[1] }}
                   </div>
-                  <div class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t1.sides[2] }}
                   </div>
                 </div>
@@ -325,13 +325,13 @@ onUnmounted(() => {
                     H3: {{ currentLevelData.t2.angles[2] }}°
                   </div>
 
-                  <div class="absolute left-8 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute left-8 top-1/2 -translate-y-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t2.sides[0] }}
                   </div>
-                  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t2.sides[1] }}
                   </div>
-                  <div class="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">
+                  <div class="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-bold text-math-blue">
                     Z: {{ currentLevelData.t2.sides[2] }}
                   </div>
                 </div>
@@ -341,10 +341,10 @@ onUnmounted(() => {
               <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                  <div @dragover.prevent.stop
                       @drop.prevent.stop="onDrop"
-                      class="pointer-events-auto w-48 h-32 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center bg-white/80 backdrop-blur transition-all shadow-xl"
-                      :class="droppedStamp ? (isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-800') : 'border-indigo-300 hover:bg-indigo-50'">
+                      class="pointer-events-auto w-48 h-32 border-4 border-dashed rounded-xl flex flex-col items-center justify-center bg-white/80 backdrop-blur transition-all shadow-md"
+                      :class="droppedStamp ? (isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-800') : 'border-surface-200 hover:bg-math-blue-bg'">
 
-                   <p v-if="!droppedStamp" class="text-indigo-400 font-bold uppercase tracking-widest text-sm text-center">Sleep Stempel Hier</p>
+                   <p v-if="!droppedStamp" class="text-math-blue font-bold uppercase tracking-widest text-sm text-center">Sleep Stempel Hier</p>
 
                    <div v-else class="relative animate-fadeIn text-4xl font-mono font-black transform -rotate-12" :class="isCorrect ? 'text-emerald-600' : 'text-slate-800'">
                      {{ droppedStamp }}

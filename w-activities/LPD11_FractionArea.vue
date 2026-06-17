@@ -199,12 +199,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -213,7 +213,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -229,12 +229,12 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
-            <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-teal-900 mb-4">Wat is de groene breuk?</label>
+            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-math-blue mb-4">Wat is de groene breuk?</label>
                <div class="flex items-center gap-4 justify-center">
                    <div class="font-mono font-black text-2xl text-slate-500">
                        <div class="flex flex-col items-center">
@@ -255,32 +255,32 @@ onUnmounted(() => {
 
                    <div class="flex flex-col items-center gap-1 w-16">
                        <input type="number" v-model.number="userNum" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-teal-300 rounded focus:border-teal-500 focus:ring-teal-500 text-center" />
+                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
                        <div class="h-1 w-full bg-slate-700 rounded-full"></div>
                        <input type="number" v-model.number="userDen" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-teal-300 rounded focus:border-teal-500 focus:ring-teal-500 text-center" />
+                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
                    </div>
                </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
 
             <!-- Progressive hint -->
             <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-amber-50 text-amber-800 border border-amber-200">
+                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
                <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ getHintText() }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -302,7 +302,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- The Grid -->
-                  <div class="relative bg-white border-4 border-slate-300 shadow-lg" style="width: 400px; height: 300px;">
+                  <div class="relative bg-white border-4 border-slate-300 shadow-md" style="width: 400px; height: 300px;">
 
                       <!-- Grid container dynamic cols/rows -->
                       <div class="absolute inset-0 grid"
@@ -313,7 +313,7 @@ onUnmounted(() => {
                                   <div class="border border-slate-200 transition-colors duration-300"
                                        :class="{
                                            'bg-emerald-400': x <= selX && y <= selY,
-                                           'bg-amber-300': x <= selX && y > selY,
+                                           'bg-math-blue-light': x <= selX && y > selY,
                                            'bg-blue-300': x > selX && y <= selY,
                                            'bg-transparent': x > selX && y > selY
                                        }">
@@ -329,7 +329,7 @@ onUnmounted(() => {
                   <div class="w-[400px] mt-8 flex flex-col items-center">
                       <input type="range" min="0" :max="currentLevelData.cols" step="1" v-model.number="selX" :disabled="isCorrect"
                              class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" />
-                      <span class="font-bold text-amber-600 mt-2">{{ currentLevelData.num2 }}/{{ currentLevelData.den2 }}</span>
+                      <span class="font-bold text-math-blue mt-2">{{ currentLevelData.num2 }}/{{ currentLevelData.den2 }}</span>
                   </div>
 
               </div>

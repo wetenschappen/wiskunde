@@ -201,7 +201,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
 
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -212,7 +212,7 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
-          <div class="flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
+          <div class="flex items-center gap-1.5 ml-4 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
             <span v-for="i in totalInternalLevels" :key="i"
                   class="w-2.5 h-2.5 rounded-full border"
                   :class="i <= currentInternalLevel + 1 ? 'bg-emerald-500 border-emerald-600' : 'bg-slate-200 border-slate-300'">
@@ -236,7 +236,7 @@ onUnmounted(() => {
 
             <div class="p-4 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl">
               <p class="font-bold text-slate-800 mb-4">Beschikbare getallen:</p>
-              <div class="flex flex-wrap gap-3">
+              <div class="flex flex-wrap gap-4">
                 <div v-for="num in availableNumbers" :key="num"
                      draggable="true"
                      @dragstart="onDragStart(num)"
@@ -252,7 +252,7 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-center gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
@@ -262,16 +262,16 @@ onUnmounted(() => {
                <span>{{ feedback.text }}</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-3 text-center text-xs text-slate-400">Plaats alle getallen voor automatische controle</div>
+              <div v-else class="flex-1 py-4 text-center text-xs text-slate-400">Plaats alle getallen voor automatische controle</div>
             </div>
           </div>
         </div>
@@ -279,7 +279,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
 
-            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
+            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <div class="relative w-[500px] h-[350px] border-4 border-slate-300 rounded-lg bg-white shadow-sm flex items-center justify-center">
                 <div class="absolute top-2 left-2 font-bold text-slate-400">Totaal: {{ currentLevel.total }}</div>
@@ -294,11 +294,11 @@ onUnmounted(() => {
                 <div class="relative flex w-full justify-center">
 
                   <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-blue-400 bg-blue-100/30 top-1/2 -translate-y-1/2 left-[50px]">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-600 bg-white px-2 rounded">{{ currentLevel.leftLabel }} ({{ currentLevel.leftTotal }})</div>
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-600 bg-white px-2 rounded-lg">{{ currentLevel.leftLabel }} ({{ currentLevel.leftTotal }})</div>
                   </div>
 
-                  <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-rose-400 bg-rose-100/30 top-1/2 -translate-y-1/2 right-[50px]">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-600 bg-white px-2 rounded">{{ currentLevel.rightLabel }} ({{ currentLevel.rightTotal }})</div>
+                  <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-math-blue bg-math-blue-bg/30 top-1/2 -translate-y-1/2 right-[50px]">
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-math-blue bg-white px-2 rounded-lg">{{ currentLevel.rightLabel }} ({{ currentLevel.rightTotal }})</div>
                   </div>
 
                   <div class="relative flex w-full h-[240px] justify-center items-center z-10 pointer-events-none">
@@ -315,18 +315,18 @@ onUnmounted(() => {
                     <div class="absolute pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"
                            @dragover.prevent @drop.stop="onDrop('center')"
-                           :class="slots.center ? 'border-purple-500' : 'border-purple-300'">
-                        <span v-if="!slots.center" class="text-xs text-purple-400 font-bold">{{ currentLevel.leftLabel[0] }} ∩ {{ currentLevel.rightLabel[0] }}</span>
-                        <div v-else @click="returnToAvailable('center')" class="w-full h-full flex items-center justify-center text-xl font-bold text-purple-800 cursor-pointer">{{ slots.center }}</div>
+                           :class="slots.center ? 'border-math-blue' : 'border-surface-200'">
+                        <span v-if="!slots.center" class="text-xs text-math-blue font-bold">{{ currentLevel.leftLabel[0] }} ∩ {{ currentLevel.rightLabel[0] }}</span>
+                        <div v-else @click="returnToAvailable('center')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer">{{ slots.center }}</div>
                       </div>
                     </div>
 
                     <div class="absolute right-[100px] pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"
                            @dragover.prevent @drop.stop="onDrop('right')"
-                           :class="slots.right ? 'border-rose-500' : 'border-rose-300'">
-                        <span v-if="!slots.right" class="text-xs text-rose-400 font-bold">{{ currentLevel.rightLabel[0] }} \ {{ currentLevel.leftLabel[0] }}</span>
-                        <div v-else @click="returnToAvailable('right')" class="w-full h-full flex items-center justify-center text-xl font-bold text-rose-800 cursor-pointer">{{ slots.right }}</div>
+                           :class="slots.right ? 'border-math-blue' : 'border-surface-200'">
+                        <span v-if="!slots.right" class="text-xs text-math-blue font-bold">{{ currentLevel.rightLabel[0] }} \ {{ currentLevel.leftLabel[0] }}</span>
+                        <div v-else @click="returnToAvailable('right')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer">{{ slots.right }}</div>
                       </div>
                     </div>
 

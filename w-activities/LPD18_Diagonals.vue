@@ -204,12 +204,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-pink-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -218,7 +218,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-pink-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -234,8 +234,8 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-pink-50 p-4 border border-pink-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-pink-800">{{ currentLevelData.goalText }}</p>
+            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
+              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
@@ -244,30 +244,30 @@ onUnmounted(() => {
                <div class="flex flex-col gap-4">
                    <!-- Toggle 1 -->
                    <label class="flex items-center justify-between cursor-pointer group">
-                       <span class="font-bold text-sm text-slate-700 group-hover:text-pink-600 transition-colors">Staan loodrecht op elkaar?</span>
+                       <span class="font-bold text-sm text-slate-700 group-hover:text-math-blue transition-colors">Staan loodrecht op elkaar?</span>
                        <div class="relative">
                            <input type="checkbox" v-model="isPerpendicular" :disabled="isCorrect" class="sr-only" />
-                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isPerpendicular ? '!bg-pink-500' : ''"></div>
+                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isPerpendicular ? '!bg-math-blue' : ''"></div>
                            <div class="dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform" :class="isPerpendicular ? 'transform translate-x-5' : ''"></div>
                        </div>
                    </label>
 
                    <!-- Toggle 2 -->
                    <label class="flex items-center justify-between cursor-pointer group">
-                       <span class="font-bold text-sm text-slate-700 group-hover:text-pink-600 transition-colors">Delen elkaar middendoor?</span>
+                       <span class="font-bold text-sm text-slate-700 group-hover:text-math-blue transition-colors">Delen elkaar middendoor?</span>
                        <div class="relative">
                            <input type="checkbox" v-model="isBisecting" :disabled="isCorrect" class="sr-only" />
-                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isBisecting ? '!bg-pink-500' : ''"></div>
+                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isBisecting ? '!bg-math-blue' : ''"></div>
                            <div class="dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform" :class="isBisecting ? 'transform translate-x-5' : ''"></div>
                        </div>
                    </label>
 
                    <!-- Toggle 3 -->
                    <label class="flex items-center justify-between cursor-pointer group">
-                       <span class="font-bold text-sm text-slate-700 group-hover:text-pink-600 transition-colors">Zijn even lang?</span>
+                       <span class="font-bold text-sm text-slate-700 group-hover:text-math-blue transition-colors">Zijn even lang?</span>
                        <div class="relative">
                            <input type="checkbox" v-model="isEqualLength" :disabled="isCorrect" class="sr-only" />
-                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isEqualLength ? '!bg-pink-500' : ''"></div>
+                           <div class="block bg-slate-300 w-12 h-7 rounded-full transition-colors" :class="isEqualLength ? '!bg-math-blue' : ''"></div>
                            <div class="dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform" :class="isEqualLength ? 'transform translate-x-5' : ''"></div>
                        </div>
                    </label>
@@ -283,18 +283,18 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
               <!-- No check button — auto-correct on toggle match -->
-              <div v-else class="flex-1 py-3"></div>
+              <div v-else class="flex-1 py-4"></div>
             </div>
           </div>
         </div>
@@ -302,7 +302,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
-              <div class="relative bg-white shadow-2xl rounded-3xl overflow-hidden border-4 border-slate-300 p-4">
+              <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-4 border-slate-300 p-4">
 
                   <svg width="500" height="400" viewBox="0 0 500 400" class="block">
 

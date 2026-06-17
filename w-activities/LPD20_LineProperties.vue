@@ -179,12 +179,12 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
+    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-teal-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -193,7 +193,7 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
@@ -217,8 +217,8 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Gaat door het hoekpunt?</span>
                        <div class="flex gap-2">
-                           <button @click="q1 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === true ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q1 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === false ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q1 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q1 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q1 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
@@ -226,8 +226,8 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Loodrecht op de zijde? (90°)</span>
                        <div class="flex gap-2">
-                           <button @click="q2 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === true ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q2 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === false ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q2 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q2 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q2 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
@@ -235,15 +235,15 @@ onUnmounted(() => {
                    <div class="flex flex-col gap-2">
                        <span class="text-sm font-bold text-slate-600">Deelt zijde in het midden?</span>
                        <div class="flex gap-2">
-                           <button @click="q3 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === true ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
-                           <button @click="q3 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === false ? 'bg-teal-500 border-teal-600 text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
+                           <button @click="q3 = true" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === true ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">JA</button>
+                           <button @click="q3 = false" :disabled="isCorrect" class="flex-1 py-2 text-sm border-2 rounded-lg transition-colors" :class="q3 === false ? 'bg-math-blue border-math-blue text-white font-bold shadow-inner' : 'bg-white border-slate-300 text-slate-500'">NEE</button>
                        </div>
                    </div>
 
                    <!-- Final Name -->
                    <div class="flex flex-col gap-2 pt-4 border-t border-slate-200">
                        <span class="text-sm font-bold text-slate-800">Naam van de lijn:</span>
-                       <select v-model="finalName" :disabled="isCorrect" class="w-full p-3 border-2 border-slate-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
+                       <select v-model="finalName" :disabled="isCorrect" class="w-full p-4 border-2 border-slate-300 rounded-lg focus:ring-math-blue focus:border-math-blue font-bold text-slate-700 bg-white">
                            <option value="" disabled>Kies...</option>
                            <option value="hoogtelijn">Hoogtelijn</option>
                            <option value="zwaartelijn">Zwaartelijn</option>
@@ -256,14 +256,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
-            <div class="flex items-center gap-3">
-              <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Kaart</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Kaart</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -274,7 +274,7 @@ onUnmounted(() => {
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
-              <div class="relative bg-white shadow-2xl rounded-3xl overflow-hidden border-4 border-slate-300 p-8">
+              <div class="relative bg-white shadow-md rounded-xl overflow-hidden border-4 border-slate-300 p-8">
                   <svg width="400" height="350" viewBox="0 0 400 350" :key="currentInternalLevel">
 
                       <!-- Scalene Triangle: A(100, 50), B(50, 300), C(350, 300) -->
