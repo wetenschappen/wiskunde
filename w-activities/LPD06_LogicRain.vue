@@ -1,15 +1,15 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhBrain, PhArrowClockwise, PhCloudRain, PhTruck
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Redeneren: Implicatie vs Equivalentie' },
-  instruction: { 
-    type: String, 
-    default: 'We bestuderen de logische regel (implicatie): <strong>"ALS het regent (A), DAN is de straat nat (B)."</strong><br/><br/>Gebruik de straat-simulatie om te ontdekken wat je hier wél en niét uit mag afleiden!' 
+  instruction: {
+    type: String,
+    default: 'We bestuderen de logische regel (implicatie): <strong>"ALS het regent (A), DAN is de straat nat (B)."</strong><br/><br/>Gebruik de straat-simulatie om te ontdekken wat je hier wel en niet uit mag afleiden!'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -23,36 +23,57 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Experimenteer met de simulatie en beantwoord de vraag.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const scenarioPool = [
   {
-    goalText: 'Opdracht 1 (Modus Ponens): Het is keihard aan het regenen. Wat weet je 100% zeker over de straat?',
     simStart: 'rain',
+    goalText: 'Het is keihard aan het regenen. Wat weet je 100% zeker over de straat?',
     options: ['De straat is nat', 'De straat is droog', 'We weten het niet zeker'],
     targetAns: 'De straat is nat',
     hint: 'Kijk naar de regel: ALS het regent, DAN... '
   },
   {
-    goalText: 'Opdracht 2 (Modus Tollens): Je kijkt naar buiten en ziet dat de straat kurkdroog is. Heeft het net geregend?',
     simStart: 'dry',
+    goalText: 'Je kijkt naar buiten en ziet dat de straat kurkdroog is. Heeft het net geregend?',
     options: ['Ja, het heeft geregend', 'Nee, het heeft niet geregend', 'We weten het niet zeker'],
     targetAns: 'Nee, het heeft niet geregend',
     hint: 'Als het geregend zou hebben, MOEST de straat nat zijn. Maar hij is droog. Dus...?'
   },
   {
-    goalText: 'Opdracht 3 (De Denkval): Je ziet dat de straat nat is. Kun je nu met 100% zekerheid zeggen dat het geregend heeft?',
-    simStart: 'wet', // street is wet, but we don't know why
+    simStart: 'wet',
+    goalText: 'Je ziet dat de straat nat is. Kun je nu met 100% zekerheid zeggen dat het geregend heeft?',
     options: ['Ja, het heeft zeker geregend', 'Nee, dat weet je niet zeker'],
     targetAns: 'Nee, dat weet je niet zeker',
     hint: 'Druk eens op de knop "Sproeiwagen". Kan de straat nat zijn ZONDER dat het regent?'
   }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  // Return all 3 scenarios; they are conceptually a progression (Modus Ponens, Modus Tollens, Denkval)
+  // Shuffle the goal text phrasing slightly for freshness
+  return scenarioPool.map((s, i) => ({
+    ...s,
+    // Keep original goalText with potentially slightly different phrasing each time
+    goalText: s.goalText
+  }))
+}
+
+const levels = ref([])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const userAnswer = ref(null)
 
 // Domain Logic
@@ -62,25 +83,46 @@ function triggerRain() { streetState.value = 'rain' }
 function triggerTruck() { streetState.value = 'truck' }
 
 function resetActivityState() {
+    levels.value = generateLevel();
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Experimenteer met de simulatie en beantwoord de vraag.' };
-    streetState.value = currentLevelData.value.simStart;
+    attemptCount.value = 0;
+    streetState.value = currentLevelData.value?.simStart || 'dry';
     userAnswer.value = null;
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   if (userAnswer.value === currentLevelData.value.targetAns) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect beredeneerd! Logica gaat om wat je met 100% zekerheid kunt afleiden uit een stelling.' 
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
+      text: 'Perfect beredeneerd! Logica gaat om wat je met 100% zekerheid kunt afleiden uit een stelling.'
     }
   } else {
+    attemptCount.value++
     isCorrect.value = false
-    feedback.value = { type: 'error', text: `Niet helemaal juist. ${currentLevelData.value.hint}`}
+
+    if (attemptCount.value === 1) {
+      feedback.value = { type: 'error', text: `Niet helemaal juist. ${currentLevelData.value.hint}`}
+    } else if (attemptCount.value === 2) {
+      const hint2 = currentInternalLevel.value === 0
+        ? 'Denk aan het pijltje: regen => natte straat. Wat volgt er uit het regenen?'
+        : currentInternalLevel.value === 1
+          ? 'Als de straat droog is, kan het dan geregend hebben?'
+          : 'Kan de straat ook nat worden op een andere manier?'
+      feedback.value = { type: 'error', text: `Probeer opnieuw. ${hint2}`}
+    } else {
+      const hint3 = currentInternalLevel.value === 0
+        ? 'De regel is: ALS regen DAN nat. A (regen) is waar, dus B (nat) moet waar zijn.'
+        : currentInternalLevel.value === 1
+          ? 'Stel: het heeft wel geregend. Dan MOEST de straat nat zijn. Maar de straat is droog. Dat kan niet. Dus...'
+          : 'Herinner je: regen is niet de ENIGE manier om de straat nat te maken!'
+      feedback.value = { type: 'error', text: `${hint3} Kies het antwoord dat WISKUNDIG zeker is.`}
+    }
   }
 }
 
@@ -123,7 +165,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -134,8 +176,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -151,7 +193,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-indigo-900 mb-3">{{ currentLevelData.goalText }}</label>
                <div class="flex flex-col gap-2">
@@ -183,7 +225,7 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- Interactive Visual Controls -->
               <div class="absolute top-6 left-1/2 -translate-x-1/2 flex gap-4 bg-white p-2 rounded-xl shadow-md border border-slate-200 z-20">
                   <button @click="triggerRain" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2" :class="streetState === 'rain' ? 'bg-blue-100 text-blue-700 border-blue-300' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhCloudRain weight="bold" /> Laat het regenen</button>
@@ -192,18 +234,18 @@ onUnmounted(() => {
 
               <!-- The Street Scene -->
               <div class="w-full max-w-2xl h-[400px] bg-sky-50 rounded-2xl border-4 border-slate-300 shadow-lg relative overflow-hidden flex flex-col">
-                  
+
                   <!-- Sky/Clouds -->
                   <div class="h-1/2 w-full relative transition-colors duration-1000" :class="streetState === 'rain' ? 'bg-slate-400' : 'bg-sky-100'">
                       <!-- Clouds -->
                       <div class="absolute top-10 left-20 w-32 h-16 bg-white rounded-full mix-blend-overlay opacity-80 filter blur-sm transition-all" :class="streetState === 'rain' ? 'bg-slate-600 scale-110' : ''"></div>
                       <div class="absolute top-4 right-32 w-48 h-20 bg-white rounded-full mix-blend-overlay opacity-90 filter blur-md transition-all" :class="streetState === 'rain' ? 'bg-slate-700 scale-110' : ''"></div>
-                      
+
                       <!-- Rain Animation -->
                       <div v-if="streetState === 'rain'" class="absolute inset-0 overflow-hidden opacity-60">
                           <div v-for="i in 50" :key="i" class="absolute w-0.5 h-6 bg-blue-300 rounded"
-                               :style="{ 
-                                  left: `${Math.random() * 100}%`, 
+                               :style="{
+                                  left: `${Math.random() * 100}%`,
                                   top: `${Math.random() * 100}%`,
                                   animation: `fall ${0.5 + Math.random() * 0.5}s linear infinite`
                                }">
@@ -244,7 +286,7 @@ onUnmounted(() => {
               <div class="mt-8 bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm w-full max-w-2xl text-center">
                   <div class="font-mono font-bold text-xl flex items-center justify-center gap-4 text-slate-700">
                       <span>Regen</span>
-                      <span class="text-blue-500 font-black">⇒</span>
+                      <span class="text-blue-500 font-black">=></span>
                       <span>Straat Nat</span>
                   </div>
               </div>

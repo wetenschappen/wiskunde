@@ -1,15 +1,15 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhRuler, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Meetinstrumenten: De Digitale Meetlat' },
-  instruction: { 
-    type: String, 
-    default: 'Sleep de meetlat over het lijnstuk. Meet de lengte exact in millimeter (mm) en vul dit in.' 
+  instruction: {
+    type: String,
+    default: 'Sleep de meetlat over het lijnstuk. Meet de lengte exact in millimeter (mm) en vul dit in.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -22,43 +22,57 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
+const attemptCount = ref(0)
 const feedback = ref({ type: 'info', text: 'Tip: Je kan de meetlat slepen met je muis.' })
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Meet de lengte van de RODE lijn in millimeter.',
-    targetLength: 42,
-    color: 'bg-red-500',
-    dotColor: 'bg-red-600',
-    yOffset: 150,
-    xOffset: 60,
-    hint: 'Elk klein streepje op de meetlat is 1 mm. De getallen zijn in cm (1 cm = 10 mm).'
-  },
-  {
-    goalText: 'Opdracht 2: Meet de lengte van de BLAUWE lijn in millimeter.',
-    targetLength: 78,
-    color: 'bg-blue-500',
-    dotColor: 'bg-blue-600',
-    yOffset: 250,
-    xOffset: 120, // Different offset to prevent lazy measuring
-    hint: 'Vergeet niet het nulpunt (0) exact gelijk te leggen met het linker begin van de lijn!'
-  },
-  {
-    goalText: 'Opdracht 3: Meet de lengte van de GROENE lijn in millimeter.',
-    targetLength: 115,
-    color: 'bg-emerald-500',
-    dotColor: 'bg-emerald-600',
-    yOffset: 100,
-    xOffset: 80,
-    hint: 'Dit is een langere lijn. Controleer zorgvuldig de millimeters voorbij de laatste cm.'
-  }
+const colorPairs = [
+  { color: 'bg-red-500', dotColor: 'bg-red-600', label: 'RODE' },
+  { color: 'bg-blue-500', dotColor: 'bg-blue-600', label: 'BLAUWE' },
+  { color: 'bg-emerald-500', dotColor: 'bg-emerald-600', label: 'GROENE' },
+  { color: 'bg-purple-500', dotColor: 'bg-purple-600', label: 'PAARSE' },
+  { color: 'bg-orange-500', dotColor: 'bg-orange-600', label: 'ORANJE' }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel(index) {
+  let targetLength, colorPair, yOffset, xOffset, hint
+  switch (index) {
+    case 0:
+      targetLength = Math.floor(Math.random() * 31) + 20 // 20-50mm
+      colorPair = colorPairs[Math.floor(Math.random() * colorPairs.length)]
+      yOffset = [100, 150, 200, 250][Math.floor(Math.random() * 4)]
+      xOffset = Math.floor(Math.random() * 41) + 40 // 40-80
+      hint = `Elk klein streepje op de meetlat is 1 mm. De getallen zijn in cm (1 cm = 10 mm).`
+      return { goalText: `Opdracht 1: Meet de lengte van de ${colorPair.label} lijn in millimeter.`, targetLength, color: colorPair.color, dotColor: colorPair.dotColor, yOffset, xOffset, hint }
+    case 1:
+      targetLength = Math.floor(Math.random() * 31) + 60 // 60-90mm
+      colorPair = colorPairs[Math.floor(Math.random() * colorPairs.length)]
+      yOffset = [100, 200, 300][Math.floor(Math.random() * 3)]
+      xOffset = Math.floor(Math.random() * 61) + 80 // 80-140
+      hint = `Vergeet niet het nulpunt (0) exact gelijk te leggen met het linker begin van de lijn!`
+      return { goalText: `Opdracht 2: Meet de lengte van de ${colorPair.label} lijn in millimeter.`, targetLength, color: colorPair.color, dotColor: colorPair.dotColor, yOffset, xOffset, hint }
+    case 2:
+      targetLength = Math.floor(Math.random() * 41) + 100 // 100-140mm
+      colorPair = colorPairs[Math.floor(Math.random() * colorPairs.length)]
+      yOffset = [80, 120, 180, 220][Math.floor(Math.random() * 4)]
+      xOffset = Math.floor(Math.random() * 41) + 60 // 60-100
+      hint = `Dit is een langere lijn. Controleer zorgvuldig de millimeters voorbij de laatste cm.`
+      return { goalText: `Opdracht 3: Meet de lengte van de ${colorPair.label} lijn in millimeter.`, targetLength, color: colorPair.color, dotColor: colorPair.dotColor, yOffset, xOffset, hint }
+    default:
+      return { goalText: 'Opdracht 1: Meet de lengte.', targetLength: 42, color: 'bg-red-500', dotColor: 'bg-red-600', yOffset: 150, xOffset: 60, hint: '1 cm = 10 mm.' }
+  }
+}
+
+const levels = ref([
+  generateLevel(0),
+  generateLevel(1),
+  generateLevel(2)
+])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const userLength = ref(null)
 
 // Dragging logic for the ruler
@@ -80,7 +94,6 @@ function onDrag(e) {
     if (!isDragging) return
     const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0)
     const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0)
-    
     rulerX.value = Math.max(10, Math.min(800, clientX - dragOffsetX))
     rulerY.value = Math.max(10, Math.min(600, clientY - dragOffsetY))
 }
@@ -92,33 +105,47 @@ function endDrag() {
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Tip: Je kan de meetlat slepen met je muis.' };
     userLength.value = null;
     rulerX.value = 100;
-    rulerY.value = 350; // default lower
+    rulerY.value = 350;
+    levels.value = [
+      generateLevel(0),
+      generateLevel(1),
+      generateLevel(2)
+    ];
 }
 
 function checkAnswer() {
   isChecked.value = true;
+  attemptCount.value++;
   const target = currentLevelData.value.targetLength;
-  
+
   if (userLength.value === target) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect gemeten! Je hebt het nulpunt goed gepositioneerd.' 
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
+      text: 'Perfect gemeten! Je hebt het nulpunt goed gepositioneerd.'
     }
   } else {
     isCorrect.value = false
-    
-    // Didactic feedback based on common errors
-    if (userLength.value === target + 3 || userLength.value === target + 4) {
-        feedback.value = { type: 'error', text: 'Let goed op! Je bent beginnen meten vanaf de fysieke RAND van de meetlat. Je moet beginnen bij het lange streepje van de 0.'}
-    } else if (userLength.value === target / 10) {
-        feedback.value = { type: 'error', text: 'Dat getal lijkt in centimeter (cm) te staan. We vragen het specifiek in millimeter (mm).'}
-    } else {
-        feedback.value = { type: 'error', text: `Niet helemaal juist. ${currentLevelData.value.hint}`}
-    }
+
+    const hintIdx = Math.min(attemptCount.value - 1, 2)
+    const commonErrorHint = userLength.value !== null && userLength.value >= target + 3 && userLength.value <= target + 5
+        ? 'Let goed op! Je bent beginnen meten vanaf de fysieke RAND van de meetlat. Je moet beginnen bij het lange streepje van de 0.'
+        : (userLength.value !== null && userLength.value * 10 === target
+            ? 'Dat getal lijkt in centimeter (cm) te staan. We vragen het specifiek in millimeter (mm).'
+            : null)
+
+    const hints = [
+      commonErrorHint || `Niet helemaal juist. ${currentLevelData.value.hint}`,
+      commonErrorHint || `De lijn is ongeveer ${target} mm lang. Kijk nog eens goed naar de streepjes.`,
+      `De juiste lengte is ${target} mm.`
+    ]
+
+    feedback.value = { type: 'error', text: hints[hintIdx] }
   }
 }
 
@@ -162,7 +189,7 @@ onUnmounted(() => {
      @mouseup="endDrag" @mouseleave="endDrag" @touchend="endDrag">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -173,8 +200,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -190,11 +217,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-slate-700 mb-2">Lengte lijnstuk:</label>
                <div class="flex items-center gap-2">
@@ -223,18 +250,18 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-3xl min-h-[500px] bg-white rounded-2xl border-2 border-slate-200/50 shadow-sm relative overflow-hidden"
                    @mousemove="onDrag" @touchmove.prevent="onDrag">
-                  
+
                   <!-- Dynamic Target Line Segment -->
                   <!-- Scale: 1mm = 10px. -->
                   <div class="absolute h-2 rounded-full z-0 flex items-center justify-between transition-all duration-500"
                        :class="currentLevelData.color"
-                       :style="{ 
-                         top: `${currentLevelData.yOffset}px`, 
-                         left: `${currentLevelData.xOffset}px`, 
-                         width: `${currentLevelData.targetLength * 10}px` 
+                       :style="{
+                         top: `${currentLevelData.yOffset}px`,
+                         left: `${currentLevelData.xOffset}px`,
+                         width: `${currentLevelData.targetLength * 10}px`
                        }">
                       <div class="w-1 h-6 rounded-full" :class="currentLevelData.dotColor"></div>
                       <div class="w-1 h-6 rounded-full" :class="currentLevelData.dotColor"></div>
@@ -244,20 +271,20 @@ onUnmounted(() => {
                   <div class="absolute cursor-move select-none z-10 drop-shadow-xl"
                        :style="{ left: `${rulerX}px`, top: `${rulerY}px` }"
                        @mousedown="startDrag" @touchstart.prevent="startDrag">
-                       
+
                        <!-- Ruler Body (Plastic) -->
                        <div class="bg-[#f0f9ff]/90 backdrop-blur-sm border-2 border-slate-400/50 rounded flex flex-col justify-between"
                             style="width: 700px; height: 80px;">
-                            
+
                             <!-- Markings Top Edge -->
                             <div class="relative w-full h-8 border-b border-slate-300/50">
                                 <!-- Edge offset is 30px. -->
                                 <div class="absolute left-[30px] bottom-0 w-[600px] h-full pointer-events-none">
                                     <div v-for="mm in 61" :key="mm" class="absolute bottom-0 bg-slate-700"
-                                         :style="{ 
-                                            left: `${(mm-1) * 10}px`, 
-                                            width: '2px', 
-                                            height: (mm-1) % 10 === 0 ? '20px' : ((mm-1) % 5 === 0 ? '14px' : '8px') 
+                                         :style="{
+                                            left: `${(mm-1) * 10}px`,
+                                            width: '2px',
+                                            height: (mm-1) % 10 === 0 ? '20px' : ((mm-1) % 5 === 0 ? '14px' : '8px')
                                          }">
                                          <!-- Numbers -->
                                          <span v-if="(mm-1) % 10 === 0" class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-800">

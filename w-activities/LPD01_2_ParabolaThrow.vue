@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhBasketball, PhArrowClockwise, PhPlay
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Fenomenen: De Basketbalworp' },
-  instruction: { 
-    type: String, 
-    default: 'Tuning de parabool y = a(x - p)² + q. Zorg dat je worp perfect in de basket belandt!' 
+  instruction: {
+    type: String,
+    default: 'Tuning de parabool y = a(x - p)² + q. Zorg dat je worp perfect in de basket belandt!'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -22,62 +22,91 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
+const attemptCount = ref(0)
 const feedback = ref({ type: 'info', text: 'Pas de parameters a, p en q aan om de parabool te vormen.' })
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    name: 'Level 1: Vrije Worp',
-    basketX: 6, basketY: 3,
-    hasDefender: false, defenderX: 0, defenderY: 0
-  },
-  {
-    name: 'Level 2: Driepunter',
-    basketX: 10, basketY: 4,
-    hasDefender: false, defenderX: 0, defenderY: 0
-  },
-  {
-    name: 'Level 3: Over de Verdediger',
-    basketX: 9, basketY: 3,
-    hasDefender: true, defenderX: 5, defenderY: 5.5
+function generateLevel(index) {
+  switch (index) {
+    case 0:
+      return {
+        name: 'Level 1: Vrije Worp',
+        basketX: Math.floor(Math.random() * 4) + 5,
+        basketY: Math.floor(Math.random() * 2) + 2,
+        hasDefender: false,
+        defenderX: 0,
+        defenderY: 0
+      }
+    case 1:
+      return {
+        name: 'Level 2: Driepunter',
+        basketX: Math.floor(Math.random() * 4) + 8,
+        basketY: Math.floor(Math.random() * 2) + 3,
+        hasDefender: false,
+        defenderX: 0,
+        defenderY: 0
+      }
+    case 2:
+      return {
+        name: 'Level 3: Over de Verdediger',
+        basketX: Math.floor(Math.random() * 3) + 8,
+        basketY: Math.floor(Math.random() * 2) + 3,
+        hasDefender: true,
+        defenderX: Math.floor(Math.random() * 3) + 4,
+        defenderY: Math.floor(Math.random() * 2) + 5
+      }
+    default:
+      return { name: 'Level 1: Vrije Worp', basketX: 6, basketY: 3, hasDefender: false, defenderX: 0, defenderY: 0 }
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([
+  generateLevel(0),
+  generateLevel(1),
+  generateLevel(2)
+])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-const aVal = ref(-0.5) // -1.0 to -0.05
-const pVal = ref(5)    // 0 to 12
-const qVal = ref(5)    // 0 to 12
+const aVal = ref(-0.5)
+const pVal = ref(5)
+const qVal = ref(5)
 
 const isShooting = ref(false)
 const ballX = ref(1)
-const ballY = ref(3) // Thrower hands are at (1,3)
+const ballY = ref(3)
 
 function shootBall() {
     if (isShooting.value) return;
     isChecked.value = true;
     isShooting.value = true;
-    
+
     let x = 1;
     feedback.value = { type: 'info', text: 'Worp onderweg...' }
-    
+
     const target = currentLevelData.value;
-    
+
     const interval = setInterval(() => {
         x += 0.15;
         ballX.value = x;
         ballY.value = aVal.value * Math.pow((x - pVal.value), 2) + qVal.value;
-        
+
         // 1. Defender Check
         if (target.hasDefender) {
-            // Very simple collision bounding box for defender head/hands
             if (x > target.defenderX - 0.5 && x < target.defenderX + 0.5 && ballY.value < target.defenderY) {
                 clearInterval(interval);
+                attemptCount.value++
+                const hints = [
+                    'Verhoog je top (q) voor een hogere boog.',
+                    'Probeer q 2 eenheden hoger te zetten, zodat de bal over de verdediger gaat.',
+                    'Zet q op ' + Math.round((target.defenderY + target.basketY) / 2) + ' en a op -0.3 voor een hoge boog.'
+                ]
+                const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
                 isCorrect.value = false
-                feedback.value = { type: 'error', text: 'Geblokt! De bal is tegen de verdediger gekomen. Verhoog je top (q) of verklein je opening (a) voor een hogere boog.'}
+                feedback.value = { type: 'error', text: 'Geblokt! De bal is tegen de verdediger gekomen. ' + hints[hintIdx] }
                 setTimeout(() => {
                     isShooting.value = false;
                     ballX.value = 1;
@@ -90,20 +119,27 @@ function shootBall() {
         // 2. Basket Check
         if (x >= target.basketX) {
             clearInterval(interval);
-            
-            // Allow a small margin of error for "swish"
+
             if (Math.abs(ballY.value - target.basketY) < 0.4) {
                 isCorrect.value = true
+                attemptCount.value = 0
                 feedback.value = { type: 'success', text: 'SWISH! Perfecte parabool. De wiskunde klopt!' }
             } else {
                 isCorrect.value = false
+                attemptCount.value++
+                const hintIdx = Math.min(attemptCount.value - 1, 2)
+                const hints = [
+                    { above: 'Mis! Kijk naar de richting van de grafiek. De bal moet precies door de basket.', below: 'Mis! De bal belandt niet in de basket. Probeer de hoogte aan te passen.' },
+                    { above: 'De bal vloog boven de basket. Maak a iets meer negatief (bv. -0.7) of verlaag q met 1.', below: 'De bal vloog onder de basket. Maak a minder negatief (bv. -0.3) of verhoog q met 1.' },
+                    { above: 'Probeer a = -0.6 en q = ' + (target.basketY + 1) + ' voor een nauwkeurige worp.', below: 'Probeer a = -0.4 en q = ' + (target.basketY + 2) + ' om de bal hoger te krijgen.' }
+                ]
                 if (ballY.value > target.basketY) {
-                   feedback.value = { type: 'error', text: 'Mis! De bal vloog bóven de basket. Maak de parabool iets smaller (a meer negatief) of verlaag de top (q).' }
+                   feedback.value = { type: 'error', text: hints[hintIdx].above }
                 } else {
-                   feedback.value = { type: 'error', text: 'Mis! De bal vloog ónder de basket of raakte de ring. Breng de boog omhoog.' }
+                   feedback.value = { type: 'error', text: hints[hintIdx].below }
                 }
             }
-            
+
             setTimeout(() => {
                 isShooting.value = false;
                 ballX.value = 1;
@@ -111,12 +147,19 @@ function shootBall() {
             }, 2000)
             return;
         }
-        
+
         // 3. Ground hit Check
         if (ballY.value < 0) {
             clearInterval(interval);
             isCorrect.value = false
-            feedback.value = { type: 'error', text: 'Airball! Te kort. Verschuif je top (p) verder naar voren.'}
+            attemptCount.value++
+            const hints = [
+                'Airball! Te kort. Verschuif p verder naar voren.',
+                'Probeer p dichter bij de basket te zetten (p = ' + (target.basketX - 2) + ').',
+                'Zet p op ' + (target.basketX - 1) + ' en q op ' + (target.basketY + 1) + '.'
+            ]
+            const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
+            feedback.value = { type: 'error', text: hints[hintIdx] }
             setTimeout(() => {
                 isShooting.value = false;
                 ballX.value = 1;
@@ -130,6 +173,7 @@ function shootBall() {
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Pas de parameters a, p en q aan om de parabool te vormen.' };
     aVal.value = -0.5;
     pVal.value = 5;
@@ -137,6 +181,11 @@ function resetActivityState() {
     isShooting.value = false;
     ballX.value = 1;
     ballY.value = 3;
+    levels.value = [
+      generateLevel(0),
+      generateLevel(1),
+      generateLevel(2)
+    ];
 }
 
 function handleNext() {
@@ -181,7 +230,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -192,8 +241,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">{{ currentLevelData.name }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -209,9 +258,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner flex flex-col gap-6">
-               
+
                <div class="font-mono font-black text-2xl text-slate-700 bg-white p-3 rounded shadow text-center border-2 border-orange-200">
                    y = <span class="text-rose-500">{{ aVal.toFixed(2) }}</span>(x - <span class="text-blue-500">{{ pVal }}</span>)² + <span class="text-emerald-500">{{ qVal }}</span>
                </div>
@@ -253,11 +302,11 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              
+
               <button v-if="!isCorrect" @click="shootBall" :disabled="isShooting" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-orange-500 hover:bg-orange-600 active:scale-[0.98] flex items-center justify-center gap-2">
                   <PhPlay weight="fill" /> Test Worp
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -268,15 +317,14 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- Physics Canvas -->
-              <!-- X: 0 to 12. Y: 0 to 10. Scale: 50px per unit. -->
               <div class="relative bg-[#f8fafc] shadow-2xl rounded-3xl overflow-hidden border-4 border-slate-800 flex items-end">
                   <svg width="600" height="500" viewBox="0 0 600 500" class="block">
-                      
+
                       <!-- Coordinate System (y is flipped in SVG, 0 is bottom) -->
                       <g transform="translate(0, 500) scale(1, -1)">
-                          
+
                           <!-- Grid -->
                           <g stroke="#e2e8f0" stroke-width="1">
                               <line v-for="i in 13" :key="'v'+i" :x1="(i-1)*50" y1="0" :x2="(i-1)*50" y2="500" />
@@ -312,16 +360,16 @@ onUnmounted(() => {
                           </g>
 
                           <!-- The Parabola Curve Preview (Dashed) -->
-                          <polyline 
-                              fill="none" 
-                              stroke="#cbd5e1" 
-                              stroke-width="3" 
+                          <polyline
+                              fill="none"
+                              stroke="#cbd5e1"
+                              stroke-width="3"
                               stroke-dasharray="10 5"
                               :points="Array.from({length: 120}, (_, i) => {
                                   const x = i * 0.1;
                                   const y = aVal * Math.pow((x - pVal), 2) + qVal;
                                   return `${x * 50},${y * 50}`;
-                              }).join(' ')" 
+                              }).join(' ')"
                           />
 
                           <!-- The Vertex Marker -->

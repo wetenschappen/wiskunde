@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhLink, PhArrowClockwise, PhCaretUp, PhCaretDown
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Vormen Omzetten: De Slotmachine' },
-  instruction: { 
-    type: String, 
-    default: 'Breuken, decimalen en procenten horen bij elkaar.<br/><br/><strong>Opdracht:</strong> Draai aan de wielen (pijltjes omhoog/omlaag) totdat elke rij horizontaal een perfecte match vormt.' 
+  instruction: {
+    type: String,
+    default: 'Breuken, decimalen en procenten horen bij elkaar.<br/><br/><strong>Opdracht:</strong> Draai aan de wielen (pijltjes omhoog/omlaag) totdat elke rij horizontaal een perfecte match vormt.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,33 +23,58 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de pijltjes boven en onder de kolommen om ze te draaien.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Bekende breuken',
-    col1: [ { id: 'A', val: '1/2' }, { id: 'B', val: '1/4' }, { id: 'C', val: '3/4' } ],
-    col2Start: [ { id: 'B', val: '0.25' }, { id: 'C', val: '0.75' }, { id: 'A', val: '0.50' } ],
-    col3Start: [ { id: 'C', val: '75%' }, { id: 'A', val: '50%' }, { id: 'B', val: '25%' } ]
-  },
-  {
-    goalText: 'Opdracht 2: Vijfden',
-    col1: [ { id: 'A', val: '1/5' }, { id: 'B', val: '2/5' }, { id: 'C', val: '4/5' } ],
-    col2Start: [ { id: 'C', val: '0.80' }, { id: 'A', val: '0.20' }, { id: 'B', val: '0.40' } ],
-    col3Start: [ { id: 'B', val: '40%' }, { id: 'C', val: '80%' }, { id: 'A', val: '20%' } ]
-  },
-  {
-    goalText: 'Opdracht 3: Speciale breuken',
-    col1: [ { id: 'A', val: '1/3' }, { id: 'B', val: '2/3' }, { id: 'C', val: '1/8' } ],
-    col2Start: [ { id: 'B', val: '0.67' }, { id: 'C', val: '0.125' }, { id: 'A', val: '0.33' } ],
-    col3Start: [ { id: 'C', val: '12.5%' }, { id: 'A', val: '33.3%' }, { id: 'B', val: '66.7%' } ]
-  }
-]
+function generateLevel() {
+  const pools = [
+    {
+      col1: [ { id: 'A', val: '1/2' }, { id: 'B', val: '1/4' }, { id: 'C', val: '3/4' } ],
+      col2: [ { id: 'B', val: '0.25' }, { id: 'C', val: '0.75' }, { id: 'A', val: '0.50' } ],
+      col3: [ { id: 'C', val: '75%' }, { id: 'A', val: '50%' }, { id: 'B', val: '25%' } ]
+    },
+    {
+      col1: [ { id: 'A', val: '1/5' }, { id: 'B', val: '2/5' }, { id: 'C', val: '4/5' } ],
+      col2: [ { id: 'C', val: '0.80' }, { id: 'A', val: '0.20' }, { id: 'B', val: '0.40' } ],
+      col3: [ { id: 'B', val: '40%' }, { id: 'C', val: '80%' }, { id: 'A', val: '20%' } ]
+    },
+    {
+      col1: [ { id: 'A', val: '1/3' }, { id: 'B', val: '2/3' }, { id: 'C', val: '1/8' } ],
+      col2: [ { id: 'B', val: '0.67' }, { id: 'C', val: '0.125' }, { id: 'A', val: '0.33' } ],
+      col3: [ { id: 'C', val: '12.5%' }, { id: 'A', val: '33.3%' }, { id: 'B', val: '66.7%' } ]
+    },
+    {
+      col1: [ { id: 'A', val: '1/10' }, { id: 'B', val: '3/10' }, { id: 'C', val: '9/10' } ],
+      col2: [ { id: 'C', val: '0.90' }, { id: 'A', val: '0.10' }, { id: 'B', val: '0.30' } ],
+      col3: [ { id: 'B', val: '30%' }, { id: 'C', val: '90%' }, { id: 'A', val: '10%' } ]
+    },
+    {
+      col1: [ { id: 'A', val: '1/2' }, { id: 'B', val: '3/5' }, { id: 'C', val: '1/20' } ],
+      col2: [ { id: 'B', val: '0.60' }, { id: 'C', val: '0.05' }, { id: 'A', val: '0.50' } ],
+      col3: [ { id: 'C', val: '5%' }, { id: 'A', val: '50%' }, { id: 'B', val: '60%' } ]
+    },
+    {
+      col1: [ { id: 'A', val: '2/3' }, { id: 'B', val: '3/4' }, { id: 'C', val: '1/4' } ],
+      col2: [ { id: 'C', val: '0.25' }, { id: 'A', val: '0.67' }, { id: 'B', val: '0.75' } ],
+      col3: [ { id: 'B', val: '75%' }, { id: 'C', val: '25%' }, { id: 'A', val: '66.7%' } ]
+    }
+  ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  const shuffled = [...pools].sort(() => Math.random() - 0.5)
+  const picked = shuffled.slice(0, 3)
+  return picked.map((p, i) => ({
+    goalText: i === 0 ? 'Opdracht 1: Bekende breuken' : i === 1 ? 'Opdracht 2: Vijfden' : 'Opdracht 3: Speciale breuken',
+    col1: p.col1,
+    col2Start: p.col2,
+    col3Start: p.col3
+  }))
+}
+
+const levels = ref(generateLevel())
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Active Columns State
 const col1 = ref([])
@@ -74,20 +99,22 @@ function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op de pijltjes boven en onder de kolommen om ze te draaien.' };
-    
-    // Load level data
+    attemptCount.value = 0;
+    levels.value = generateLevel();
+
     const data = currentLevelData.value
-    col1.value = [...data.col1]
-    col2.value = [...data.col2Start]
-    col3.value = [...data.col3Start]
+    col1.value = data.col1.map(item => ({ ...item }))
+    col2.value = data.col2Start.map(item => ({ ...item }))
+    col3.value = data.col3Start.map(item => ({ ...item }))
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+  attemptCount.value++
+
   let allMatch = true;
   let errorRow = -1;
-  
+
   for (let i = 0; i < 3; i++) {
       if (col1.value[i].id !== col2.value[i].id || col1.value[i].id !== col3.value[i].id) {
           allMatch = false;
@@ -98,17 +125,28 @@ function checkAnswer() {
 
   if (allMatch) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Jackpot! Je hebt alle representaties correct aan elkaar gekoppeld.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Jackpot! Je hebt alle representaties correct aan elkaar gekoppeld.'
     }
   } else {
     isCorrect.value = false
-    
+
     const rowFrac = col1.value[errorRow].val
-    
-    // Didactic feedback based on what's visible
-    feedback.value = { type: 'error', text: `Kijk naar de rij met breuk ${rowFrac}. De huidige combinatie met decimaal en procent klopt niet. Verschuif de andere wielen.`}
+    const rowDec = col2.value[errorRow].val
+    const rowPct = col3.value[errorRow].val
+
+    if (attemptCount.value === 1) {
+      feedback.value = { type: 'error', text: 'Kijk naar de rij met breuk ' + rowFrac + '. De combinatie (' + rowDec + ', ' + rowPct + ') klopt niet. Draai aan de andere wielen.' }
+    } else if (attemptCount.value === 2) {
+      feedback.value = { type: 'error', text: 'Denk aan de omzettingen. Bijvoorbeeld: 0.25 = 25% = 1/4. Welke wielen moet je verschuiven om de juiste combinatie te maken?' }
+    } else {
+      // Find which columns need adjustment
+      const matchA = col1.value[0].id
+      const matchB = col1.value[1].id
+      const matchC = col1.value[2].id
+      feedback.value = { type: 'error', text: 'De juiste stand is: rij 1 = ' + matchA + ', rij 2 = ' + matchB + ', rij 3 = ' + matchC + '. Verschuif de kolommen tot ze overeenkomen.' }
+    }
   }
 }
 
@@ -151,7 +189,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -162,8 +200,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -179,11 +217,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
                <h4 class="font-bold text-slate-700 mb-2">Tip</h4>
                <p class="text-sm text-slate-500">Als je een match hebt gevonden in een rij, controleer dan of de andere rijen ook kloppen!</p>
@@ -208,17 +246,14 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
-              <!-- The Slot Machine -->
+
               <div class="bg-slate-800 p-8 rounded-3xl shadow-2xl border-b-8 border-slate-900 flex gap-6 relative">
-                  
-                  <!-- Left Decor -->
+
                   <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-4 h-32 bg-slate-700 rounded-l-lg border-y-4 border-slate-900"></div>
-                  
-                  <!-- Column 1 (Fixed, acts as reference) -->
+
                   <div class="flex flex-col gap-2 relative">
                       <div class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-2">Breuk</div>
-                      
+
                       <div class="bg-white p-2 rounded-xl shadow-inner border-[6px] border-slate-600 flex flex-col gap-2">
                           <div v-for="item in col1" :key="item.id" class="w-32 h-20 bg-slate-100 rounded-lg flex items-center justify-center font-black text-3xl text-slate-800 border-2 border-slate-300">
                               {{ item.val }}
@@ -226,11 +261,10 @@ onUnmounted(() => {
                       </div>
                   </div>
 
-                  <!-- Column 2 (Rotatable) -->
                   <div class="flex flex-col gap-2 relative group">
                       <div class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-2">Decimaal</div>
                       <button @click="shiftDown(col2)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-orange-400 hover:text-orange-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
-                      
+
                       <div class="bg-white p-2 rounded-xl shadow-inner border-[6px] border-slate-600 flex flex-col gap-2 relative overflow-hidden">
                           <transition-group name="spin">
                               <div v-for="item in col2" :key="item.val" class="w-32 h-20 bg-orange-100 rounded-lg flex items-center justify-center font-black text-3xl text-orange-800 border-2 border-orange-300">
@@ -238,15 +272,14 @@ onUnmounted(() => {
                               </div>
                           </transition-group>
                       </div>
-                      
+
                       <button @click="shiftUp(col2)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-orange-400 hover:text-orange-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
                   </div>
 
-                  <!-- Column 3 (Rotatable) -->
                   <div class="flex flex-col gap-2 relative group">
                       <div class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-2">Procent</div>
                       <button @click="shiftDown(col3)" :disabled="isCorrect" class="absolute -top-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretUp weight="fill" class="w-8 h-8" /></button>
-                      
+
                       <div class="bg-white p-2 rounded-xl shadow-inner border-[6px] border-slate-600 flex flex-col gap-2 relative overflow-hidden">
                           <transition-group name="spin">
                               <div v-for="item in col3" :key="item.val" class="w-32 h-20 bg-sky-100 rounded-lg flex items-center justify-center font-black text-3xl text-sky-800 border-2 border-sky-300">
@@ -254,11 +287,10 @@ onUnmounted(() => {
                               </div>
                           </transition-group>
                       </div>
-                      
+
                       <button @click="shiftUp(col3)" :disabled="isCorrect" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sky-400 hover:text-sky-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0"><PhCaretDown weight="fill" class="w-8 h-8" /></button>
                   </div>
-                  
-                  <!-- Win overlay lines -->
+
                   <div v-if="isCorrect" class="absolute inset-0 pointer-events-none z-20 flex flex-col justify-center gap-[4.5rem] pt-8 px-6">
                       <div class="w-full h-2 bg-emerald-400/80 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] animate-pulse"></div>
                       <div class="w-full h-2 bg-emerald-400/80 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)] animate-pulse"></div>
@@ -281,7 +313,6 @@ onUnmounted(() => {
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Transition for slot machine spin */
 .spin-move,
 .spin-enter-active,
 .spin-leave-active {

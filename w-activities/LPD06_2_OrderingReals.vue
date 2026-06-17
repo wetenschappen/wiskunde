@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhListNumbers,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,51 +32,80 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Plaats alle kaarten.' })
+const attemptCount = ref(0)
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Ordeneer breuken en decimale getallen.',
-    numbers: [
-      { id: 'n1', label: '1/2', value: 0.5 },
-      { id: 'n2', label: '0.4', value: 0.4 },
-      { id: 'n3', label: '-1.5', value: -1.5 },
-      { id: 'n4', label: '0', value: 0 },
-      { id: 'n5', label: '-3/4', value: -0.75 }
-    ]
-  },
-  {
-    goalText: 'Opdracht 2: Let op de irrationale getallen (wortels en pi).',
-    numbers: [
-      { id: 'n1', label: 'π', value: 3.1415 },
-      { id: 'n2', label: '√2', value: 1.414 },
-      { id: 'n3', label: '3', value: 3 },
-      { id: 'n4', label: '√5', value: 2.236 },
-      { id: 'n5', label: '1', value: 1 }
-    ]
-  },
-  {
-    goalText: 'Opdracht 3: De ultieme test met negatieve irrationale getallen!',
-    numbers: [
-      { id: 'n1', label: '-√5', value: -2.236 },
-      { id: 'n2', label: '-2', value: -2 },
-      { id: 'n3', label: '-π', value: -3.1415 },
-      { id: 'n4', label: '-√2', value: -1.414 },
-      { id: 'n5', label: '-3', value: -3 }
-    ]
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
+
+const numberPools = [
+  // Level 1: fractions and decimals
+  [
+    { label: '1/2', value: 0.5 },
+    { label: '0.4', value: 0.4 },
+    { label: '-1.5', value: -1.5 },
+    { label: '0', value: 0 },
+    { label: '-3/4', value: -0.75 },
+    { label: '1/4', value: 0.25 },
+    { label: '-0.2', value: -0.2 },
+    { label: '4/5', value: 0.8 }
+  ],
+  // Level 2: irrationals
+  [
+    { label: '\u03C0', value: 3.1415 },
+    { label: '\u221A2', value: 1.414 },
+    { label: '3', value: 3 },
+    { label: '\u221A5', value: 2.236 },
+    { label: '1', value: 1 },
+    { label: '\u221A3', value: 1.732 },
+    { label: '2', value: 2 },
+    { label: '4', value: 4 }
+  ],
+  // Level 3: negative irrationals
+  [
+    { label: '-\u221A5', value: -2.236 },
+    { label: '-2', value: -2 },
+    { label: '-\u03C0', value: -3.1415 },
+    { label: '-\u221A2', value: -1.414 },
+    { label: '-3', value: -3 },
+    { label: '-2.5', value: -2.5 },
+    { label: '-\u221A3', value: -1.732 },
+    { label: '-1', value: -1 }
+  ]
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const sizes = [5, 5, 5] // 5 numbers per level
+  return numberPools.map((pool, i) => {
+    const selected = shuffle(pool).slice(0, sizes[i])
+    return {
+      goalText: i === 0
+        ? 'Opdracht 1: Orden breuken en decimale getallen.'
+        : i === 1
+          ? 'Opdracht 2: Let op de irrationale getallen (wortels en pi).'
+          : 'Opdracht 3: De ultieme test met negatieve irrationale getallen!',
+      numbers: selected.map((n, idx) => ({ ...n, id: `n${idx}` }))
+    }
+  })
+}
+
+const levels = ref([])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 const availableNumbers = ref([])
-const slots = ref([null, null, null, null, null])
+const slots = ref([])
 
 let draggedItem = null
-let draggedFrom = null // 'available' or index in slots
+let draggedFrom = null
 
 function onDragStart(item, source) {
   if (isCorrect.value) return;
@@ -85,21 +114,81 @@ function onDragStart(item, source) {
 }
 
 function onDrop(targetIndex) {
-  if (draggedItem && !isCorrect.value) {
-    // If target slot is already occupied, swap them or move the existing one back
-    const existing = slots.value[targetIndex]
-    
-    if (draggedFrom === 'available') {
-      availableNumbers.value = availableNumbers.value.filter(n => n.id !== draggedItem.id)
-      if (existing) availableNumbers.value.push(existing)
-    } else {
-      slots.value[draggedFrom] = existing
+  if (!draggedItem || isCorrect.value) return;
+
+  const existing = slots.value[targetIndex]
+
+  if (draggedFrom === 'available') {
+    availableNumbers.value = availableNumbers.value.filter(n => n.id !== draggedItem.id)
+    if (existing) availableNumbers.value.push(existing)
+  } else {
+    slots.value[draggedFrom] = existing
+  }
+
+  slots.value[targetIndex] = draggedItem
+  draggedItem = null
+  draggedFrom = null
+  isChecked.value = false
+
+  // Auto-validate when all slots are filled
+  if (slots.value.every(s => s !== null)) {
+    autoValidate()
+  }
+}
+
+function autoValidate() {
+  const slotValues = slots.value.map(s => s.value)
+
+  // Check if sorted correctly
+  let isSorted = true
+  let errorIndex = -1
+  for (let i = 0; i < slotValues.length - 1; i++) {
+    if (slotValues[i] > slotValues[i+1]) {
+      isSorted = false
+      errorIndex = i
+      break
     }
-    
-    slots.value[targetIndex] = draggedItem
-    draggedItem = null
-    draggedFrom = null
-    isChecked.value = false // Reset check state on change
+  }
+
+  if (isSorted) {
+    isCorrect.value = true
+    isChecked.value = true
+    feedback.value = {
+      type: 'success',
+      text: 'Perfect! Je hebt een meesterlijk inzicht in de grootte van reële getallen.'
+    }
+  } else {
+    attemptCount.value++
+    isChecked.value = true
+
+    const val1 = slots.value[errorIndex].label
+    const val2 = slots.value[errorIndex+1].label
+
+    if (attemptCount.value === 1) {
+      if (slotValues[errorIndex] < 0 && slotValues[errorIndex+1] < 0) {
+        feedback.value = {
+          type: 'error',
+          text: `Foutje: ${val1} is GROTER dan ${val2}. Bij negatieve getallen is het getal met de grootste absolute waarde (zonder min) juist het kleinst! (-5 is kleiner dan -2).`
+        }
+      } else {
+        feedback.value = {
+          type: 'error',
+          text: `Foutje: ${val1} is stiekem groter dan ${val2}. Denk na over de decimale waarde van breuken en wortels!`
+        }
+      }
+    } else if (attemptCount.value === 2) {
+      feedback.value = {
+        type: 'error',
+        text: `Let op de volgorde bij ${val1} en ${val2}. Tip: zet alle getallen om naar een kommagetal (decimaal) en vergelijk ze dan.`
+      }
+    } else {
+      const correctOrder = [...slots.value].sort((a, b) => a.value - b.value)
+        .map(n => n.label).join(' < ')
+      feedback.value = {
+        type: 'error',
+        text: `De juiste volgorde is: ${correctOrder}. Sleep de kaarten naar de juiste positie.`
+      }
+    }
   }
 }
 
@@ -114,62 +203,26 @@ function returnToAvailable(index) {
 }
 
 function resetActivityState() {
+  levels.value = generateLevel()
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: 'Plaats alle kaarten.' };
-  
-  // Clone and shuffle numbers for the current level
-  const numList = [...currentLevelData.value.numbers].sort(() => Math.random() - 0.5)
-  availableNumbers.value = numList;
-  slots.value = [null, null, null, null, null];
-}
+  attemptCount.value = 0;
 
-function checkAnswer() {
-  isChecked.value = true;
-  
-  if (slots.value.some(s => s === null)) {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: 'Plaats eerst ALLE getallen op de getallenas.' }
-    return
-  }
-
-  // Check if sorted by value
-  let isSorted = true
-  let errorIndex = -1;
-  for (let i = 0; i < slots.value.length - 1; i++) {
-    if (slots.value[i].value > slots.value[i+1].value) {
-      isSorted = false;
-      errorIndex = i;
-      break;
-    }
-  }
-
-  if (isSorted) {
-    isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect! Je hebt een meesterlijk inzicht in de grootte van reële getallen.' 
-    }
-  } else {
-    isCorrect.value = false
-    
-    // Scaffolding hint based on the first error found
-    const val1 = slots.value[errorIndex].label;
-    const val2 = slots.value[errorIndex+1].label;
-    
-    if (slots.value[errorIndex].value < 0 && slots.value[errorIndex+1].value < 0) {
-      feedback.value = { 
-        type: 'error', 
-        text: `Foutje: ${val1} is GROTER dan ${val2}. Bij negatieve getallen is het getal met de grootste absolute waarde (zonder min) juist het kleinst! (-5 is kleiner dan -2).`
-      }
-    } else {
-      feedback.value = { 
-        type: 'error', 
-        text: `Foutje: ${val1} is stiekem groter dan ${val2}. Denk na over de decimale waarde van breuken en wortels!`
-      }
-    }
+  if (currentLevelData.value) {
+    const numList = shuffle([...currentLevelData.value.numbers])
+    availableNumbers.value = numList
+    slots.value = new Array(5).fill(null)
   }
 }
+
+watch(currentLevelData, (val) => {
+  if (val) {
+    const numList = shuffle([...val.numbers])
+    availableNumbers.value = numList
+    slots.value = new Array(5).fill(null)
+  }
+}, { immediate: true })
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -235,9 +288,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
@@ -248,14 +301,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -268,11 +321,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-amber-50 p-4 border border-amber-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-amber-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
               <p class="text-sm font-medium text-slate-700 mb-4 uppercase tracking-wider text-center">Beschikbare getallen</p>
               <div class="flex flex-wrap gap-4 justify-center">
@@ -283,14 +336,14 @@ onUnmounted(() => {
                   {{ num.label }}
                 </div>
                 <div v-if="availableNumbers.length === 0" class="text-sm text-slate-400 italic py-6">
-                  Alle getallen zijn geplaatst. Controleer je antwoord!
+                  Alle getallen zijn geplaatst.
                 </div>
               </div>
             </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -305,30 +358,29 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button @click="handleNext" v-if="isCorrect" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3 px-4 text-center text-sm font-medium text-slate-400 bg-slate-100 rounded-lg border border-slate-200">
+                Plaats alle getallen in de juiste volgorde
+              </div>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-x-auto">
-              
+
               <div class="relative flex items-center min-w-max px-12 py-24">
                 <!-- The Number line graphic -->
                 <div class="absolute h-3 bg-slate-800 rounded-full left-0 right-0 top-1/2 -translate-y-1/2 z-0 shadow-sm"></div>
                 <div class="absolute w-6 h-6 bg-slate-800 rounded-full -left-2 top-1/2 -translate-y-1/2 clip-triangle-left"></div>
                 <div class="absolute w-6 h-6 bg-slate-800 rounded-full -right-2 top-1/2 -translate-y-1/2 clip-triangle-right"></div>
-                
+
                 <div class="absolute left-8 -top-8 text-slate-500 font-bold tracking-widest uppercase">Klein</div>
                 <div class="absolute right-8 -top-8 text-slate-500 font-bold tracking-widest uppercase">Groot</div>
 
@@ -336,21 +388,21 @@ onUnmounted(() => {
                 <div class="relative z-10 flex gap-12 px-12">
                   <div v-for="(slot, index) in slots" :key="index"
                        class="relative flex flex-col items-center">
-                    
+
                     <div class="w-2 h-8 bg-slate-800 mb-4 rounded-full z-10"></div>
-                    
+
                     <div @dragover.prevent
                          @drop="onDrop(index)"
                          class="w-20 h-20 rounded-xl flex items-center justify-center border-4 transition-all relative"
                          :class="slot ? (isCorrect ? 'border-emerald-500 bg-emerald-50 shadow-[0_0_15px_#10b981]' : 'border-amber-400 bg-white shadow-xl scale-110') : 'border-dashed border-slate-400 bg-slate-200/50'">
-                      
-                      <div v-if="slot" 
+
+                      <div v-if="slot"
                            draggable="true"
                            @dragstart="onDragStart(slot, index)"
                            class="w-full h-full flex items-center justify-center text-2xl font-black text-slate-800 cursor-grab active:cursor-grabbing font-mono">
                         {{ slot.label }}
                       </div>
-                      
+
                       <button v-if="slot && !isCorrect" @click="returnToAvailable(index)" class="absolute -top-3 -right-3 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:bg-red-200 hover:text-red-700 shadow-md border-2 border-white">
                         <PhX class="w-4 h-4" weight="bold" />
                       </button>

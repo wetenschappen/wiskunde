@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhBoundingBox,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,37 +31,44 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Maak het blauwe beeld exact 4 keer zo groot in OPPERVLAKTE.',
-    targetK: 2,
-    hintBase: 'Als de schaalfactor k is, wordt de oppervlakte k² keer zo groot. Welk getal in het kwadraat is 4?'
-  },
-  {
-    goalText: 'Opdracht 2: Maak het beeld een kwart (0.25x) van de originele oppervlakte.',
-    targetK: 0.5,
-    hintBase: 'Het beeld moet kleiner worden. Welk getal keer zichzelf (k²) is gelijk aan 0.25 (of 1/4)?'
-  },
-  {
-    goalText: 'Opdracht 3: Maak het beeld 9 keer zo groot in OPPERVLAKTE.',
-    targetK: 3,
-    hintBase: 'Als de oppervlakte x9 gaat, met hoeveel moeten de zijden (basis en hoogte) dan vermenigvuldigd worden?'
-  }
-]
+function generateLevel() {
+  const candidates = [0.5, 1.5, 2.0, 2.5, 3.0]
+  const shuffled = [...candidates].sort(() => Math.random() - 0.5)
+  const picked = shuffled.slice(0, 3)
+  return [
+    {
+      goalText: 'Opdracht 1: Maak het beeld exact ' + (picked[0] * picked[0]) + ' keer zo groot in OPPERVLAKTE.',
+      targetK: picked[0],
+      hintBase: 'Als de schaalfactor k is, wordt de oppervlakte k² keer zo groot. Welk getal in het kwadraat is ' + (picked[0] * picked[0]) + '?'
+    },
+    {
+      goalText: 'Opdracht 2: Maak het beeld ' + (picked[1] * picked[1]) + ' keer zo groot in OPPERVLAKTE.',
+      targetK: picked[1],
+      hintBase: 'De oppervlakte moet x' + (picked[1] * picked[1]) + ' worden. Wat is k als de oppervlakte k² keer groter wordt?'
+    },
+    {
+      goalText: 'Opdracht 3: Maak het beeld ' + (picked[2] * picked[2]) + ' keer zo groot in OPPERVLAKTE.',
+      targetK: picked[2],
+      hintBase: 'Je bent er bijna. Onthoud: oppervlakte schaalt met k². Wat is k als k² = ' + (picked[2] * picked[2]) + '?'
+    }
+  ]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref(generateLevel())
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Activity State
-const scaleFactor = ref(1) // Starts neutral
+const scaleFactor = ref(1)
 
-const originalBase = 40 // px visually
-const originalHeight = 30 // px visually
-const originalAreaValue = 60 // symbolic area
+const originalBase = 40
+const originalHeight = 30
+const originalAreaValue = 60
 
 const newBase = computed(() => originalBase * scaleFactor.value)
 const newHeight = computed(() => originalHeight * scaleFactor.value)
@@ -72,24 +79,20 @@ function resetActivityState() {
   isChecked.value = false;
   feedback.value = { type: 'info', text: 'Stel de schaalfactor k in.' };
   scaleFactor.value = 1;
+  attemptCount.value = 0;
+  levels.value = generateLevel();
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  if (scaleFactor.value === currentLevelData.value.targetK) {
+// Auto-correct: watch slider for match
+watch(scaleFactor, (val) => {
+  if (!isCorrect.value && val === currentLevelData.value.targetK) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: `Correct! De lengtes gaan x${scaleFactor.value}, dus de oppervlakte gaat x${scaleFactor.value * scaleFactor.value} (k²).` 
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: `Bijna. Jouw huidige oppervlakte is nu ${newAreaValue.value} (dat is ${scaleFactor.value * scaleFactor.value}x groter). ${currentLevelData.value.hintBase}`
+    feedback.value = {
+      type: 'success',
+      text: 'Correct! De lengtes gaan x' + val + ', dus de oppervlakte gaat x' + (val * val) + ' (k²).'
     }
   }
-}
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -150,9 +153,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -163,14 +166,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -183,11 +186,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 mt-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner">
               <label class="block mb-2 text-sm font-bold text-slate-700">Schaalfactor (k): <span class="font-mono text-lg text-indigo-600">{{ scaleFactor }}</span></label>
               <input type="range" v-model.number="scaleFactor" min="0.5" max="3" step="0.5" :disabled="isCorrect" class="w-full accent-indigo-600">
@@ -209,7 +212,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -224,11 +227,9 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-              
+
+              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -239,13 +240,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-end justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
-              <!-- Container for scaling visual -->
+
               <div class="relative flex items-end justify-center gap-16 w-full h-full pb-10">
-                
-                <!-- Original Shape (fixed visual scale) -->
+
                 <div class="flex flex-col items-center gap-4 transition-opacity" :class="isCorrect ? 'opacity-30' : 'opacity-100'">
                   <div class="text-center font-bold text-slate-400 uppercase tracking-widest text-xs">Origineel</div>
                   <div class="relative bg-slate-400 transform-origin-bottom"
@@ -253,15 +252,14 @@ onUnmounted(() => {
                   </div>
                 </div>
 
-                <!-- Scaled Shape -->
                 <div class="flex flex-col items-center gap-4">
                   <div class="text-center font-bold text-indigo-600 uppercase tracking-widest text-xs transition-colors" :class="isCorrect ? 'text-emerald-600' : ''">Beeld (k = {{ scaleFactor }})</div>
                   <div class="relative transition-all duration-300 transform-origin-bottom shadow-lg"
                        :class="isCorrect ? 'bg-emerald-500' : 'bg-indigo-500'"
                        :style="{
                          clip-path: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-                         width: `${80 * scaleFactor}px`,
-                         height: `${60 * scaleFactor}px`
+                         width: (80 * scaleFactor) + 'px',
+                         height: (60 * scaleFactor) + 'px'
                        }">
                   </div>
                 </div>

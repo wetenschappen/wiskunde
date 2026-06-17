@@ -1,15 +1,15 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTextT, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Verzamelingen: De Symbolentaal' },
-  instruction: { 
-    type: String, 
-    default: 'Wiskundige symbolen vertellen ons precies waar elementen thuishoren in een Venndiagram.<br/><br/><strong>Opdracht:</strong> Sleep de getallen naar de juiste zone in het Venndiagram, zodat de uitdrukking WAAR is.' 
+  instruction: {
+    type: String,
+    default: 'Wiskundige symbolen vertellen ons precies waar elementen thuishoren in een Venndiagram.<br/><br/><strong>Opdracht:</strong> Sleep de getallen naar de juiste zone in het Venndiagram, zodat de uitdrukking WAAR is.'
   },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
@@ -23,36 +23,54 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Sleep de getallen naar de cirkels.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: De Doorsnede',
-    expression: 'A ∩ B = {3}',
-    targetPlacements: { 3: 'intersect' },
-    hint: 'De doorsnede (∩) is het stukje dat tot BEIDE verzamelingen behoort. Waar overlappen de cirkels?'
-  },
-  {
-    goalText: 'Opdracht 2: Het Verschil',
-    expression: 'A \\ B = {1, 2}',
-    targetPlacements: { 1: 'a-only', 2: 'a-only' },
-    hint: 'Het verschil (\\) betekent: alles wat in A zit, ZONDER de elementen die ook in B zitten.'
-  },
-  {
-    goalText: 'Opdracht 3: Combinatie',
-    expression: 'B \\ A = {5} en A ∩ B = {4}',
-    targetPlacements: { 5: 'b-only', 4: 'intersect' },
-    hint: 'Lees beide delen goed. B \\ A is B zonder A. En ∩ is de overlap.'
+function generateLevel() {
+  function pickN(n, min, max) {
+    const result = []
+    while (result.length < n) {
+      const r = Math.floor(Math.random() * (max - min + 1)) + min
+      if (!result.includes(r)) result.push(r)
+    }
+    return result
   }
-]
+  const l1Nums = pickN(1, 2, 6)
+  const l2Nums = pickN(2, 1, 8)
+  const l3Only = pickN(1, 3, 9)
+  const l3InterNums = pickN(1, 2, 8).filter(n => !l3Only.includes(n))
+  const l3Inter = l3InterNums.length > 0 ? l3InterNums[0] : (l3Only[0] === 3 ? 4 : 3)
+  return [
+    {
+      goalText: 'Opdracht 1: De Doorsnede',
+      expression: 'A ∩ B = {' + l1Nums[0] + '}',
+      targetPlacements: { [l1Nums[0]]: 'intersect' },
+      hint: 'De doorsnede (∩) is het stukje dat tot BEIDE verzamelingen behoort. Waar overlappen de cirkels?'
+    },
+    {
+      goalText: 'Opdracht 2: Het Verschil',
+      expression: 'A \\ B = {' + l2Nums[0] + ', ' + l2Nums[1] + '}',
+      targetPlacements: { [l2Nums[0]]: 'a-only', [l2Nums[1]]: 'a-only' },
+      hint: 'Het verschil (\\) betekent: alles wat in A zit, ZONDER de elementen die ook in B zitten.'
+    },
+    {
+      goalText: 'Opdracht 3: Combinatie',
+      expression: 'B \\ A = {' + l3Only[0] + '} en A ∩ B = {' + l3Inter + '}',
+      targetPlacements: { [l3Only[0]]: 'b-only', [l3Inter]: 'intersect' },
+      hint: 'Lees beide delen goed. B \\ A is B zonder A. En ∩ is de overlap.'
+    }
+  ]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref(generateLevel())
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const numbersAvailable = computed(() => Object.keys(currentLevelData.value.targetPlacements).map(Number))
 
-// State for placements: { number: 'zone' } 
+// State for placements: { number: 'zone' }
 // zones: 'a-only', 'b-only', 'intersect', 'outside'
 const placements = ref({})
 
@@ -61,14 +79,39 @@ function onDragStart(num) { if(!isCorrect.value) draggedNumber = num }
 function onDrop(zone) {
     if (!isCorrect.value && draggedNumber !== null) {
         placements.value[draggedNumber] = zone
-        isChecked.value = false
         draggedNumber = null
+
+        // Auto-correct: check if all placed correctly
+        const targets = currentLevelData.value.targetPlacements
+        const required = Object.keys(targets).map(Number)
+        const placed = Object.keys(placements.value).map(Number)
+        const allPlaced = required.every(n => placed.includes(n))
+
+        if (allPlaced) {
+            const allCorrect = required.every(n => placements.value[n] === targets[n])
+            if (allCorrect) {
+                isCorrect.value = true
+                feedback.value = {
+                    type: 'success',
+                    text: 'Magistraal! Je beheerst de symbolentaal van verzamelingen perfect.'
+                }
+            } else {
+                attemptCount.value++
+                const wrongNum = required.find(n => placements.value[n] !== targets[n])
+                if (attemptCount.value === 1) {
+                    feedback.value = { type: 'error', text: 'Kijk goed naar de symbolen. Waar hoort het getal ' + wrongNum + ' precies thuis?' }
+                } else if (attemptCount.value === 2) {
+                    feedback.value = { type: 'error', text: currentLevelData.value.hint }
+                } else {
+                    feedback.value = { type: 'error', text: 'Probeer de getallen stap voor stap te plaatsen zoals de uitdrukking aangeeft: ' + currentLevelData.value.expression }
+                }
+            }
+        }
     }
 }
 function removePlacement(num) {
     if (!isCorrect.value) {
         delete placements.value[num]
-        isChecked.value = false
     }
 }
 
@@ -77,38 +120,8 @@ function resetActivityState() {
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Sleep de getallen naar de cirkels.' };
     placements.value = {};
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-  
-  const targets = currentLevelData.value.targetPlacements;
-  const nums = Object.keys(targets).map(Number);
-  
-  let allCorrect = true;
-  for (const num of nums) {
-      if (placements.value[num] !== targets[num]) {
-          allCorrect = false;
-          break;
-      }
-  }
-
-  if (Object.keys(placements.value).length < nums.length) {
-      isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Je hebt nog niet alle getallen in het diagram geplaatst.'}
-      return
-  }
-
-  if (allCorrect) {
-    isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Magistraal! Je beheerst de symbolentaal van verzamelingen perfect.' 
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: `Er staat minstens één getal in de verkeerde zone. ${currentLevelData.value.hint}`}
-  }
+    attemptCount.value = 0;
+    levels.value = generateLevel();
 }
 
 function handleNext() {
@@ -150,7 +163,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -161,8 +174,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -178,7 +191,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
               <div class="mt-3 bg-white p-3 border border-teal-300 rounded shadow-inner text-2xl font-mono font-black text-slate-800">
@@ -207,7 +220,7 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer</button>
+              <button v-if="!isCorrect" disabled class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-400 cursor-not-allowed opacity-60">Auto-controle actief</button>
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -218,17 +231,17 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="relative w-[600px] h-[400px] flex items-center justify-center bg-white p-8 rounded-3xl shadow-sm border-2 border-slate-200/50">
-                  
+
                   <div class="relative w-[500px] h-[300px] flex">
-                      
+
                       <!-- CIRCLE A (Left) / a-only drop zone -->
                       <div @dragover.prevent @drop.prevent.stop="onDrop('a-only')"
                            class="absolute left-0 w-[300px] h-[300px] rounded-full border-[6px] border-blue-500 bg-blue-500/10 flex flex-col p-8 transition-colors"
                            :class="draggedNumber ? 'hover:bg-blue-500/30' : ''">
                            <span class="font-black text-2xl text-blue-700 pointer-events-none">A</span>
-                           
+
                            <!-- Display placed items -->
                            <div class="absolute inset-0 flex flex-wrap items-center justify-center gap-2 pr-[100px] pointer-events-none">
                                <div v-for="num in Object.keys(placements).filter(k => placements[k] === 'a-only')" :key="num"
@@ -244,7 +257,7 @@ onUnmounted(() => {
                            class="absolute right-0 w-[300px] h-[300px] rounded-full border-[6px] border-amber-500 bg-amber-500/10 flex flex-col p-8 items-end transition-colors"
                            :class="draggedNumber ? 'hover:bg-amber-500/30' : ''">
                            <span class="font-black text-2xl text-amber-700 pointer-events-none">B</span>
-                           
+
                            <!-- Display placed items -->
                            <div class="absolute inset-0 flex flex-wrap items-center justify-center gap-2 pl-[100px] pointer-events-none">
                                <div v-for="num in Object.keys(placements).filter(k => placements[k] === 'b-only')" :key="num"
@@ -256,12 +269,10 @@ onUnmounted(() => {
                       </div>
 
                       <!-- INTERSECTION drop zone -->
-                      <!-- Placed explicitly over the overlapping area to catch drops -->
                       <div @dragover.prevent @drop.prevent.stop="onDrop('intersect')"
                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100px] h-[200px] rounded-full z-20 flex flex-col items-center justify-center gap-2 transition-colors cursor-crosshair"
                            :class="draggedNumber ? 'bg-teal-500/20' : ''">
-                          
-                           <!-- Display placed items -->
+
                            <div v-for="num in Object.keys(placements).filter(k => placements[k] === 'intersect')" :key="num"
                                 class="w-10 h-10 bg-white border-2 border-teal-500 rounded-full flex items-center justify-center font-bold text-lg text-teal-800 shadow-sm cursor-pointer"
                                 @click="removePlacement(num)">

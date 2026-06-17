@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhChartLine, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'ICT: De Grafieken-Kraker' },
-  instruction: { 
-    type: String, 
-    default: 'Pas de richtingscoëfficiënt (m) en het startgetal (q) aan via de sliders. Zorg dat jouw blauwe rechte lijn exact over de rode stippellijn valt.' 
+  instruction: {
+    type: String,
+    default: 'Pas de richtingscoëfficiënt (m) en het startgetal (q) aan via de sliders. Zorg dat jouw blauwe rechte lijn exact over de rode stippellijn valt.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -22,67 +22,99 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Verschuif de sliders voor m en q.' })
+const attemptCount = ref(0)
+const feedback = ref({ type: 'info', text: 'Verschuif de sliders voor m en q tot de lijnen samenvallen.' })
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Maak de rode stijgende rechte na.',
-    targetM: 2, targetQ: -3,
-    hintQ: 'Kijk naar het snijpunt met de verticale y-as. Dat is je startgetal (q). De rode lijn snijdt in -3.',
-    hintM: 'De rode lijn is steiler of vlakker. Kijk: 1 stap naar rechts is hoeveel stappen omhoog? Dat is m!'
-  },
-  {
-    goalText: 'Opdracht 2: Een dalende rechte!',
-    targetM: -1, targetQ: 4,
-    hintQ: 'Waar snijdt de rode lijn de y-as? Zet je slider "q" op die waarde.',
-    hintM: 'De rode lijn daalt. Dat betekent dat m negatief moet zijn.'
-  },
-  {
-    goalText: 'Opdracht 3: Een vlakke helling.',
-    targetM: 0.5, targetQ: 1,
-    hintQ: 'Zet de q slider goed. Dat is de eenvoudigste stap: kruising met de y-as.',
-    hintM: 'De lijn stijgt, maar heel zachtjes. Gebruik een komma-getal (breuk) voor m.'
+let autoCheckTimer = null
+
+function generateLevel(index) {
+  let targetM, targetQ, hintQ, hintM
+  switch (index) {
+    case 0:
+      targetM = (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 1) // ±1, ±2, ±3
+      targetQ = Math.floor(Math.random() * 5) - 2 // -2 to 2
+      hintQ = `Kijk naar het snijpunt met de verticale y-as. De rode lijn snijdt in ${targetQ}.`
+      hintM = `De rode lijn is ${targetM > 0 ? 'stijgend' : 'dalend'}. 1 stap naar rechts is ${Math.abs(targetM)} stap(pen) omhoog${targetM > 0 ? '' : ' (eigenlijk omlaag)'}. Dat is m!`
+      return { goalText: `Opdracht 1: Maak de rode ${targetM > 0 ? 'stijgende' : 'dalende'} rechte na.`, targetM, targetQ, hintQ, hintM }
+    case 1:
+      targetM = (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 4) + 1) // ±1, ±2, ±3, ±4
+      targetQ = Math.floor(Math.random() * 7) - 3 // -3 to 3
+      hintQ = `Waar snijdt de rode lijn de y-as? Zet q op ${targetQ}.`
+      hintM = `De rode lijn ${targetM > 0 ? 'stijgt' : 'daalt'}. m moet ${targetM} zijn.`
+      return { goalText: `Opdracht 2: Een ${targetM > 0 ? 'stijgende' : 'dalende'} rechte!`, targetM, targetQ, hintQ, hintM }
+    case 2:
+      targetM = (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 2) / 2 // ±1.0, ±1.5, ±2.0
+      targetQ = Math.floor(Math.random() * 5) - 2 // -2 to 2
+      hintQ = `Zet q op ${targetQ}. Dat is het snijpunt met de y-as.`
+      hintM = `De lijn stijgt/daalt zachtjes. m moet ${targetM} zijn (een komma-getal).`
+      return { goalText: `Opdracht 3: Een ${Math.abs(targetM) < 1 ? 'vlakke' : 'mooie'} helling.`, targetM, targetQ, hintQ, hintM }
+    default:
+      return { goalText: 'Opdracht 1: Maak de rechte na.', targetM: 2, targetQ: -3, hintQ: 'Kijk naar de y-as.', hintM: 'Kijk naar de helling.' }
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([
+  generateLevel(0),
+  generateLevel(1),
+  generateLevel(2)
+])
 
-const userM = ref(1) // -5 to 5
-const userQ = ref(0) // -5 to 5
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
+
+const userM = ref(1)
+const userQ = ref(0)
 
 const isMatch = computed(() => userM.value === currentLevelData.value.targetM && userQ.value === currentLevelData.value.targetQ)
 
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Verschuif de sliders voor m en q.' };
+    attemptCount.value = 0;
+    feedback.value = { type: 'info', text: 'Verschuif de sliders voor m en q tot de lijnen samenvallen.' };
     userM.value = 1;
     userQ.value = 0;
+    levels.value = [
+      generateLevel(0),
+      generateLevel(1),
+      generateLevel(2)
+    ];
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  
-  if (isMatch.value) {
+// Auto-correct watch: when sliders match, immediately flag correct
+watch([userM, userQ], ([newM, newQ]) => {
+  if (isCorrect.value) return
+
+  const target = currentLevelData.value
+  if (newM === target.targetM && newQ === target.targetQ) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Magistraal! Je hebt het startgetal en de helling perfect ingesteld.' 
+    isChecked.value = true
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
+      text: 'Magistraal! Je hebt het startgetal en de helling perfect ingesteld. De lijnen vallen samen!'
     }
-  } else {
-    isCorrect.value = false
-    
-    if (userQ.value !== currentLevelData.value.targetQ) {
-        feedback.value = { type: 'error', text: currentLevelData.value.hintQ }
-    } else if (userM.value !== currentLevelData.value.targetM) {
-        feedback.value = { type: 'error', text: currentLevelData.value.hintM }
-    }
+    return
   }
-}
+
+  // Debounced attempt tracking — only count deliberate adjustments
+  if (autoCheckTimer) clearTimeout(autoCheckTimer)
+  autoCheckTimer = setTimeout(() => {
+    if (!isCorrect.value) {
+      attemptCount.value++
+      const hintIdx = Math.min(attemptCount.value - 1, 2)
+      const hints = [
+        'Blijf de sliders aanpassen. Kijk hoe de blauwe lijn beweegt en probeer hem op de rode te leggen.',
+        newQ !== target.targetQ ? target.hintQ : target.hintM,
+        `Probeer m = ${target.targetM} en q = ${target.targetQ} in te stellen.`
+      ]
+      feedback.value = { type: 'error', text: hints[hintIdx] }
+    }
+  }, 800) // 800ms debounce after last slider movement
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -123,7 +155,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -134,8 +166,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -151,13 +183,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner flex flex-col gap-6">
-               
+
                <div class="font-mono font-black text-2xl text-slate-700 bg-white p-4 rounded shadow text-center border-2 border-indigo-200">
                    y = <span class="text-fuchsia-500">{{ userM }}</span>x <span class="text-blue-500">{{ userQ >= 0 ? '+' : '' }} {{ userQ }}</span>
                </div>
@@ -190,7 +222,7 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98]">Controleer Functie</button>
+              <button v-if="!isCorrect" @click="resetActivityState" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] opacity-60 cursor-default" disabled>Schuif de balken tot de lijnen samenvallen</button>
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -201,12 +233,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="relative bg-white shadow-2xl rounded-3xl overflow-hidden border-4 border-slate-300 p-8 flex items-center justify-center" style="width: 500px; height: 500px;">
-                  
+
                   <!-- Grid from -10 to +10. Center is (250, 250). 1 unit = 25px -->
                   <svg width="400" height="400" viewBox="-200 -200 400 400" class="block">
-                      
+
                       <!-- Grid lines -->
                       <g stroke="#e2e8f0" stroke-width="1">
                           <line v-for="i in 21" :key="'vg'+i" :x1="-250 + (i-1)*25" y1="-200" :x2="-250 + (i-1)*25" y2="200" />
@@ -218,14 +250,14 @@ onUnmounted(() => {
                       <line x1="0" y1="-200" x2="0" y2="200" stroke="#475569" stroke-width="3" />
 
                       <!-- Target Line (Red Dashed) -->
-                      <line :x1="-10 * 25" :y1="-1 * (currentLevelData.targetM * -10 + currentLevelData.targetQ) * 25" 
-                            :x2="10 * 25"  :y2="-1 * (currentLevelData.targetM * 10 + currentLevelData.targetQ) * 25" 
+                      <line :x1="-10 * 25" :y1="-1 * (currentLevelData.targetM * -10 + currentLevelData.targetQ) * 25"
+                            :x2="10 * 25"  :y2="-1 * (currentLevelData.targetM * 10 + currentLevelData.targetQ) * 25"
                             stroke="#ef4444" stroke-width="4" stroke-dasharray="10 6" class="transition-all duration-300" />
 
                       <!-- User Line (Blue Solid) -->
-                      <line :x1="-10 * 25" :y1="-1 * (userM * -10 + userQ) * 25" 
-                            :x2="10 * 25"  :y2="-1 * (userM * 10 + userQ) * 25" 
-                            stroke="#0ea5e9" stroke-width="4" class="transition-all duration-300" 
+                      <line :x1="-10 * 25" :y1="-1 * (userM * -10 + userQ) * 25"
+                            :x2="10 * 25"  :y2="-1 * (userM * 10 + userQ) * 25"
+                            stroke="#0ea5e9" stroke-width="4" class="transition-all duration-300"
                             :class="isMatch && isChecked ? '!stroke-emerald-500 shadow-[0_0_10px_#10b981]' : ''" />
 
                       <!-- Highlight q (y-intercept) for user line -->

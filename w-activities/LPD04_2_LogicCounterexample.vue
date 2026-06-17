@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhLightning, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Redeneren: Zoek het Tegenvoorbeeld' },
-  instruction: { 
-    type: String, 
-    default: 'Bewijs dat de bewering VALS is. Zoek een getal dat wél voldoet aan de voorwaarde (links van de pijl), maar NIET aan de conclusie (rechts van de pijl). Klik op dat getal.' 
+  instruction: {
+    type: String,
+    default: 'Bewijs dat de bewering VALS is. Zoek een getal dat wél voldoet aan de voorwaarde (links van de pijl), maar NIET aan de conclusie (rechts van de pijl). Klik op dat getal.'
   },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
@@ -22,37 +22,70 @@ const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
+const attemptCount = ref(0)
 const feedback = ref({ type: 'info', text: 'Selecteer een getal op de getallenas.' })
 
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    ruleHTML: 'x² = 36 <span class="text-amber-400">⇒</span> x = 6',
-    validate: (x) => (x * x === 36) && (x !== 6),
-    hintCond: 'Je getal in het kwadraat is geen 36. Het tegenvoorbeeld moet wél aan x² = 36 voldoen!',
-    hintConc: 'Klopt, dat is 6. Maar dit BEVESTIGT zijn theorie! Zoek een ANDER getal waarvan het kwadraat ook 36 is.',
-    success: 'BAM! (-6)² is OOK 36! De uitspraak was dus vals, x hoeft niet per se 6 te zijn.'
-  },
-  {
-    ruleHTML: 'x is even <span class="text-amber-400">⇒</span> x is deelbaar door 4',
-    validate: (x) => (x % 2 === 0) && (x % 4 !== 0),
-    hintCond: 'Je hebt een oneven getal gekozen. Een tegenvoorbeeld moet wel EVEN zijn (om aan de voorwaarde te voldoen).',
-    hintConc: 'Dit getal is inderdaad deelbaar door 4. Dit is een BEVESTIGING, geen tegenvoorbeeld. Zoek een even getal dat NIET deelbaar is door 4.',
-    success: 'BAM! Dit getal is even, maar NIET deelbaar door 4 (bv. 2, 6, 10). De stelling is vals.'
-  },
-  {
-    ruleHTML: 'x > 0 <span class="text-amber-400">⇒</span> x ≥ 2',
-    validate: (x) => (x > 0) && (x < 2),
-    hintCond: 'Dit getal is niet groter dan 0. Het moet wel positief zijn om te beginnen.',
-    hintConc: 'Dit getal is groter of gelijk aan 2. Dit is een BEVESTIGING. Zoek een getal dat wél > 0 is, maar KLEINER dan 2.',
-    success: 'BAM! Het getal 1 is strikt positief, maar is NIET groter of gelijk aan 2. Stelling ontkracht!'
+function generateLevel(index) {
+  const numbers = Array.from({length: 21}, (_, i) => i - 10)
+  switch (index) {
+    case 0: {
+      const perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100]
+      const sq = perfectSquares[Math.floor(Math.random() * perfectSquares.length)]
+      const posRoot = Math.round(Math.sqrt(sq))
+      const negRoot = -posRoot
+      const ruleHTML = `x² = ${sq} <span class="text-amber-400">⇒</span> x = ${posRoot}`
+      return {
+        ruleHTML,
+        validate: (x) => (x * x === sq) && (x !== posRoot),
+        hintCond: `Je getal in het kwadraat is geen ${sq}. Het tegenvoorbeeld moet wél aan x² = ${sq} voldoen!`,
+        hintConc: `Klopt, dat is ${posRoot}. Maar dit BEVESTIGT zijn theorie! Zoek een ANDER getal waarvan het kwadraat ook ${sq} is.`,
+        success: `BAM! (${negRoot})² is OOK ${sq}! De uitspraak was dus vals, x hoeft niet per se ${posRoot} te zijn.`
+      }
+    }
+    case 1: {
+      const divisors = [[2, 2], [2, 3], [3, 2]]
+      const pair = divisors[Math.floor(Math.random() * divisors.length)]
+      const d = pair[0]
+      const k = pair[1]
+      const product = d * k
+      const ruleHTML = `x is deelbaar door ${d} <span class="text-amber-400">⇒</span> x is deelbaar door ${product}`
+      return {
+        ruleHTML,
+        validate: (x) => (x % d === 0) && (x % product !== 0),
+        hintCond: `Je hebt een getal gekozen dat niet deelbaar is door ${d}. Een tegenvoorbeeld moet wél deelbaar zijn door ${d}.`,
+        hintConc: `Dit getal is inderdaad deelbaar door ${product}. Dit is een BEVESTIGING, geen tegenvoorbeeld. Zoek een getal dat wél deelbaar is door ${d} maar NIET door ${product}.`,
+        success: `BAM! Dit getal is deelbaar door ${d}, maar NIET door ${product}. De stelling is vals!`
+      }
+    }
+    case 2: {
+      const threshold = Math.floor(Math.random() * 8) // 0 to 7
+      const targetNum = threshold + 1
+      const minCondition = threshold
+      const ruleHTML = `x > ${threshold} <span class="text-amber-400">⇒</span> x ≥ ${threshold + 2}`
+      return {
+        ruleHTML,
+        validate: (x) => (x > threshold) && (x < threshold + 2),
+        hintCond: `Dit getal is niet groter dan ${threshold}. Het moet wel > ${threshold} zijn om te beginnen.`,
+        hintConc: `Dit getal is groter of gelijk aan ${threshold + 2}. Dit is een BEVESTIGING. Zoek een getal dat wél > ${threshold} is, maar kleiner dan ${threshold + 2}.`,
+        success: `BAM! Het getal ${targetNum} is strikt groter dan ${threshold}, maar is NIET groter of gelijk aan ${threshold + 2}. Stelling ontkracht!`
+      }
+    }
+    default:
+      return { ruleHTML: 'x² = 36 ⇒ x = 6', validate: (x) => (x * x === 36) && (x !== 6), hintCond: 'Kwadraat is geen 36.', hintConc: 'Dat is 6. Zoek de andere wortel.', success: 'BAM! (-6)² is ook 36!' }
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([
+  generateLevel(0),
+  generateLevel(1),
+  generateLevel(2)
+])
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const numbers = Array.from({length: 21}, (_, i) => i - 10) // -10 to 10
@@ -70,28 +103,49 @@ function checkAnswer() {
   isChecked.value = true;
   const num = selectedNumber.value;
   const target = currentLevelData.value;
-  
+
   if (target.validate(num)) {
     isCorrect.value = true
     ruleShattered.value = true
-    feedback.value = { 
-      type: 'success', 
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
       text: target.success
     }
   } else {
     isCorrect.value = false
-    
-    // Custom hints based on logic error
-    // Did they fail the premise?
+    ruleShattered.value = false
+    attemptCount.value++
+
+    // Determine premise vs conclusion failure
     let passesPremise = false;
-    if (currentInternalLevel.value === 0) passesPremise = (num * num === 36);
-    if (currentInternalLevel.value === 1) passesPremise = (num % 2 === 0);
-    if (currentInternalLevel.value === 2) passesPremise = (num > 0);
+    // Generic premise check based on the rule structure
+    // We can extract premise from validate: it checks (premise) && (not conclusion)
+    // So we re-check premise part separately
+    const idx = currentInternalLevel.value
+    if (idx === 0) passesPremise = (num * num === (Math.round(Math.sqrt(parseInt(currentLevelData.value.ruleHTML.match(/x² = (\d+)/)[1])))) ** 2)
+    else if (idx === 1) {
+      const dMatch = currentLevelData.value.ruleHTML.match(/deelbaar door (\d+)/)
+      const d = dMatch ? parseInt(dMatch[1]) : 2
+      passesPremise = (num % d === 0)
+    }
+    else if (idx === 2) {
+      const tMatch = currentLevelData.value.ruleHTML.match(/x > (-?\d+)/)
+      const t = tMatch ? parseInt(tMatch[1]) : 0
+      passesPremise = (num > t)
+    }
+
+    const hintIdx = Math.min(attemptCount.value - 1, 2)
+    const vagueHints = [
+      'Kijk goed naar de bewering. Wat staat er links van de pijl? Wat rechts?',
+      'Links staat de voorwaarde, rechts de conclusie. Zoek een getal dat links past maar rechts niet.',
+      `Probeer ${currentLevelData.value.ruleHTML.replace(/<[^>]+>/g, '').replace('⇒', '→')} — welk getal past bij links maar breekt rechts?`
+    ]
 
     if (!passesPremise) {
-        feedback.value = { type: 'error', text: target.hintCond }
+      feedback.value = { type: 'error', text: attemptCount.value <= 1 ? target.hintCond : vagueHints[hintIdx] }
     } else {
-        feedback.value = { type: 'error', text: target.hintConc }
+      feedback.value = { type: 'error', text: attemptCount.value <= 1 ? target.hintConc : vagueHints[hintIdx] }
     }
   }
 }
@@ -99,9 +153,15 @@ function checkAnswer() {
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Selecteer een getal op de getallenas.' };
     selectedNumber.value = null;
     ruleShattered.value = false;
+    levels.value = [
+      generateLevel(0),
+      generateLevel(1),
+      generateLevel(2)
+    ];
 }
 
 function handleNext() {
@@ -143,7 +203,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-amber-500/20">
@@ -154,8 +214,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-400">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-600'"></div>
               </div>
             </div>
@@ -171,7 +231,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="instruction"></div>
-            
+
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
@@ -192,17 +252,17 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-900">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative bg-circuit-pattern">
-              
+
               <!-- The Rule to Shatter -->
               <div class="relative mb-24 w-full flex flex-col items-center">
-                  
+
                   <div :key="currentInternalLevel" class="bg-slate-800 border-2 border-slate-600 px-8 py-6 rounded-3xl shadow-2xl relative z-10 transition-all duration-700 ease-in-out animate-fadeIn"
                        :class="ruleShattered ? 'opacity-30 scale-110 filter blur-sm rotate-3' : 'opacity-100 scale-100'">
                       <p class="text-xl text-slate-400 font-bold uppercase tracking-widest mb-2 text-center">Bewering</p>
                       <h1 class="text-2xl md:text-4xl font-black text-center text-white font-mono" v-html="currentLevelData.ruleHTML">
                       </h1>
                   </div>
-                  
+
                   <!-- Shatter lines when rule is broken -->
                   <div v-if="ruleShattered" class="absolute inset-0 pointer-events-none z-20 flex items-center justify-center">
                       <div class="w-full max-w-xl h-2 bg-amber-400 rotate-12 transform scale-150 animate-slash shadow-[0_0_20px_#fbbf24]"></div>
@@ -212,14 +272,14 @@ onUnmounted(() => {
 
               <!-- Interactive Number Line -->
               <div class="w-full max-w-4xl relative px-8 pb-12 transition-opacity" :class="ruleShattered ? 'opacity-50 pointer-events-none' : 'opacity-100'">
-                  
+
                   <div class="absolute left-8 right-8 top-8 h-2 bg-slate-600 rounded-full z-0"></div>
 
                   <div class="flex justify-between relative z-10">
-                      <button v-for="num in numbers" :key="num" 
+                      <button v-for="num in numbers" :key="num"
                               @click="selectNumber(num)"
                               class="relative flex flex-col items-center group outline-none">
-                          
+
                           <!-- The Tick Point -->
                           <div class="w-4 h-4 rounded-full border-4 border-slate-800 transition-all z-20"
                                :class="{
