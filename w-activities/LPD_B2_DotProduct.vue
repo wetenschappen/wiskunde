@@ -31,56 +31,118 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- Level System ---
+// --- Randomization: generateLevel() ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    // Level 1: Simpler vectors
-    vecA: { x: 2, y: 1 },
-    vecB_x: -2,
-    defaultB_y: 0,
-    sliderMin: -3,
-    sliderMax: 5,
-    instruction: 'Level 1: Start met een eenvoudig voorbeeld.<br/><br/>Vector a = (2, 1) en vector b = (-2, ?). Pas de y-coördinaat van b aan zodat a en b loodrecht op elkaar staan.',
-    successFeedback: 'Perfect! Het inproduct is 0, de vectoren staan loodrecht. Klaar voor level 2?'
-  },
-  {
-    // Level 2: Current activity
-    vecA: { x: 4, y: 2 },
-    vecB_x: -2,
-    defaultB_y: 1,
-    sliderMin: -5,
-    sliderMax: 8,
-    instruction: 'Level 2: Pas de y-coördinaat van vector b aan met de slider zodat vector a en vector b loodrecht op elkaar staan. Tip: Twee vectoren staan loodrecht als hun inproduct gelijk is aan 0.',
-    successFeedback: 'Perfect! Het inproduct is 0, de vectoren staan loodrecht.'
-  },
-  {
-    // Level 3: Harder vectors
-    vecA: { x: 6, y: 3 },
-    vecB_x: -3,
-    defaultB_y: 0,
-    sliderMin: -5,
-    sliderMax: 10,
-    instruction: 'Level 3: Grotere getallen, zelfde principe.<br/><br/>Vector a = (6, 3) en vector b = (-3, ?). Vind de juiste y-coördinaat zodat het inproduct 0 wordt.',
-    successFeedback: 'Uitstekend! Je begrijpt het inproduct van vectoren volledig.'
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  let aRange, bxRange, sliderRange
+  if (lvl === 0) {
+    aRange = [-3, 3]
+    bxRange = [-3, 3]
+    sliderRange = [-4, 6]
+  } else if (lvl === 1) {
+    aRange = [-5, 5]
+    bxRange = [-5, 5]
+    sliderRange = [-6, 10]
+  } else {
+    aRange = [-7, 7]
+    bxRange = [-6, 6]
+    sliderRange = [-8, 12]
   }
-]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  let vecA, vecB_x, correctB_y
+  // Rejection sampling: find values that produce an integer answer
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const ax = randInt(aRange[0], aRange[1])
+    const ay = randInt(aRange[0], aRange[1])
+    const bx = randInt(bxRange[0], bxRange[1])
+    if (ay === 0 || bx === 0) continue
+    // dot = ax*bx + ay*by = 0  =>  by = -(ax*bx)/ay
+    if ((-(ax * bx)) % ay !== 0) continue
+    const by = -(ax * bx) / ay
+    if (by < sliderRange[0] || by > sliderRange[1]) continue
+    vecA = { x: ax, y: ay }
+    vecB_x = bx
+    correctB_y = by
+    break
+  }
+  // Fallback: if no valid random, use a known-good pair
+  if (!vecA) {
+    const fallbacks = [
+      { a: { x: 2, y: 1 }, bx: -2, by: 4, sr: [-4, 6] },
+      { a: { x: 4, y: 2 }, bx: -2, by: 4, sr: [-6, 10] },
+      { a: { x: 6, y: 3 }, bx: -3, by: 6, sr: [-8, 12] }
+    ]
+    const f = fallbacks[lvl] || fallbacks[0]
+    vecA = f.a
+    vecB_x = f.bx
+    correctB_y = f.by
+  }
+
+  // Default slider position: slightly off the correct value
+  const defaultB_y = correctB_y + (randInt(1, 2) * (Math.random() > 0.5 ? 1 : -1))
+
+  const insLvl =
+    lvl === 0
+      ? 'Level 1: Start met een eenvoudig voorbeeld.<br/><br/>Vector a = (' + vecA.x + ', ' + vecA.y + ') en vector b = (' + vecB_x + ', ?). Pas de y-coördinaat van b aan zodat a en b loodrecht op elkaar staan.'
+      : lvl === 1
+        ? 'Level 2: Pas de y-coördinaat van vector b aan met de slider zodat vector a en vector b loodrecht op elkaar staan. Tip: Twee vectoren staan loodrecht als hun inproduct gelijk is aan 0.'
+        : 'Level 3: Grotere getallen, zelfde principe.<br/><br/>Vector a = (' + vecA.x + ', ' + vecA.y + ') en vector b = (' + vecB_x + ', ?). Vind de juiste y-coördinaat zodat het inproduct 0 wordt.'
+
+  return {
+    vecA,
+    vecB_x,
+    defaultB_y,
+    correctB_y,
+    sliderMin: sliderRange[0],
+    sliderMax: sliderRange[1],
+    instruction: insLvl,
+    successFeedback:
+      lvl === 0
+        ? 'Perfect! Het inproduct is 0, de vectoren staan loodrecht. Klaar voor level 2?'
+        : lvl === 1
+          ? 'Perfect! Het inproduct is 0, de vectoren staan loodrecht.'
+          : 'Uitstekend! Je begrijpt het inproduct van vectoren volledig.'
+  }
+}
+
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Activity State — derived from current level
 const vecA = computed(() => currentLevelData.value.vecA)
 const vecB_x = computed(() => currentLevelData.value.vecB_x)
-const vecB_y = ref(levels[0].defaultB_y)
+const vecB_y = ref(0)
 
 const dotProduct = computed(() => {
   return vecA.value.x * vecB_x.value + vecA.value.y * vecB_y.value
 })
 
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: Het inproduct moet 0 zijn. Gebruik de formule: x1*x2 + y1*y2 = 0.'
+  if (c === 2) return 'Hint: a = (' + vecA.value.x + ', ' + vecA.value.y + '), b.x = ' + vecB_x.value + '. Bereken welke y dit nul maakt: (' + vecA.value.x + ' * ' + vecB_x.value + ') + (' + vecA.value.y + ' * y) = 0.'
+  return 'Hint: Los op: ' + vecA.value.y + ' * y = ' + (-(vecA.value.x * vecB_x.value)) + ', dus y = ' + (-(vecA.value.x * vecB_x.value)) + ' / ' + vecA.value.y + ' = ?'
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
@@ -109,10 +171,11 @@ function checkAnswer() {
       text: currentLevelData.value.successFeedback
     }
   } else {
+    attemptCount.value++
     isCorrect.value = false
     feedback.value = {
       type: 'error',
-      text: `Niet helemaal. Het inproduct is nu ${dotProduct.value}. Het moet 0 zijn.`
+      text: 'Niet helemaal. Het inproduct is nu ' + dotProduct.value + '. Het moet 0 zijn.<br/><br/>' + getHint()
     }
   }
 }
@@ -225,9 +288,9 @@ onUnmounted(() => {
               </div>
 
               <div class="bg-white p-4 rounded border border-slate-200">
-                <p class="text-sm font-bold text-slate-500 mb-2">Inproduct a · b:</p>
-                <p class="font-mono text-sm text-slate-600">(x₁ · x₂) + (y₁ · y₂)</p>
-                <p class="font-mono text-sm text-slate-600">({{ vecA.x }} · {{ vecB_x }}) + ({{ vecA.y }} · {{ vecB_y }})</p>
+                <p class="text-sm font-bold text-slate-500 mb-2">Inproduct a &middot; b:</p>
+                <p class="font-mono text-sm text-slate-600">(x&8321; &middot; x&#x2082;) + (y&8321; &middot; y&#x2082;)</p>
+                <p class="font-mono text-sm text-slate-600">({{ vecA.x }} &middot; {{ vecB_x }}) + ({{ vecA.y }} &middot; {{ vecB_y }})</p>
                 <p class="font-mono font-bold text-lg text-slate-800 mt-2">= {{ dotProduct }}</p>
               </div>
             </div>
@@ -235,14 +298,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -250,6 +313,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
+              <!-- Slider + check button: keep Controleer for number/slider interaction -->
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>

@@ -31,41 +31,88 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- 3-Level structure ---
+// --- 3-Level structure with generateLevel() ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    name: 'Graad van A',
-    instruction: 'Dit is een model van een sociaal netwerk (een graaf). Elke knoop is een persoon, een boog betekent "is bevriend met". Hoeveel vrienden (wat is de graad) heeft persoon A?',
-    correctAnswer: 3,
-    successFeedback: 'Helemaal juist! De graad van knoop A is 3, want er vertrekken 3 bogen.',
-    errorFeedback: 'Niet juist. Tel hoeveel lijnen (bogen) er rechtstreeks aan knoop A vastzitten.'
-  },
-  {
-    name: 'Graad van B',
-    instruction: 'Bekijk hetzelfde netwerk. Persoon B is ook verbonden met een aantal personen. Wat is de graad van knoop B?',
-    correctAnswer: 2,
-    successFeedback: 'Helemaal juist! B is rechtstreeks verbonden met A en D, dus graad 2.',
-    errorFeedback: 'Niet juist. Kijk welke bogen er rechtstreeks aan B vastzitten.'
-  },
-  {
-    name: 'Som der Graden',
-    instruction: 'Bereken de som van ALLE graden (A+B+C+D). Tel de graden van elke knoop bij elkaar op.',
-    correctAnswer: 8,
-    successFeedback: 'Perfect! A=3, B=2, C=1, D=2. De som is 3+2+1+2 = 8.',
-    errorFeedback: 'Niet juist. A heeft graad 3, B heeft graad 2, C heeft graad 1, D heeft graad 2.'
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  // For graph model, the graph structure is fixed (social network)
+  // but we vary the questions across the 3 levels
+  // We can randomize the degree of each node within ranges
+  if (lvl === 0) {
+    // Level 1: Graad van een knoop — easier or harder based on level
+    const nodeOptions = ['A', 'B', 'D']
+    const targetNode = nodeOptions[randInt(0, nodeOptions.length - 1)]
+    const correctDeg = targetNode === 'A' ? 3 : targetNode === 'B' ? 2 : 2
+    return {
+      name: 'Graad van ' + targetNode,
+      instruction: 'Dit is een model van een sociaal netwerk (een graaf). Elke knoop is een persoon, een boog betekent "is bevriend met". Hoeveel vrienden (wat is de graad) heeft persoon ' + targetNode + '?',
+      correctAnswer: correctDeg,
+      questionLabel: 'Wat is de graad van ' + targetNode + '?',
+      successFeedback: 'Helemaal juist! De graad van knoop ' + targetNode + ' is ' + correctDeg + '.',
+      errorFeedback: 'Niet juist. Tel hoeveel lijnen (bogen) er rechtstreeks aan knoop ' + targetNode + ' vastzitten.',
+      targetNode
+    }
+  } else if (lvl === 1) {
+    // Level 2: Graad van een andere knoop
+    const nodeOptions = ['B', 'C', 'D']
+    const targetNode = nodeOptions[randInt(0, nodeOptions.length - 1)]
+    const correctDeg = targetNode === 'B' ? 2 : targetNode === 'C' ? 1 : 2
+    return {
+      name: 'Graad van ' + targetNode,
+      instruction: 'Bekijk hetzelfde netwerk. Wat is de graad van knoop ' + targetNode + '?',
+      correctAnswer: correctDeg,
+      questionLabel: 'Wat is de graad van ' + targetNode + '?',
+      successFeedback: 'Helemaal juist! De graad van knoop ' + targetNode + ' is ' + correctDeg + '.',
+      errorFeedback: 'Niet juist. Kijk welke bogen er rechtstreeks aan knoop ' + targetNode + ' vastzitten.',
+      targetNode
+    }
+  } else {
+    // Level 3: Som der Graden — always 8 with this graph
+    return {
+      name: 'Som der Graden',
+      instruction: 'Bereken de som van ALLE graden (A+B+C+D). Tel de graden van elke knoop bij elkaar op.',
+      correctAnswer: 8,
+      questionLabel: 'Wat is de som van alle graden?',
+      successFeedback: 'Perfect! A=3, B=2, C=1, D=2. De som is 3+2+1+2 = 8.',
+      errorFeedback: 'Niet juist. A heeft graad 3, B heeft graad 2, C heeft graad 1, D heeft graad 2.',
+      targetNode: null
+    }
   }
-]
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const currentInstruction = computed(() => currentLevel.value.instruction || props.instruction)
 
 const userAnswer = ref('')
 
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: De graad van een knoop is het aantal lijnen dat er aan vastzit.'
+  if (c === 2 && currentLevel.value.targetNode) return 'Hint: Kijk naar knoop ' + currentLevel.value.targetNode + ' in de tekening. Hoeveel lijnen vertrekken uit die knoop?'
+  if (c === 2 && currentInternalLevel.value === 2) return 'Hint: Tel de graden van A, B, C en D apart en tel ze daarna bij elkaar op.'
+  if (currentLevel.value.targetNode) return 'Hint: In de tekening heeft ' + currentLevel.value.targetNode + ' ' + currentLevel.value.correctAnswer + ' verbinding(en).'
+  return 'Hint: A=3, B=2, C=1, D=2. Tel deze bij elkaar op.'
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
@@ -90,10 +137,11 @@ function checkAnswer() {
       text: currentLevel.value.successFeedback
     }
   } else {
+    attemptCount.value++
     isCorrect.value = false
     feedback.value = {
       type: 'error',
-      text: currentLevel.value.errorFeedback
+      text: currentLevel.value.errorFeedback + '<br/><br/>' + getHint()
     }
   }
 }
@@ -185,9 +233,7 @@ onUnmounted(() => {
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
               <label class="block mb-2 text-sm font-bold text-slate-700">
-                <span v-if="currentInternalLevel === 0">Wat is de graad van A?</span>
-                <span v-else-if="currentInternalLevel === 1">Wat is de graad van B?</span>
-                <span v-else>Wat is de som van alle graden?</span>
+                {{ currentLevel.questionLabel }}
               </label>
               <input type="number" v-model="userAnswer"
                      @keyup.enter="checkAnswer"
@@ -198,14 +244,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -213,6 +259,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
+              <!-- Keep Controleer: number input -->
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
@@ -234,26 +281,40 @@ onUnmounted(() => {
                 <!-- SVG Graph -->
                 <svg width="100%" height="100%" viewBox="0 0 200 200">
                   <!-- Edges -->
-                  <!-- A to B -->
                   <line x1="100" y1="50" x2="50" y2="150" stroke="#cbd5e1" stroke-width="4" />
-                  <!-- A to C -->
                   <line x1="100" y1="50" x2="150" y2="150" stroke="#cbd5e1" stroke-width="4" />
-                  <!-- A to D -->
                   <line x1="100" y1="50" x2="100" y2="150" stroke="#cbd5e1" stroke-width="4" />
-                  <!-- B to D -->
                   <line x1="50" y1="150" x2="100" y2="150" stroke="#cbd5e1" stroke-width="4" />
 
+                  <!-- Highlight edges for target node -->
+                  <template v-if="currentLevel.targetNode === 'A'">
+                    <line x1="100" y1="50" x2="50" y2="150" stroke="#0ea5e9" stroke-width="4" />
+                    <line x1="100" y1="50" x2="150" y2="150" stroke="#0ea5e9" stroke-width="4" />
+                    <line x1="100" y1="50" x2="100" y2="150" stroke="#0ea5e9" stroke-width="4" />
+                  </template>
+                  <template v-else-if="currentLevel.targetNode === 'B'">
+                    <line x1="100" y1="50" x2="50" y2="150" stroke="#f59e0b" stroke-width="4" />
+                    <line x1="50" y1="150" x2="100" y2="150" stroke="#f59e0b" stroke-width="4" />
+                  </template>
+                  <template v-else-if="currentLevel.targetNode === 'C'">
+                    <line x1="100" y1="50" x2="150" y2="150" stroke="#10b981" stroke-width="4" />
+                  </template>
+                  <template v-else-if="currentLevel.targetNode === 'D'">
+                    <line x1="100" y1="50" x2="100" y2="150" stroke="#8b5cf6" stroke-width="4" />
+                    <line x1="50" y1="150" x2="100" y2="150" stroke="#8b5cf6" stroke-width="4" />
+                  </template>
+
                   <!-- Nodes -->
-                  <circle cx="100" cy="50" r="15" fill="#0ea5e9" stroke="#fff" stroke-width="3" />
+                  <circle :cx="100" cy="50" r="15" :fill="currentLevel.targetNode === 'A' ? '#0ea5e9' : '#94a3b8'" stroke="#fff" stroke-width="3" />
                   <text x="100" y="55" text-anchor="middle" font-weight="bold" fill="#fff" font-size="14">A</text>
 
-                  <circle cx="50" cy="150" r="15" fill="#f59e0b" stroke="#fff" stroke-width="3" />
+                  <circle :cx="50" cy="150" r="15" :fill="currentLevel.targetNode === 'B' ? '#f59e0b' : '#94a3b8'" stroke="#fff" stroke-width="3" />
                   <text x="50" y="155" text-anchor="middle" font-weight="bold" fill="#fff" font-size="14">B</text>
 
-                  <circle cx="150" cy="150" r="15" fill="#10b981" stroke="#fff" stroke-width="3" />
+                  <circle :cx="150" cy="150" r="15" :fill="currentLevel.targetNode === 'C' ? '#10b981' : '#94a3b8'" stroke="#fff" stroke-width="3" />
                   <text x="150" y="155" text-anchor="middle" font-weight="bold" fill="#fff" font-size="14">C</text>
 
-                  <circle cx="100" cy="150" r="15" fill="#8b5cf6" stroke="#fff" stroke-width="3" />
+                  <circle :cx="100" cy="150" r="15" :fill="currentLevel.targetNode === 'D' ? '#8b5cf6' : '#94a3b8'" stroke="#fff" stroke-width="3" />
                   <text x="100" y="155" text-anchor="middle" font-weight="bold" fill="#fff" font-size="14">D</text>
 
                   <!-- Highlight if correct -->

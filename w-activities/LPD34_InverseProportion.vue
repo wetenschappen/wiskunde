@@ -9,7 +9,7 @@ const props = defineProps({
   title: { type: String, default: 'Evenredigheden: Omgekeerd Evenredig' },
   instruction: {
     type: String,
-    default: 'Bij een <strong>omgekeerd evenredig</strong> verband is het product van twee getallen (x en y) altijd hetzelfde: <strong>x × y = c</strong>. Als de ene stijgt, moet de andere dalen!<br/><br/><strong>Opdracht:</strong> Kneed de rechthoek door de breedte te veranderen. De oppervlakte (het product) moet altijd 24 blijven. Kijk welke mooie grafiek er ontstaat. Welke formule past hierbij?'
+    default: 'Bij een <strong>omgekeerd evenredig</strong> verband is het product van twee getallen (x en y) altijd hetzelfde: <strong>x × y = c</strong>. Als de ene stijgt, moet de andere dalen!<br/><br/><strong>Opdracht:</strong> Kneed de rechthoek door de breedte te veranderen. De oppervlakte (het product) moet altijd hetzelfde blijven. Welke formule past hierbij?'
   },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
@@ -23,43 +23,47 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Beweeg de slider (Breedte x) en observeer de curve.' })
+const attemptCount = ref(0)
 
-// Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    label: 'Opp = 24',
-    area: 24,
-    sliderMax: 12,
-    initWidth: 4,
-    instruction: 'Bij een <strong>omgekeerd evenredig</strong> verband is het product van twee getallen (x en y) altijd hetzelfde: <strong>x × y = c</strong>. Als de ene stijgt, moet de andere dalen!<br/><br/><strong>Opdracht:</strong> Kneed de rechthoek door de breedte te veranderen. De oppervlakte (het product) moet altijd <strong>24</strong> blijven. Kijk welke mooie grafiek er ontstaat. Welke formule past hierbij?',
-    successFeedback: 'Magistraal! x × y = 24. Bij een omgekeerd evenredig verband is het product altijd constant. De grafiek is een hyperbool!'
-  },
-  {
-    label: 'Opp = 36',
-    area: 36,
-    sliderMax: 18,
-    initWidth: 6,
-    instruction: 'Stel dat de oppervlakte van een rechthoek <strong>36</strong> is.<br/><br/><strong>Opdracht:</strong> Beweeg de slider. Blijft de vorm van de grafiek hetzelfde? Welke formule hoort er nu bij?',
-    successFeedback: 'Goed zo! x × y = 36. De curve is minder steil maar heeft dezelfde hyperbool-vorm. Het product is weer constant. Omgekeerd evenredig!'
-  },
-  {
-    label: 'Opp = 48',
-    area: 48,
-    sliderMax: 24,
-    initWidth: 8,
-    instruction: 'Het product van twee getallen is <strong>48</strong>.<br/><br/><strong>Opdracht:</strong> Verander de breedte en ontdek de formule. Wat gebeurt er met de hoogte als de breedte verdubbelt?',
-    successFeedback: 'Uitstekend! x × y = 48. Of je nu 24, 36 of 48 gebruikt, de grafiek blijft een hyperbool. Alleen de "constante" c verandert. Dat is omgekeerd evenredigheid!'
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function generateLevel(levelNum) {
+  let area
+  if (levelNum === 0) area = r(20, 28)
+  else if (levelNum === 1) area = r(30, 42)
+  else area = r(44, 56)
+  return {
+    label: `Opp = ${area}`,
+    area,
+    sliderMax: Math.max(Math.ceil(area / 2), 12),
+    initWidth: Math.max(Math.floor(area / 6), 4),
+    instruction: `Bij een <strong>omgekeerd evenredig</strong> verband is het product van twee getallen (x en y) altijd hetzelfde: <strong>x × y = c</strong>. Als de ene stijgt, moet de andere dalen!<br/><br/><strong>Opdracht:</strong> Kneed de rechthoek door de breedte te veranderen. De oppervlakte (het product) moet altijd <strong>${area}</strong> blijven. Welke formule past hierbij?`,
+    successFeedback: `Magistraal! x × y = ${area}. Bij een omgekeerd evenredig verband is het product altijd constant. De grafiek is een hyperbool!`
   }
-]
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
-const displayInstruction = computed(() => currentLevel.value.instruction)
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+const displayInstruction = computed(() => currentLevel.value ? currentLevel.value.instruction : props.instruction)
 
-// Dynamic graph config per level
+const userAns = ref('')
+const widthX = ref(4)
+
+const heightY = computed(() => currentLevel.value ? currentLevel.value.area / widthX.value : 0)
+
+const history = ref([])
+
+watch(widthX, (newVal) => {
+    if (currentLevel.value && !history.value.some(pt => pt.x === newVal)) {
+        history.value.push({ x: newVal, y: currentLevel.value.area / newVal })
+    }
+})
+
 const graphConfig = computed(() => {
+  if (!currentLevel.value) return { maxX: 12, maxY: 30, xScale: 20, yScale: 8, xTicks: [0,2,4,6,8,10,12], yTicks: [0,5,10,15,20,25,30] }
   const area = currentLevel.value.area
   const sliderMax = currentLevel.value.sliderMax
   const plotW = 260
@@ -80,46 +84,36 @@ const graphConfig = computed(() => {
   return { maxX, maxY, xScale, yScale, xTicks, yTicks }
 })
 
-// Domain Logic
-const userAns = ref('')
-const widthX = ref(4)
-
-const heightY = computed(() => currentLevel.value.area / widthX.value)
-
-// Record history to draw the curve
-const history = ref([])
-
-watch(widthX, (newVal) => {
-    if (!history.value.some(pt => pt.x === newVal)) {
-        history.value.push({ x: newVal, y: currentLevel.value.area / newVal })
-    }
-})
+function getHint() {
+  if (attemptCount.value === 1) return 'Wat gebeurt er met het product x × y als y verandert?'
+  if (attemptCount.value === 2) return `De oppervlakte is altijd ${currentLevel.value.area}. Dus x × y = ?`
+  return `De formule is x · y = ${currentLevel.value.area}. Kies "Omgekeerd evenredig".`
+}
 
 function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: `Oppervlakte = ${currentLevel.value.area}. Beweeg de slider (Breedte x) en observeer de curve.` };
-    widthX.value = currentLevel.value.initWidth;
-    userAns.value = '';
-    history.value = [ { x: currentLevel.value.initWidth, y: currentLevel.value.area / currentLevel.value.initWidth } ];
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    isCorrect.value = false
+    isChecked.value = false
+    attemptCount.value = 0
+    feedback.value = { type: 'info', text: `Oppervlakte = ${currentLevel.value.area}. Beweeg de slider (Breedte x) en observeer de curve.` }
+    widthX.value = currentLevel.value.initWidth
+    userAns.value = ''
+    history.value = [ { x: currentLevel.value.initWidth, y: currentLevel.value.area / currentLevel.value.initWidth } ]
 }
 
 function checkAnswer() {
-  isChecked.value = true;
+  isChecked.value = true
 
   if (userAns.value === 'inverse') {
     isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: currentLevel.value.successFeedback
-    }
+    attemptCount.value = 0
+    feedback.value = { type: 'success', text: currentLevel.value.successFeedback }
   } else {
-    isCorrect.value = false
-
+    attemptCount.value++
     if (userAns.value === 'direct') {
-        feedback.value = { type: 'error', text: 'Fout! y/x = c hoort bij een recht evenredig verband (een rechte lijn door de oorsprong). Onze grafiek is krom en daalt!'}
+        feedback.value = { type: 'error', text: `Fout! y/x = c hoort bij een recht evenredig verband (een rechte lijn door de oorsprong). Onze grafiek is krom en daalt! ${getHint()}`}
     } else {
-        feedback.value = { type: 'error', text: 'Kies een formule uit de lijst.'}
+        feedback.value = { type: 'error', text: `Kies een formule uit de lijst. ${getHint()}`}
     }
   }
 }
@@ -134,15 +128,14 @@ function nextLevel() {
 }
 
 function goToNextStep() {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
 }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -228,7 +221,6 @@ onUnmounted(() => {
 
               <div class="w-full max-w-4xl flex items-center justify-center gap-12">
 
-                  <!-- Left side: The Rectangle -->
                   <div class="flex flex-col items-center">
                       <div class="mb-4 w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                           <div class="flex w-full justify-between items-end mb-2">
@@ -240,62 +232,42 @@ onUnmounted(() => {
                       </div>
 
                       <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8 flex items-end justify-start min-w-[300px] min-h-[350px]">
-
-                          <!-- Visual representation of rectangle. Scale: 1 unit = 10px for height, 20px for width -->
                           <div class="absolute bottom-8 left-8 bg-pink-500/20 border-4 border-pink-500 transition-all duration-300 ease-out flex items-center justify-center shadow-inner"
                                :style="{ width: `${Math.min(widthX * 20, 250)}px`, height: `${Math.min(heightY * 10, 250)}px` }">
                               <span class="font-black text-pink-700 text-lg whitespace-nowrap">Opp = {{ currentLevel.area }}</span>
                           </div>
-
                           <div class="absolute bottom-2 left-8 font-bold text-pink-600">x = {{ widthX }}</div>
                           <div class="absolute bottom-8 left-0 -translate-x-full font-bold text-pink-600 pr-2 pb-2 -rotate-90 origin-bottom-right" :style="{ bottom: `${8 + Math.min((heightY*10)/2, 125)}px` }">y = {{ heightY.toFixed(1) }}</div>
-
                       </div>
                   </div>
 
-                  <!-- Right side: The Graph (dynamic scale per level) -->
                   <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-6 flex items-center justify-center min-w-[350px]">
-
                       <h4 class="absolute top-4 left-4 font-bold text-slate-500 uppercase tracking-widest text-xs">Grafiek (Hyperbool) — {{ currentLevel.label }}</h4>
-
                       <svg width="300" height="300" viewBox="0 0 300 300" class="mt-8">
-
-                          <!-- Grid: dynamic per level -->
                           <g stroke="#e2e8f0" stroke-width="1">
-                              <!-- X grid lines -->
                               <line v-for="(tick, i) in graphConfig.xTicks" :key="'vg'+i"
                                     :x1="20 + tick * graphConfig.xScale" y1="20"
                                     :x2="20 + tick * graphConfig.xScale" y2="280" />
-                              <!-- Y grid lines (every other tick to avoid clutter) -->
                               <line v-for="(tick, i) in graphConfig.yTicks" :key="'hg'+i"
                                     x1="20" :y1="280 - tick * graphConfig.yScale"
                                     x2="280" :y2="280 - tick * graphConfig.yScale" />
                           </g>
-
-                          <!-- Axes -->
                           <line x1="20" y1="280" x2="290" y2="280" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
                           <line x1="20" y1="280" x2="20" y2="10" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
-
                           <defs>
                               <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
                                   <polygon points="0 0, 10 5, 0 10" fill="#475569" />
                               </marker>
                           </defs>
-
                           <text x="280" y="295" font-weight="bold" fill="#64748b" font-size="10">x</text>
                           <text x="10" y="20" font-weight="bold" fill="#64748b" font-size="10">y</text>
-
-                          <!-- Plot history points (raw values scaled by current graph config) -->
                           <circle v-for="pt in history" :key="pt.x"
                                   :cx="20 + pt.x * graphConfig.xScale"
                                   :cy="280 - pt.y * graphConfig.yScale"
                                   r="4" fill="#f43f5e" class="animate-fadeIn" />
-
-                          <!-- Current point highlighted -->
                           <circle :cx="20 + widthX * graphConfig.xScale"
                                   :cy="280 - heightY * graphConfig.yScale"
                                   r="6" fill="#be123c" stroke="white" stroke-width="2" class="transition-all duration-300 shadow-sm" />
-
                       </svg>
                   </div>
 

@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhChartBar,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,16 +31,46 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Scenarios
-const scenarios = [
-  { id: 1, data: 'Lengtes van leerlingen gegroepeerd in klassen (bv. 160-170 cm).', type: 'continue', correct: 'Histogram' },
-  { id: 2, data: 'Kleur van de ogen van leerlingen (blauw, bruin, groen).', type: 'categorisch', correct: 'Cirkeldiagram of Staafdiagram' },
-  { id: 3, data: 'Aantal broers/zussen (0, 1, 2, 3+).', type: 'discreet', correct: 'Staafdiagram' }
-]
+const scenarios = ref([])
+
+function generateLevel() {
+  const pool = [
+    // Continuous data — always Histogram
+    { data: `Lengtes van leerlingen gegroepeerd in klassen (bv. ${150 + Math.floor(Math.random() * 20)}-${170 + Math.floor(Math.random() * 20)} cm).`, type: 'continue', correct: 'Histogram' },
+    { data: `Gewichten van ${20 + Math.floor(Math.random() * 30)} personen in klassen van 5 kg.`, type: 'continue', correct: 'Histogram' },
+    { data: `Temperaturen gemeten over een maand, gegroepeerd in intervallen van 2 graden.`, type: 'continue', correct: 'Histogram' },
+    // Categorical data — always Pie or Bar
+    { data: `Kleur van de ogen van leerlingen (blauw, bruin, groen).`, type: 'categorisch', correct: 'Cirkeldiagram of Staafdiagram' },
+    { data: `Favoriete sport (voetbal, basketbal, tennis, zwemmen).`, type: 'categorisch', correct: 'Cirkeldiagram of Staafdiagram' },
+    { data: `Lievelingsvak op school (wiskunde, Nederlands, geschiedenis, biologie).`, type: 'categorisch', correct: 'Cirkeldiagram of Staafdiagram' },
+    // Discrete data — always Bar chart
+    { data: `Aantal broers/zussen (0, 1, 2, 3+).`, type: 'discreet', correct: 'Staafdiagram' },
+    { data: `Aantal keren sporten per week (0, 1, 2, 3, 4+).`, type: 'discreet', correct: 'Staafdiagram' },
+    { data: `Aantal boeken gelezen per maand (0, 1, 2, 3, 4+).`, type: 'discreet', correct: 'Staafdiagram' }
+  ]
+
+  // Shuffle and pick one of each type
+  const continueOptions = pool.filter(s => s.type === 'continue')
+  const categorischOptions = pool.filter(s => s.type === 'categorisch')
+  const discreetOptions = pool.filter(s => s.type === 'discreet')
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
+
+  const selected = [
+    { ...pick(continueOptions), id: 1 },
+    { ...pick(categorischOptions), id: 2 },
+    { ...pick(discreetOptions), id: 3 }
+  ]
+
+  // Shuffle the order so the correct answer isn't predictable by position
+  return selected.sort(() => Math.random() - 0.5)
+}
 
 const currentScenarioIndex = ref(0)
-const currentScenario = computed(() => scenarios[currentScenarioIndex.value])
+const currentScenario = computed(() => scenarios.value[currentScenarioIndex.value])
 const userChoice = ref(null)
 
 const options = [
@@ -54,36 +84,49 @@ function resetActivityState() {
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userChoice.value = null;
-  currentScenarioIndex.value = Math.floor(Math.random() * scenarios.length);
+  currentScenarioIndex.value = Math.floor(Math.random() * scenarios.value.length);
+  attemptCount.value = 0;
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  if (userChoice.value === currentScenario.value.correct) {
+// Auto-correct: when user clicks the correct option, immediately set isCorrect
+watch(userChoice, (newVal) => {
+  if (isCorrect.value || !newVal) return
+  if (newVal === currentScenario.value.correct) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Correct! Omdat de data ' + currentScenario.value.type + ' is, is dit de beste voorstelling.' 
+    feedback.value = {
+      type: 'success',
+      text: `Correct! Omdat de data ${currentScenario.value.type} is, is dit de beste voorstelling.`
     }
   } else {
-    isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: 'Fout. Bedenk of de data discreet, categorisch of gegroepeerd continu is.'
+    attemptCount.value++
+    isChecked.value = false
+    if (attemptCount.value === 1) {
+      feedback.value = { type: 'error', text: 'Fout. Bedenk of de data discreet, categorisch of gegroepeerd continu is.' }
+    } else if (attemptCount.value === 2) {
+      feedback.value = { type: 'error', text: `Let op: ${currentScenario.value.type} data heeft een specifiek diagramtype.` }
+    } else {
+      feedback.value = { type: 'error', text: `De data is ${currentScenario.value.type}. Het juiste antwoord is: ${currentScenario.value.correct}.` }
     }
   }
-}
+})
 
-function goToNextStep() {
+function handleNext() {
+  // After auto-correct, allow moving to next scenario or completing
+  if (currentScenarioIndex.value < scenarios.value.length - 1) {
+    currentScenarioIndex.value++
+    resetActivityState()
+  } else {
     if (props.currentStep < props.totalSteps) {
         emit('update:currentStep', props.currentStep + 1);
     } else {
         emit('complete');
     }
+  }
 }
 
 watch(() => props.isOpen, (val) => {
   if (val) {
+    scenarios.value = generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -127,9 +170,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -140,7 +183,7 @@ onUnmounted(() => {
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -153,9 +196,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
-              
+
               <div class="bg-white p-4 border border-slate-200 rounded text-lg shadow-sm font-medium text-slate-700">
                 "{{ currentScenario.data }}"
               </div>
@@ -176,7 +219,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -191,24 +234,26 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userChoice" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <!-- Auto-correct: no Controleer button; user clicks an option to answer -->
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentScenarioIndex < scenarios.length - 1 ? 'Volgende' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+
+              <!-- Show a disabled-looking placeholder so layout is stable -->
+              <div v-else class="flex-1 py-3 font-bold text-slate-400 transition-all rounded-lg shadow-md bg-slate-200 text-center select-none">
+                Klik een diagram
+              </div>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
-              
+
               <!-- Visuals for the 3 types -->
               <div class="flex flex-col gap-6">
                 <!-- Bar chart -->

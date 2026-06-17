@@ -24,54 +24,90 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies de juiste aanname om de machine te starten.' })
 
-// --- Level System ---
+// --- Randomization: generateLevel() ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
+const attemptCount = ref(0)
 
-const levels = [
-  {
-    // Level 1: sqrt(2) is irrational
-    instruction: 'Level 1: Een klassiek bewijs uit het ongerijmde.<br/><br/><strong>Vraag:</strong> Hoe bewijzen we dat √2 irrationaal is? Kies de juiste start-aanname!',
-    proposition: '"√2 is een irrationaal getal"',
-    directLabel: 'Neem aan: "√2 is rationaal na vereenvoudiging..."',
-    oppositeLabel: 'Neem aan: "√2 = a/b in vereenvoudigde breuk, met a en b geheel..."',
-    step1Text: 'Als √2 = a/b in vereenvoudigde vorm, dan is a² = 2b². Dus a is even. Stel a = 2k. Dan 4k² = 2b², dus b² = 2k². Dan is b ook even. Beide even?',
-    step2Text: 'PARADOX! a en b zijn allebei even, dus de breuk a/b kon vereenvoudigd worden. Dit is in tegenspraak met de aanname dat a/b vereenvoudigd was!',
-    step1Feedback: 'Briljant. We nemen aan dat √2 wél rationaal is, geschreven als een vereenvoudigde breuk a/b. Laten we dit door de logica-machine halen...',
-    step2Feedback: 'PARADOX! De aanname dat √2 rationaal is leidt tot een tegenspraak. Dus √2 is irrationaal. Bewijs geleverd!',
-    errorFeedback: 'Nee. Voor een bewijs uit het ongerijmde moet je het TEGENGESTELDE aannemen van wat je wil bewijzen.'
-  },
-  {
-    // Level 2: Infinite primes (original content)
-    instruction: 'Level 2: Een "Bewijs uit het ongerijmde" (Proof by Contradiction) is een briljante techniek. Je neemt exact het <strong>tegenovergestelde</strong> aan van wat je wil bewijzen. Daarna toon je aan dat deze aanname tot totale onzin leidt!<br/><br/><strong>Opdracht:</strong> Kies de juiste start-aanname om te bewijzen dat er oneindig veel priemgetallen bestaan.',
-    proposition: '"Er bestaan oneindig veel priemgetallen."',
-    directLabel: 'Neem aan: "Er bestaan oneindig veel priemgetallen..."',
-    oppositeLabel: 'Neem aan: "Er bestaat een ALLERGROOTSTE priemgetal P..."',
-    step1Text: 'We bouwen een nieuw getal Q: vermenigvuldig alle priemgetallen tot en met P, en tel er 1 bij op...',
-    step2Text: 'ONZIN! Q is groter dan P, maar Q is niet deelbaar door enig priemgetal! Dus Q is zelf priem, of heeft een priemfactor groter dan P!',
-    step1Feedback: 'Geniaal. We nemen even aan dat er wél een grootste priemgetal is. Laten we deze theorie door de logica-machine duwen...',
-    step2Feedback: 'PARADOX! De theorie ontploft. De aanname kán dus niet kloppen, wat bewijst dat de oorspronkelijke stelling WAAR is.',
-    errorFeedback: 'Nee. Als je een bewijs uit het ongerijmde start, moet je exact het TEGENGESTELDE aannemen van wat je eigenlijk wil bewijzen.'
-  },
-  {
-    // Level 3: No smallest positive rational number
-    instruction: 'Level 3: Nog een bewijs uit het ongerijmde. Denk goed na over wat het "tegenovergestelde" is.<br/><br/><strong>Vraag:</strong> Hoe bewijzen we dat er geen kleinste positief rationeel getal bestaat?',
-    proposition: '"Er bestaat geen kleinste positief rationeel getal."',
-    directLabel: 'Neem aan: "Er bestaan oneindig veel rationale getallen..."',
-    oppositeLabel: 'Neem aan: "Er bestaat een ALLERKLEINSTE positief rationeel getal R..."',
-    step1Text: 'Stel R is het kleinste positieve rationale getal. Dan is R/2 ook positief en rationeel. Maar R/2 is kleiner dan R! Hoe kan R dan het kleinste zijn?',
-    step2Text: 'PARADOX! R/2 is een positief rationeel getal dat kleiner is dan R. Dus R kan niet het kleinste zijn. Dit is een tegenspraak met de aanname!',
-    step1Feedback: 'Scherpzinnig. We nemen aan dat er wél een kleinste positief rationeel getal is. Laten we deze bewering door de machine halen...',
-    step2Feedback: 'PARADOX! De helft van R is ook positief en rationeel, maar kleiner dan R. Tegenspraak! De stelling is dus bewezen.',
-    errorFeedback: 'Nee. Voor een bewijs uit het ongerijmde begin je met het TEGENGESTELDE van wat je wil bewijzen.'
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  const proofPool = [
+    // Level 1 — sqrt(2) is irrational
+    {
+      instruction: 'Level 1: Een klassiek bewijs uit het ongerijmde.<br/><br/><strong>Vraag:</strong> Hoe bewijzen we dat &radic;2 irrationaal is? Kies de juiste start-aanname!',
+      proposition: '"&radic;2 is een irrationaal getal"',
+      directLabel: 'Neem aan: "&radic;2 is rationaal na vereenvoudiging..."',
+      oppositeLabel: 'Neem aan: "&radic;2 = a/b in vereenvoudigde breuk, met a en b geheel..."',
+      step1Text: 'Als &radic;2 = a/b in vereenvoudigde vorm, dan is a&sup2; = 2b&sup2;. Dus a is even. Stel a = 2k. Dan 4k&sup2; = 2b&sup2;, dus b&sup2; = 2k&sup2;. Dan is b ook even. Beide even?',
+      step2Text: 'PARADOX! a en b zijn allebei even, dus de breuk a/b kon vereenvoudigd worden. Dit is in tegenspraak met de aanname dat a/b vereenvoudigd was!',
+      step1Feedback: 'Briljant. We nemen aan dat &radic;2 w&eacute;l rationaal is, geschreven als een vereenvoudigde breuk a/b. Laten we dit door de logica-machine halen...',
+      step2Feedback: 'PARADOX! De aanname dat &radic;2 rationaal is leidt tot een tegenspraak. Dus &radic;2 is irrationaal. Bewijs geleverd!',
+      errorFeedback: 'Nee. Voor een bewijs uit het ongerijmde moet je het TEGENGESTELDE aannemen van wat je wil bewijzen.'
+    },
+    // Level 2 — Infinite primes
+    {
+      instruction: 'Level 2: Een "Bewijs uit het ongerijmde" (Proof by Contradiction) is een briljante techniek. Je neemt exact het <strong>tegenovergestelde</strong> aan van wat je wil bewijzen. Daarna toon je aan dat deze aanname tot totale onzin leidt!<br/><br/><strong>Opdracht:</strong> Kies de juiste start-aanname om te bewijzen dat er oneindig veel priemgetallen bestaan.',
+      proposition: '"Er bestaan oneindig veel priemgetallen."',
+      directLabel: 'Neem aan: "Er bestaan oneindig veel priemgetallen..."',
+      oppositeLabel: 'Neem aan: "Er bestaat een ALLERGROOTSTE priemgetal P..."',
+      step1Text: 'We bouwen een nieuw getal Q: vermenigvuldig alle priemgetallen tot en met P, en tel er 1 bij op...',
+      step2Text: 'ONZIN! Q is groter dan P, maar Q is niet deelbaar door enig priemgetal! Dus Q is zelf priem, of heeft een priemfactor groter dan P!',
+      step1Feedback: 'Geniaal. We nemen even aan dat er w&eacute;l een grootste priemgetal is. Laten we deze theorie door de logica-machine duwen...',
+      step2Feedback: 'PARADOX! De theorie ontploft. De aanname k&aacute;n dus niet kloppen, wat bewijst dat de oorspronkelijke stelling WAAR is.',
+      errorFeedback: 'Nee. Als je een bewijs uit het ongerijmde start, moet je exact het TEGENGESTELDE aannemen van wat je eigenlijk wil bewijzen.'
+    },
+    // Level 3 — No smallest positive rational
+    {
+      instruction: 'Level 3: Nog een bewijs uit het ongerijmde. Denk goed na over wat het "tegenovergestelde" is.<br/><br/><strong>Vraag:</strong> Hoe bewijzen we dat er geen kleinste positief rationeel getal bestaat?',
+      proposition: '"Er bestaat geen kleinste positief rationeel getal."',
+      directLabel: 'Neem aan: "Er bestaan oneindig veel rationale getallen..."',
+      oppositeLabel: 'Neem aan: "Er bestaat een ALLERKLEINSTE positief rationeel getal R..."',
+      step1Text: 'Stel R is het kleinste positieve rationale getal. Dan is R/2 ook positief en rationeel. Maar R/2 is kleiner dan R! Hoe kan R dan het kleinste zijn?',
+      step2Text: 'PARADOX! R/2 is een positief rationeel getal dat kleiner is dan R. Dus R kan niet het kleinste zijn. Dit is een tegenspraak met de aanname!',
+      step1Feedback: 'Scherpzinnig. We nemen aan dat er w&eacute;l een kleinste positief rationeel getal is. Laten we deze bewering door de machine halen...',
+      step2Feedback: 'PARADOX! De helft van R is ook positief en rationeel, maar kleiner dan R. Tegenspraak! De stelling is dus bewezen.',
+      errorFeedback: 'Nee. Voor een bewijs uit het ongerijmde begin je met het TEGENGESTELDE van wat je wil bewijzen.'
+    }
+  ]
+
+  // For narrative proofs like contradiction, we keep the core text
+  // but add structural randomization: shuffle the button display order
+  const p = proofPool[lvl]
+  const buttons = [
+    { role: 'direct', label: p.directLabel },
+    { role: 'opposite', label: p.oppositeLabel }
+  ]
+  // Shuffle so the student must think, not just click the first button
+  if (lvl >= 1 && Math.random() > 0.5) {
+    [buttons[0], buttons[1]] = [buttons[1], buttons[0]]
   }
-]
+  return { ...p, shuffledButtons: buttons }
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const step = ref(0) // 0: select, 1: running logic, 2: paradox!
 const selectedAssumption = ref(null)
+
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: Bij een bewijs uit het ongerijmde begin je met het TEGENGESTELDE van wat je wil bewijzen.'
+  if (c === 2) return 'Hint: Als je P wil bewijzen, neem dan aan dat P NIET waar is. Zoek dan naar een tegenspraak.'
+  return 'Hint: Bekijk de stelling die bewezen moet worden. Jouw aanname moet exact het tegenovergestelde zijn van die stelling.'
+}
 
 function runProof(choice) {
     if (isCorrect.value) return;
@@ -90,12 +126,18 @@ function runProof(choice) {
         }, 2000)
 
     } else {
+        attemptCount.value++
         isCorrect.value = false
-        feedback.value = { type: 'error', text: currentLevelData.value.errorFeedback }
+        feedback.value = {
+          type: 'error',
+          text: currentLevelData.value.errorFeedback + '<br/><br/>' + getHint()
+        }
     }
 }
 
 function resetActivityState() {
+    generateLevels()
+    attemptCount.value = 0
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Kies de juiste aanname om de machine te starten.' };
@@ -194,7 +236,7 @@ onUnmounted(() => {
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
             <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
@@ -212,15 +254,17 @@ onUnmounted(() => {
 
               <div class="w-full max-w-4xl flex flex-col items-center">
 
-                  <!-- Step 0: Choose Assumption -->
+                  <!-- Step 0: Choose Assumption (auto-correct: click-on-target) -->
                   <div class="flex gap-4 mb-12" :class="step > 0 ? 'opacity-30 pointer-events-none' : ''">
-                      <button @click="runProof('direct')" class="flex-1 p-6 bg-slate-800 border-4 border-slate-600 rounded-2xl hover:bg-slate-700 transition-all active:scale-95 shadow-lg text-left group">
-                          <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Rechtstreeks (Fout)</span>
-                          <span class="font-bold text-slate-200 group-hover:text-white">{{ currentLevelData.directLabel }}</span>
-                      </button>
-                      <button @click="runProof('opposite')" class="flex-1 p-6 bg-slate-800 border-4 border-emerald-600 rounded-2xl hover:bg-slate-700 transition-all active:scale-95 shadow-lg text-left group">
-                          <span class="block text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Ongerijmde (Correct)</span>
-                          <span class="font-bold text-slate-200 group-hover:text-white">{{ currentLevelData.oppositeLabel }}</span>
+                      <button v-for="(btn, idx) in currentLevelData.shuffledButtons" :key="idx"
+                              @click="runProof(btn.role)"
+                              class="flex-1 p-6 bg-slate-800 border-4 rounded-2xl hover:bg-slate-700 transition-all active:scale-95 shadow-lg text-left group"
+                              :class="btn.role === 'opposite' ? 'border-emerald-600' : 'border-slate-600'">
+                          <span class="block text-xs font-bold uppercase tracking-widest mb-2"
+                                :class="btn.role === 'opposite' ? 'text-emerald-500' : 'text-slate-400'">
+                              {{ btn.role === 'opposite' ? 'Ongerijmde (Correct)' : 'Rechtstreeks' }}
+                          </span>
+                          <span class="font-bold text-slate-200 group-hover:text-white">{{ btn.label }}</span>
                       </button>
                   </div>
 
@@ -264,7 +308,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=true');
 :root { font-family: 'Inter', sans-serif; }
 
 .bg-circuit-pattern {

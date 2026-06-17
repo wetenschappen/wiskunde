@@ -23,48 +23,67 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' })
+const attemptCount = ref(0)
 
 // Level System
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    name: 'Level 1: Beginner',
-    startX: 0, startY: 0,
-    goalX: 3, goalY: 3,
-    walls: [{x: 1, y: 0}, {x: 1, y: 1}, {x: 3, y: 1}, {x: 2, y: 3}]
-  },
-  {
-    name: 'Level 2: Gemiddeld',
-    startX: 0, startY: 0,
-    goalX: 3, goalY: 3,
-    walls: [{x: 1, y: 1}, {x: 2, y: 2}, {x: 3, y: 2}]
-  },
-  {
-    name: 'Level 3: Expert',
-    startX: 0, startY: 0,
-    goalX: 3, goalY: 3,
-    walls: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 2}]
-  }
-]
+const levels = ref([])
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
-const startX = computed(() => currentLevel.value.startX)
-const startY = computed(() => currentLevel.value.startY)
-const goalX = computed(() => currentLevel.value.goalX)
-const goalY = computed(() => currentLevel.value.goalY)
-const walls = computed(() => currentLevel.value.walls)
+function generateLevel() {
+  // Pool of wall layouts per difficulty — all have at least one valid path from (0,0) to (3,3)
+  const pool1 = [
+    [{x: 1, y: 0}, {x: 1, y: 1}, {x: 3, y: 1}, {x: 2, y: 3}],
+    [{x: 0, y: 1}, {x: 2, y: 0}, {x: 3, y: 1}],
+    [{x: 1, y: 0}, {x: 2, y: 1}, {x: 1, y: 3}]
+  ]
+  const pool2 = [
+    [{x: 1, y: 1}, {x: 2, y: 2}, {x: 3, y: 2}],
+    [{x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 0}],
+    [{x: 1, y: 0}, {x: 2, y: 1}, {x: 3, y: 3}]
+  ]
+  const pool3 = [
+    [{x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 2}],
+    [{x: 1, y: 0}, {x: 0, y: 2}, {x: 1, y: 3}, {x: 2, y: 2}],
+    [{x: 0, y: 0}, {x: 1, y: 1}, {x: 2, y: 2}, {x: 3, y: 3}]
+  ]
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
+
+  return [
+    { name: 'Level 1: Beginner', startX: 0, startY: 0, goalX: 3, goalY: 3, walls: pick(pool1) },
+    { name: 'Level 2: Gemiddeld', startX: 0, startY: 0, goalX: 3, goalY: 3, walls: pick(pool2) },
+    { name: 'Level 3: Expert', startX: 0, startY: 0, goalX: 3, goalY: 3, walls: pick(pool3) }
+  ]
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-// Grid 4x4. (0,0) is bottom left. (3,3) is top right.
-// SVG coordinates: Top-left is (0,0). So (x,y) -> (x, 3-y).
 const gridSize = 4
 
-const robotX = ref(startX.value)
-const robotY = ref(startY.value)
+const robotX = ref(0)
+const robotY = ref(0)
+const startX = ref(0)
+const startY = ref(0)
+const goalX = ref(3)
+const goalY = ref(3)
+const walls = ref([])
 
-const algorithm = ref([]) // array of 'up', 'down', 'left', 'right'
+// Sync reactive helpers from currentLevel
+watch(currentLevel, (lvl) => {
+  if (!lvl) return
+  startX.value = lvl.startX
+  startY.value = lvl.startY
+  goalX.value = lvl.goalX
+  goalY.value = lvl.goalY
+  walls.value = lvl.walls
+  robotX.value = lvl.startX
+  robotY.value = lvl.startY
+}, { immediate: true })
+
+const algorithm = ref([])
 const isRunning = ref(false)
 const crashStatus = ref(false)
 
@@ -137,7 +156,7 @@ function runAlgorithm() {
         robotY.value = ny
         step++
 
-    }, 500) // half second per step
+    }, 500)
 }
 
 function finishRun(crashed = false) {
@@ -145,25 +164,40 @@ function finishRun(crashed = false) {
 
     if (crashed) {
         isCorrect.value = false
-        feedback.value = { type: 'error', text: 'BAM! Je robot is gecrasht. Er zit een "bug" in je code. Druk op de reset-knop, pas je code aan en probeer opnieuw.'}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: 'BAM! Je robot is gecrasht. Er zit een "bug" in je code. Probeer opnieuw.'}
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: 'Bijna! Kijk goed naar waar de muur staat en pas je route aan.'}
+        } else {
+          feedback.value = { type: 'error', text: 'De muren staan op vaste plekken. Probeer een andere volgorde van stappen. Het doel is (3,3).'}
+        }
     } else if (robotX.value === goalX.value && robotY.value === goalY.value) {
         isCorrect.value = true
         feedback.value = { type: 'success', text: 'Programma succesvol afgerond! Je algoritme is bug-vrij en heeft het doel bereikt.'}
     } else {
         isCorrect.value = false
-        feedback.value = { type: 'error', text: 'Je programma is gestopt, maar je hebt het doel niet bereikt. Je mist nog instructies in je algoritme.'}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: 'Je programma is gestopt, maar je hebt het doel niet bereikt. Je mist nog instructies.'}
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: 'Het doel is op (3,3). Tel je stappen: hoeveel naar rechts en omhoog heb je nodig?'}
+        } else {
+          feedback.value = { type: 'error', text: 'Doel = (3,3). Je start op (0,0). Je hebt 3 stappen naar rechts en 3 omhoog nodig (minus omwegen om muren).'}
+        }
     }
 }
 
 function resetActivityState() {
+    levels.value = generateLevel()
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' };
     algorithm.value = [];
-    robotX.value = startX.value;
-    robotY.value = startY.value;
     isRunning.value = false;
     crashStatus.value = false;
+    attemptCount.value = 0;
+    // Sync will reset robot position via watch
 }
 
 function nextLevel() {
@@ -173,6 +207,14 @@ function nextLevel() {
     } else {
         goToNextStep()
     }
+}
+
+function resetPosition() {
+    robotX.value = startX.value
+    robotY.value = startY.value
+    isChecked.value = false
+    crashStatus.value = false
+    feedback.value = { type: 'info', text: 'Pas je code aan en probeer opnieuw.' }
 }
 
 function goToNextStep() {
@@ -276,8 +318,7 @@ onUnmounted(() => {
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-3">
-              <!-- Custom reset that just resets position but keeps code so they can debug -->
-              <button @click="() => { robotX = startX; robotY = startY; isChecked = false; crashStatus = false; feedback = {type:'info', text:'Pas je code aan en probeer opnieuw.'} }" :disabled="isRunning" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
+              <button @click="resetPosition" :disabled="isRunning" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
 
               <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Voer Uit</button>
               <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
@@ -299,10 +340,6 @@ onUnmounted(() => {
                       <div class="absolute inset-2 grid grid-cols-4 grid-rows-4 gap-1 z-0">
                           <template v-for="y in 4" :key="'ry'+y">
                               <template v-for="x in 4" :key="'rx'+x">
-                                  <!-- SVG coordinates logic: y=1 is top, y=4 is bottom -->
-                                  <!-- Mathematical logic: y=0 is bottom, y=3 is top -->
-                                  <!-- So r_y = 3 - math_y. Which means math_y = 3 - (ry - 1) = 4 - ry -->
-
                                   <div class="bg-slate-900/50 rounded-sm relative flex items-center justify-center">
 
                                       <!-- Goal highlight -->
@@ -319,8 +356,6 @@ onUnmounted(() => {
                       </div>
 
                       <!-- The Robot -->
-                      <!-- 4x4 grid inside 384x384 box (approx). Each cell is 96px width/height. -->
-                      <!-- Left = x * 25%. Bottom = y * 25%. -->
                       <div class="absolute w-[25%] h-[25%] transition-all duration-500 ease-in-out flex items-center justify-center z-10"
                            :class="crashStatus ? 'animate-shake' : ''"
                            :style="{ left: `${robotX * 25}%`, bottom: `${robotY * 25}%` }">

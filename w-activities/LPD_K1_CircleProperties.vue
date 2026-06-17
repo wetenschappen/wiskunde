@@ -31,54 +31,96 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- 3-Level structure ---
+// --- 3-Level structure with generateLevel() ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    name: 'Omtrekshoek',
-    instruction: '<strong>Omtrekshoek berekenen</strong><br>De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.',
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  let central, inscribed, unknown
+  const types = ['inscribed', 'central']
+
+  if (lvl === 0) {
+    // Level 1: Omtrekshoek — find inscribed angle given central
+    unknown = 'inscribed'
+    const cVals = [60, 70, 80, 90, 100, 110, 120]
+    central = cVals[randInt(0, cVals.length - 1)]
+    // Ensure divisible by 2
+    central = Math.round(central / 10) * 10
+    inscribed = central / 2
+  } else if (lvl === 1) {
+    // Level 2: Middelpuntshoek — find central angle given inscribed
+    unknown = 'central'
+    const iVals = [30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
+    inscribed = iVals[randInt(0, iVals.length - 1)]
+    central = inscribed * 2
+  } else {
+    // Level 3: Gemengd — randomly pick which to ask
+    unknown = types[randInt(0, 1)]
+    if (unknown === 'inscribed') {
+      const cVals = [60, 80, 100, 120, 140, 160]
+      central = cVals[randInt(0, cVals.length - 1)]
+      inscribed = central / 2
+    } else {
+      const iVals = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
+      inscribed = iVals[randInt(0, iVals.length - 1)]
+      central = inscribed * 2
+    }
+  }
+
+  return {
+    name: lvl === 0 ? 'Omtrekshoek' : lvl === 1 ? 'Middelpuntshoek' : 'Gemengd',
+    instruction: lvl === 0
+      ? '<strong>Omtrekshoek berekenen</strong><br>De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.'
+      : lvl === 1
+        ? '<strong>Middelpuntshoek berekenen</strong><br>De middelpuntshoek is steeds het dubbel van de omtrekshoek op dezelfde boog.'
+        : '<strong>Omtrekshoek of middelpuntshoek?</strong><br>Bepaal telkens welke hoek ontbreekt en pas de regel toe.',
     scenarios: [
-      { central: 80, inscribed: 40, unknown: 'inscribed' },
-      { central: 90, inscribed: 45, unknown: 'inscribed' },
-      { central: 100, inscribed: 50, unknown: 'inscribed' }
-    ]
-  },
-  {
-    name: 'Middelpuntshoek',
-    instruction: '<strong>Middelpuntshoek berekenen</strong><br>De middelpuntshoek is steeds het dubbel van de omtrekshoek op dezelfde boog.',
-    scenarios: [
-      { central: 120, inscribed: 60, unknown: 'central' },
-      { central: 150, inscribed: 75, unknown: 'central' },
-      { central: 100, inscribed: 50, unknown: 'central' }
-    ]
-  },
-  {
-    name: 'Gemengd',
-    instruction: '<strong>Omtrekshoek of middelpuntshoek?</strong><br>Bepaal telkens welke hoek ontbreekt en pas de regel toe.',
-    scenarios: [
-      { central: 130, inscribed: 65, unknown: 'inscribed' },
-      { central: 140, inscribed: 70, unknown: 'central' },
-      { central: 160, inscribed: 80, unknown: 'inscribed' }
+      { central, inscribed, unknown }
     ]
   }
-]
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const currentInstruction = computed(() => currentLevel.value.instruction || props.instruction)
 
 const currentScenarioIndex = ref(0)
 const currentScenario = computed(() => currentLevel.value.scenarios[currentScenarioIndex.value])
 const userAnswer = ref('')
 
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: Denk aan de relatie tussen middelpuntshoek en omtrekshoek.'
+  if (c === 2) {
+    if (currentScenario.value.unknown === 'inscribed') return 'Hint: De omtrekshoek is de helft van de middelpuntshoek. Deel ' + currentScenario.value.central + ' door 2.'
+    return 'Hint: De middelpuntshoek is het dubbel van de omtrekshoek. Verdubbel ' + currentScenario.value.inscribed + '.'
+  }
+  if (currentScenario.value.unknown === 'inscribed') return 'Hint: ' + currentScenario.value.central + ' / 2 = ?'
+  return 'Hint: ' + currentScenario.value.inscribed + ' x 2 = ?'
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userAnswer.value = '';
-  currentScenarioIndex.value = Math.floor(Math.random() * currentLevel.value.scenarios.length);
+  currentScenarioIndex.value = 0
 }
 
 function nextLevel() {
@@ -101,10 +143,11 @@ function checkAnswer() {
       text: 'Helemaal juist! De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.'
     }
   } else {
+    attemptCount.value++
     isCorrect.value = false
     feedback.value = {
       type: 'error',
-      text: 'Niet juist. Onthoud: Middelpuntshoek = 2 × Omtrekshoek.'
+      text: 'Niet juist. Onthoud: Middelpuntshoek = 2 &times; Omtrekshoek.<br/><br/>' + getHint()
     }
   }
 }
@@ -197,8 +240,8 @@ onUnmounted(() => {
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
               <p class="font-bold text-slate-800 text-lg mb-2">
                 Gegeven: <br>
-                <span v-if="currentScenario.unknown === 'inscribed'" class="text-pink-600">Middelpuntshoek = {{ currentScenario.central }}°</span>
-                <span v-else class="text-sky-600">Omtrekshoek = {{ currentScenario.inscribed }}°</span>
+                <span v-if="currentScenario.unknown === 'inscribed'" class="text-pink-600">Middelpuntshoek = {{ currentScenario.central }}&deg;</span>
+                <span v-else class="text-sky-600">Omtrekshoek = {{ currentScenario.inscribed }}&deg;</span>
               </p>
 
               <label class="block mb-2 text-sm font-bold text-slate-700">
@@ -214,14 +257,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -229,6 +272,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
+              <!-- Keep Controleer: number input -->
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
@@ -249,7 +293,7 @@ onUnmounted(() => {
               <!-- Circle SVG -->
               <svg width="300" height="300" viewBox="-150 -150 300 300" class="overflow-visible bg-white rounded-full shadow-md border border-slate-200">
                 <circle cx="0" cy="0" r="100" fill="none" stroke="#64748b" stroke-width="4" />
-                <circle cx="0" cy="0" r="4" fill="#334155" /> <!-- Middelpunt -->
+                <circle cx="0" cy="0" r="4" fill="#334155" /> <!-- Centrum -->
 
                 <!-- Fixed Points on arc -->
                 <circle cx="-70.7" cy="70.7" r="5" fill="#334155" /> <!-- Point A (bottom left) -->
@@ -268,11 +312,11 @@ onUnmounted(() => {
 
                 <!-- Text Labels -->
                 <text x="-15" y="30" font-weight="bold" fill="#db2777">
-                  {{ currentScenario.unknown === 'central' ? '?' : currentScenario.central + '°' }}
+                  {{ currentScenario.unknown === 'central' ? '?' : currentScenario.central + '&deg;' }}
                 </text>
 
                 <text x="-10" y="-70" font-weight="bold" fill="#0ea5e9">
-                  {{ currentScenario.unknown === 'inscribed' ? '?' : currentScenario.inscribed + '°' }}
+                  {{ currentScenario.unknown === 'inscribed' ? '?' : currentScenario.inscribed + '&deg;' }}
                 </text>
 
               </svg>

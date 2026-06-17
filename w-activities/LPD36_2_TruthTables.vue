@@ -17,7 +17,7 @@ const props = defineProps({
   },
   instruction: {
     type: String,
-    default: 'Vul de waarheidstabel in voor de disjunctie (A of B) (genoteerd als A ∨ B). Klik op de vakjes in de laatste kolom om te wisselen tussen 0 (Onwaar) en 1 (Waar).'
+    default: 'Vul de waarheidstabel in. Klik op de vakjes in de laatste kolom om te wisselen tussen 0 (Onwaar) en 1 (Waar).'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -31,16 +31,26 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- 3-level structure ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const operatorPool = [
   {
-    label: 'Disjunctie (OF)',
-    instruction: 'Vul de waarheidstabel in voor de disjunctie (A of B) (genoteerd als A ∨ B). Klik op de vakjes in de laatste kolom om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
-    operatorText: 'A ∨ B',
+    label: 'Disjunctie (OF)', operatorText: 'A ∨ B',
+    instruction: 'Vul de waarheidstabel in voor de disjunctie (A of B). Klik op de vakjes om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
     description: 'Een disjunctie is enkel onwaar als alle beweringen onwaar zijn.',
     successText: 'Perfect! De disjunctie "A of B" is waar zodra minstens één van beide beweringen waar is.',
     tableRows: [
@@ -51,9 +61,8 @@ const levels = [
     ]
   },
   {
-    label: 'Conjunctie (EN)',
-    instruction: 'Vul de waarheidstabel in voor de conjunctie (A en B) (genoteerd als A ∧ B). Klik op de vakjes in de laatste kolom om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
-    operatorText: 'A ∧ B',
+    label: 'Conjunctie (EN)', operatorText: 'A ∧ B',
+    instruction: 'Vul de waarheidstabel in voor de conjunctie (A en B). Klik op de vakjes om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
     description: 'Een conjunctie is enkel waar als ALLE beweringen waar zijn.',
     successText: 'Perfect! De conjunctie "A en B" is enkel waar wanneer beide beweringen waar zijn.',
     tableRows: [
@@ -64,9 +73,8 @@ const levels = [
     ]
   },
   {
-    label: 'Exclusieve Disjunctie (XOR)',
-    instruction: 'Vul de waarheidstabel in voor de exclusieve disjunctie (A XOR B) (genoteerd als A ⊕ B). Klik op de vakjes in de laatste kolom om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
-    operatorText: 'A ⊕ B',
+    label: 'Exclusieve Disjunctie (XOR)', operatorText: 'A ⊕ B',
+    instruction: 'Vul de waarheidstabel in voor de exclusieve disjunctie (A XOR B). Klik op de vakjes om te wisselen tussen 0 (Onwaar) en 1 (Waar).',
     description: 'Een exclusieve disjunctie is waar als precies één van beide beweringen waar is.',
     successText: 'Perfect! XOR is waar wanneer A en B verschillen.',
     tableRows: [
@@ -75,61 +83,94 @@ const levels = [
       { A: 1, B: 0, ans: null, correct: 1 },
       { A: 1, B: 1, ans: null, correct: 0 }
     ]
+  },
+  {
+    label: 'NAND (Niet-EN)', operatorText: 'A ↑ B',
+    instruction: 'Vul de waarheidstabel in voor NAND (niet A en B). Klik op de vakjes om te wisselen.',
+    description: 'NAND is het tegengestelde van EN: enkel onwaar als beide waar zijn.',
+    successText: 'Perfect! NAND is overal 1 behalve wanneer A en B allebei 1 zijn.',
+    tableRows: [
+      { A: 0, B: 0, ans: null, correct: 1 },
+      { A: 0, B: 1, ans: null, correct: 1 },
+      { A: 1, B: 0, ans: null, correct: 1 },
+      { A: 1, B: 1, ans: null, correct: 0 }
+    ]
+  },
+  {
+    label: 'NOR (Niet-OF)', operatorText: 'A ↓ B',
+    instruction: 'Vul de waarheidstabel in voor NOR (niet A of B). Klik op de vakjes om te wisselen.',
+    description: 'NOR is het tegengestelde van OF: enkel waar als beide onwaar zijn.',
+    successText: 'Perfect! NOR is enkel 1 wanneer A en B allebei 0 zijn.',
+    tableRows: [
+      { A: 0, B: 0, ans: null, correct: 1 },
+      { A: 0, B: 1, ans: null, correct: 0 },
+      { A: 1, B: 0, ans: null, correct: 0 },
+      { A: 1, B: 1, ans: null, correct: 0 }
+    ]
+  },
+  {
+    label: 'Implicatie (ALS...DAN)', operatorText: 'A → B',
+    instruction: 'Vul de waarheidstabel in voor de implicatie (A impliceert B). Klik op de vakjes om te wisselen.',
+    description: 'Een implicatie is enkel onwaar als A waar is en B onwaar.',
+    successText: 'Perfect! A → B is enkel 0 wanneer A=1 en B=0.',
+    tableRows: [
+      { A: 0, B: 0, ans: null, correct: 1 },
+      { A: 0, B: 1, ans: null, correct: 1 },
+      { A: 1, B: 0, ans: null, correct: 0 },
+      { A: 1, B: 1, ans: null, correct: 1 }
+    ]
   }
 ]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelNum) {
+  // Pick 3 distinct operators, sorted by difficulty
+  const pool = shuffle(operatorPool)
+  return pool[levelNum % pool.length]
+}
+
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 const tableRows = ref([])
 
 function toggleAns(index) {
-  if (isCorrect.value) return;
-  const current = tableRows.value[index].ans;
-  if (current === null) tableRows.value[index].ans = 0;
-  else if (current === 0) tableRows.value[index].ans = 1;
-  else tableRows.value[index].ans = null;
-  isChecked.value = false;
+  if (isCorrect.value) return
+  const current = tableRows.value[index].ans
+  if (current === null) tableRows.value[index].ans = 0
+  else if (current === 0) tableRows.value[index].ans = 1
+  else tableRows.value[index].ans = null
+  isChecked.value = false
+  feedback.value = { type: 'info', text: '' }
+
+  // Auto-check when all cells filled
+  if (tableRows.value.length === 4 && tableRows.value.every(r => r.ans !== null)) {
+    autoCheck()
+  }
+}
+
+function autoCheck() {
+  isChecked.value = true
+  const allCorrect = tableRows.value.every(r => r.ans === r.correct)
+  if (allCorrect) {
+    isCorrect.value = true
+    attemptCount.value = 0
+    feedback.value = { type: 'success', text: currentLevel.value.successText }
+  } else {
+    attemptCount.value++
+    let hint = ''
+    if (attemptCount.value === 1) hint = 'Denk aan de definitie van deze logische operator.'
+    else if (attemptCount.value === 2) hint = `Lees de beschrijving: "${currentLevel.value.description}"`
+    else hint = 'Probeer elke combinatie stap voor stap te beredeneren.'
+    feedback.value = { type: 'error', text: `Niet helemaal juist. ${hint}` }
+  }
 }
 
 function resetActivityState() {
-  isCorrect.value = false;
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: '' };
-  tableRows.value = currentLevel.value.tableRows.map(r => ({ ...r, ans: null }));
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-
-  if (tableRows.value.some(r => r.ans === null)) {
-    isCorrect.value = false;
-    feedback.value = { type: 'error', text: 'Vul alle velden in de laatste kolom in.' };
-    return;
-  }
-
-  const allCorrect = tableRows.value.every(r => r.ans === r.correct);
-
-  if (allCorrect) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: currentLevel.value.successText
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = {
-      type: 'error',
-      text: 'Er zitten fouten in. Denk na: wanneer is "A of B" onwaar? Enkel als ze BEIDE onwaar zijn.'
-    }
-  }
-}
-
-function goToNextStep() {
-    if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
-    } else {
-        emit('complete');
-    }
+  isCorrect.value = false
+  isChecked.value = false
+  attemptCount.value = 0
+  feedback.value = { type: 'info', text: '' }
+  tableRows.value = currentLevel.value.tableRows.map(r => ({ ...r, ans: null }))
 }
 
 function nextLevel() {
@@ -141,16 +182,20 @@ function nextLevel() {
   }
 }
 
+function goToNextStep() {
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
+}
+
 watch(() => props.isOpen, (val) => {
   if (val) {
-    resetActivityState();
-    currentInternalLevel.value = 0;
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
       nextTick(() => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {})
-        }
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {})
       })
     }
     nextTick(() => {
@@ -165,16 +210,12 @@ watch(() => props.isOpen, (val) => {
 }, { immediate: true })
 
 function handleKeydown(e) {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close')
-  }
+  if (e.key === 'Escape' && props.isOpen) emit('close')
 }
 
 onMounted(() => {
   document.addEventListener('fullscreenchange', () => {
-    if (props.isOpen && props.fullscreen && !document.fullscreenElement) {
-      emit('close')
-    }
+    if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close')
   })
 })
 
@@ -199,7 +240,6 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
-          <!-- Level indicator -->
           <div class="flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
             <span v-for="i in totalInternalLevels" :key="i"
                   class="w-2.5 h-2.5 rounded-full border"
@@ -248,14 +288,11 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3 text-center text-xs text-slate-400">Vul alle cellen in voor automatische controle</div>
             </div>
           </div>
         </div>

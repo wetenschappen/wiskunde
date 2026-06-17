@@ -17,7 +17,7 @@ const props = defineProps({
   },
   instruction: {
     type: String,
-    default: 'Er zijn 30 leerlingen in een klas. 15 spelen voetbal, 10 spelen tennis, en 4 spelen beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.'
+    default: 'Sleep de juiste aantallen naar de gebieden in het venndiagram.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -31,48 +31,53 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- 3-level structure ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    label: 'Voetbal & Tennis',
-    instruction: 'Er zijn 30 leerlingen in een klas. 15 spelen voetbal, 10 spelen tennis, en 4 spelen beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
-    total: 30,
-    leftLabel: 'Voetbal',
-    rightLabel: 'Tennis',
-    leftTotal: 15,
-    rightTotal: 10,
-    correctMap: { left: 11, center: 4, right: 6, outside: 9 },
-    numbers: [4, 6, 9, 11]
-  },
-  {
-    label: 'Wiskunde & Engels',
-    instruction: 'In een studiezaal zijn 100 studenten. 60 studeren wiskunde, 50 studeren Engels, en 20 studeren beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
-    total: 100,
-    leftLabel: 'Wiskunde',
-    rightLabel: 'Engels',
-    leftTotal: 60,
-    rightTotal: 50,
-    correctMap: { left: 40, center: 20, right: 30, outside: 10 },
-    numbers: [10, 20, 30, 40]
-  },
-  {
-    label: 'Fictie & Non-fictie',
-    instruction: 'In een bibliotheek zijn 50 boeken. 30 zijn fictie, 25 zijn non-fictie, en 12 zijn beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
-    total: 50,
-    leftLabel: 'Fictie',
-    rightLabel: 'Non-fictie',
-    leftTotal: 30,
-    rightTotal: 25,
-    correctMap: { left: 18, center: 12, right: 13, outside: 7 },
-    numbers: [7, 12, 13, 18]
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
+  return a
+}
+
+const labelPairs = [
+  ['Voetbal', 'Tennis'], ['Wiskunde', 'Engels'],
+  ['Fictie', 'Non-fictie'], ['Koffie', 'Thee'],
+  ['Zwemmen', 'Hardlopen'], ['Gitaar', 'Piano'],
+  ['Frans', 'Duits'], ['Basketbal', 'Volleybal']
 ]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelNum) {
+  let center, leftOnly, rightOnly, outside
+  if (levelNum === 0) {
+    center = r(2, 6); leftOnly = r(4, 12); rightOnly = r(3, 10); outside = r(3, 10)
+  } else if (levelNum === 1) {
+    center = r(8, 25); leftOnly = r(15, 40); rightOnly = r(10, 35); outside = r(5, 20)
+  } else {
+    center = r(5, 15); leftOnly = r(10, 25); rightOnly = r(8, 20); outside = r(3, 15)
+  }
+  const total = leftOnly + center + rightOnly + outside
+  const pair = labelPairs[r(0, labelPairs.length - 1)]
+  const [leftLbl, rightLbl] = pair
+  return {
+    label: `${leftLbl} & ${rightLbl}`,
+    instruction: `Er zijn ${total} personen. ${leftOnly + center} houden van ${leftLbl}, ${rightOnly + center} houden van ${rightLbl}, en ${center} houden van beide. Sleep de juiste aantallen naar de gebieden.`,
+    total, leftLabel: leftLbl, rightLabel: rightLbl,
+    leftTotal: leftOnly + center, rightTotal: rightOnly + center,
+    correctMap: { left: leftOnly, center, right: rightOnly, outside },
+    numbers: shuffle([leftOnly, center, rightOnly, outside])
+  }
+}
+
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 const availableNumbers = ref([])
 const slots = ref({ left: null, center: null, right: null, outside: null })
@@ -83,12 +88,34 @@ function onDragStart(num) {
   draggedItem = num
 }
 
+function autoCheck() {
+  isChecked.value = true
+  const cm = currentLevel.value.correctMap
+  if (slots.value.left === cm.left && slots.value.center === cm.center &&
+      slots.value.right === cm.right && slots.value.outside === cm.outside) {
+    isCorrect.value = true
+    attemptCount.value = 0
+    feedback.value = { type: 'success', text: 'Perfect opgelost! Je hebt rekening gehouden met de doorsnede.' }
+  } else {
+    attemptCount.value++
+    let hint = ''
+    if (attemptCount.value === 1) hint = 'Begin altijd met de doorsnede (midden).'
+    else if (attemptCount.value === 2) hint = `Trek het midden (${cm.center}) af van de totalen om de buitenste gebieden te vinden.`
+    else hint = `Alleen ${leftLabel}: ${currentLevel.value.leftTotal} − ${cm.center} = ${cm.left}. Alleen ${rightLabel}: ${currentLevel.value.rightTotal} − ${cm.center} = ${cm.right}.`
+    feedback.value = { type: 'error', text: `Niet helemaal juist. ${hint}` }
+  }
+}
+
 function onDrop(zone) {
   if (draggedItem !== null && slots.value[zone] === null) {
     slots.value[zone] = draggedItem
     availableNumbers.value = availableNumbers.value.filter(n => n !== draggedItem)
     draggedItem = null
     isChecked.value = false
+    feedback.value = { type: 'info', text: '' }
+    if (slots.value.left !== null && slots.value.center !== null && slots.value.right !== null && slots.value.outside !== null) {
+      autoCheck()
+    }
   }
 }
 
@@ -99,49 +126,17 @@ function returnToAvailable(zone) {
     availableNumbers.value.push(item)
     availableNumbers.value.sort((a, b) => a - b)
     isChecked.value = false
+    isCorrect.value = false
   }
 }
 
 function resetActivityState() {
-  isCorrect.value = false;
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: '' };
-  availableNumbers.value = [...currentLevel.value.numbers];
-  slots.value = { left: null, center: null, right: null, outside: null };
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-
-  if (slots.value.left === null || slots.value.center === null || slots.value.right === null || slots.value.outside === null) {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: 'Vul alle 4 de gebieden in voordat je controleert.' }
-    return
-  }
-
-  const cm = currentLevel.value.correctMap
-  if (slots.value.left === cm.left && slots.value.center === cm.center &&
-      slots.value.right === cm.right && slots.value.outside === cm.outside) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: 'Perfect opgelost! Je hebt rekening gehouden met de doorsnede.'
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = {
-      type: 'error',
-      text: 'Er zitten fouten in. Tip: Begin altijd met de doorsnede (midden) en trek dit aantal af van de totalen.'
-    }
-  }
-}
-
-function goToNextStep() {
-    if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
-    } else {
-        emit('complete');
-    }
+  isCorrect.value = false
+  isChecked.value = false
+  attemptCount.value = 0
+  feedback.value = { type: 'info', text: 'Sleep de getallen naar de juiste gebieden.' }
+  availableNumbers.value = [...currentLevel.value.numbers]
+  slots.value = { left: null, center: null, right: null, outside: null }
 }
 
 function nextLevel() {
@@ -153,16 +148,20 @@ function nextLevel() {
   }
 }
 
+function goToNextStep() {
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
+}
+
 watch(() => props.isOpen, (val) => {
   if (val) {
-    resetActivityState();
-    currentInternalLevel.value = 0;
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
       nextTick(() => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {})
-        }
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {})
       })
     }
     nextTick(() => {
@@ -177,16 +176,12 @@ watch(() => props.isOpen, (val) => {
 }, { immediate: true })
 
 function handleKeydown(e) {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close')
-  }
+  if (e.key === 'Escape' && props.isOpen) emit('close')
 }
 
 onMounted(() => {
   document.addEventListener('fullscreenchange', () => {
-    if (props.isOpen && props.fullscreen && !document.fullscreenElement) {
-      emit('close')
-    }
+    if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close')
   })
 })
 
@@ -211,7 +206,6 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
-          <!-- Level indicator -->
           <div class="flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
             <span v-for="i in totalInternalLevels" :key="i"
                   class="w-2.5 h-2.5 rounded-full border"
@@ -267,14 +261,11 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || availableNumbers.length > 0" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3 text-center text-xs text-slate-400">Plaats alle getallen voor automatische controle</div>
             </div>
           </div>
         </div>
@@ -285,10 +276,8 @@ onUnmounted(() => {
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <div class="relative w-[500px] h-[350px] border-4 border-slate-300 rounded-lg bg-white shadow-sm flex items-center justify-center">
-                <!-- Universum Label (U) -->
                 <div class="absolute top-2 left-2 font-bold text-slate-400">Totaal: {{ currentLevel.total }}</div>
 
-                <!-- Outside zone drop area -->
                 <div class="absolute top-4 right-4 w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center z-10 transition-colors"
                      @dragover.prevent @drop.stop="onDrop('outside')"
                      :class="slots.outside ? 'border-slate-400 bg-slate-100' : 'border-slate-300 bg-slate-50'">
@@ -298,45 +287,39 @@ onUnmounted(() => {
 
                 <div class="relative flex w-full justify-center">
 
-                  <!-- Left Circle (Voetbal) -->
                   <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-blue-400 bg-blue-100/30 top-1/2 -translate-y-1/2 left-[50px]">
                     <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-600 bg-white px-2 rounded">{{ currentLevel.leftLabel }} ({{ currentLevel.leftTotal }})</div>
                   </div>
 
-                  <!-- Right Circle (Tennis) -->
                   <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-rose-400 bg-rose-100/30 top-1/2 -translate-y-1/2 right-[50px]">
                     <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-600 bg-white px-2 rounded">{{ currentLevel.rightLabel }} ({{ currentLevel.rightTotal }})</div>
                   </div>
 
-                  <!-- Drop Zones -->
                   <div class="relative flex w-full h-[240px] justify-center items-center z-10 pointer-events-none">
 
-                    <!-- Left Drop (Enkel Voetbal) -->
                     <div class="absolute left-[100px] pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"
                            @dragover.prevent @drop.stop="onDrop('left')"
                            :class="slots.left ? 'border-blue-500' : 'border-blue-300'">
-                        <span v-if="!slots.left" class="text-xs text-blue-400 font-bold">V \ T</span>
+                        <span v-if="!slots.left" class="text-xs text-blue-400 font-bold">{{ currentLevel.leftLabel[0] }} \ {{ currentLevel.rightLabel[0] }}</span>
                         <div v-else @click="returnToAvailable('left')" class="w-full h-full flex items-center justify-center text-xl font-bold text-blue-800 cursor-pointer">{{ slots.left }}</div>
                       </div>
                     </div>
 
-                    <!-- Center Drop (Voetbal AND Tennis) -->
                     <div class="absolute pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"
                            @dragover.prevent @drop.stop="onDrop('center')"
                            :class="slots.center ? 'border-purple-500' : 'border-purple-300'">
-                        <span v-if="!slots.center" class="text-xs text-purple-400 font-bold">V ∩ T</span>
+                        <span v-if="!slots.center" class="text-xs text-purple-400 font-bold">{{ currentLevel.leftLabel[0] }} ∩ {{ currentLevel.rightLabel[0] }}</span>
                         <div v-else @click="returnToAvailable('center')" class="w-full h-full flex items-center justify-center text-xl font-bold text-purple-800 cursor-pointer">{{ slots.center }}</div>
                       </div>
                     </div>
 
-                    <!-- Right Drop (Enkel Tennis) -->
                     <div class="absolute right-[100px] pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"
                            @dragover.prevent @drop.stop="onDrop('right')"
                            :class="slots.right ? 'border-rose-500' : 'border-rose-300'">
-                        <span v-if="!slots.right" class="text-xs text-rose-400 font-bold">T \ V</span>
+                        <span v-if="!slots.right" class="text-xs text-rose-400 font-bold">{{ currentLevel.rightLabel[0] }} \ {{ currentLevel.leftLabel[0] }}</span>
                         <div v-else @click="returnToAvailable('right')" class="w-full h-full flex items-center justify-center text-xl font-bold text-rose-800 cursor-pointer">{{ slots.right }}</div>
                       </div>
                     </div>

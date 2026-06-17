@@ -31,45 +31,160 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    name: 'Basis',
-    description: 'Eenvoudige evenwijdige en snijdende rechten.',
-    scenarios: [
-      { id: 1, l1: 'y = 2x + 3', l2: 'y = 2x - 5', correct: 'evenwijdig', desc: 'Gelijke rico, ander snijpunt.' },
-      { id: 2, l1: 'y = 3x + 1', l2: 'y = -x + 1', correct: 'snijdend', desc: 'Verschillende rico.' }
-    ]
-  },
-  {
-    name: 'Toepassing',
-    description: 'Gemengde situaties met cartesische vergelijkingen.',
-    scenarios: [
-      { id: 1, l1: 'y = 2x + 3', l2: 'y = 2x - 5', correct: 'evenwijdig', desc: 'Gelijke rico, ander snijpunt.' },
-      { id: 2, l1: '2x - 3y + 6 = 0', l2: '4x - 6y + 12 = 0', correct: 'samenvallend', desc: 'Vergelijkingen zijn een veelvoud.' },
-      { id: 3, l1: 'y = 3x + 1', l2: 'y = -x + 1', correct: 'snijdend', desc: 'Verschillende rico.' },
-      { id: 4, l1: 'x + 2y - 4 = 0', l2: '2x + y - 4 = 0', correct: 'snijdend', desc: 'Verhouding van u en v is niet gelijk.' }
-    ]
-  },
-  {
-    name: 'Uitdaging',
-    description: 'Complexe veelvouden en speciale gevallen.',
-    scenarios: [
-      { id: 1, l1: 'y = 2x + 3', l2: 'y = 2x - 5', correct: 'evenwijdig', desc: 'Gelijke rico, ander snijpunt.' },
-      { id: 2, l1: '2x - 3y + 6 = 0', l2: '4x - 6y + 12 = 0', correct: 'samenvallend', desc: 'Vergelijkingen zijn een veelvoud.' },
-      { id: 3, l1: 'y = 3x + 1', l2: 'y = -x + 1', correct: 'snijdend', desc: 'Verschillende rico.' },
-      { id: 4, l1: 'x + 2y - 4 = 0', l2: '2x + y - 4 = 0', correct: 'snijdend', desc: 'Verhouding van u en v is niet gelijk.' },
-      { id: 5, l1: '2x - 3y = 5', l2: '-4x + 6y = -10', correct: 'samenvallend', desc: 'Tweede vergelijking is een veelvoud van de eerste.' },
-      { id: 6, l1: '3x + y = 2', l2: '6x + 2y = 8', correct: 'evenwijdig', desc: 'Zelfde verhouding coëfficiënten maar andere constante.' }
-    ]
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  let scenarioCount, ranges
+  if (lvl === 0) {
+    scenarioCount = 2
+    ranges = { a: [-3, 3], b: [-3, 3], c: [-5, 5] }
+  } else if (lvl === 1) {
+    scenarioCount = 4
+    ranges = { a: [-5, 5], b: [-5, 5], c: [-8, 8] }
+  } else {
+    scenarioCount = 6
+    ranges = { a: [-7, 7], b: [-7, 7], c: [-12, 12] }
   }
-]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+  const scenarios = []
+  const usedKeys = new Set()
+
+  // Helper: create a scenario with random coefficients
+  function addScenario(type, forced) {
+    if (forced) {
+      scenarios.push(forced)
+      return
+    }
+
+    let a1, b1, c1, a2, b2, c2, correct, desc, l1, l2
+    const attemptLimit = 30
+    for (let i = 0; i < attemptLimit; i++) {
+      if (type === 'evenwijdig') {
+        const factor = randInt(2, 4) * (Math.random() > 0.5 ? 1 : -1)
+        a1 = randInt(ranges.a[0], ranges.a[1])
+        b1 = randInt(ranges.b[0], ranges.b[1])
+        if (a1 === 0 && b1 === 0) continue
+        c1 = randInt(ranges.c[0], ranges.c[1])
+        a2 = a1 * factor
+        b2 = b1 * factor
+        c2 = randInt(ranges.c[0], ranges.c[1])
+        while (c2 === c1 * factor) {
+          c2 = randInt(ranges.c[0], ranges.c[1])
+        }
+        correct = 'evenwijdig'
+        desc = 'Zelfde verhouding co&euml;ffici&euml;nten maar andere constante.'
+      } else if (type === 'samenvallend') {
+        const factor = randInt(2, 3) * (Math.random() > 0.5 ? 1 : -1)
+        a1 = randInt(ranges.a[0], ranges.a[1])
+        b1 = randInt(ranges.b[0], ranges.b[1])
+        if (a1 === 0 && b1 === 0) continue
+        c1 = randInt(ranges.c[0], ranges.c[1])
+        a2 = a1 * factor
+        b2 = b1 * factor
+        c2 = c1 * factor
+        correct = 'samenvallend'
+        desc = 'Vergelijkingen zijn een veelvoud.'
+      } else {
+        // snijdend: different direction vectors
+        a1 = randInt(ranges.a[0], ranges.a[1])
+        b1 = randInt(ranges.b[0], ranges.b[1])
+        if (a1 === 0 && b1 === 0) continue
+        c1 = randInt(ranges.c[0], ranges.c[1])
+        a2 = randInt(ranges.a[0], ranges.a[1])
+        b2 = randInt(ranges.b[0], ranges.b[1])
+        if (a2 === 0 && b2 === 0) continue
+        // Ensure different direction: not a multiple
+        if (a1 * b2 === a2 * b1) continue
+        c2 = randInt(ranges.c[0], ranges.c[1])
+        correct = 'snijdend'
+        desc = 'Verschillende richting.'
+      }
+
+      // Format nicely
+      l1 = formatLine(a1, b1, c1)
+      l2 = formatLine(a2, b2, c2)
+      const key = l1 + '|' + l2
+      if (!usedKeys.has(key)) {
+        usedKeys.add(key)
+        scenarios.push({ id: scenarios.length + 1, l1, l2, correct, desc })
+        return
+      }
+    }
+    // Fallback
+    const fallback = getFallbackScenario(type)
+    if (fallback) scenarios.push({ ...fallback, id: scenarios.length + 1 })
+  }
+
+  // Ensure at least one of each type
+  const types = ['snijdend', 'evenwijdig', 'samenvallend']
+  for (const t of types) {
+    if (scenarios.length >= scenarioCount) break
+    addScenario(t)
+  }
+
+  // Fill remaining with random types
+  while (scenarios.length < scenarioCount) {
+    const t = types[randInt(0, 2)]
+    addScenario(t)
+  }
+
+  return {
+    name: lvl === 0 ? 'Basis' : lvl === 1 ? 'Toepassing' : 'Uitdaging',
+    description: lvl === 0 ? 'Eenvoudige evenwijdige en snijdende rechten.'
+      : lvl === 1 ? 'Gemengde situaties met cartesische vergelijkingen.'
+      : 'Complexe veelvouden en speciale gevallen.',
+    scenarios
+  }
+}
+
+function formatLine(a, b, c) {
+  const parts = []
+  if (a !== 0) {
+    if (a === 1) parts.push('x')
+    else if (a === -1) parts.push('-x')
+    else parts.push(a + 'x')
+  }
+  if (b !== 0) {
+    if (b === 1) parts.push((parts.length ? '+' : '') + 'y')
+    else if (b === -1) parts.push((parts.length ? '-' : '-') + 'y')
+    else parts.push((b > 0 && parts.length ? '+' : '') + b + 'y')
+  }
+  if (c !== 0) {
+    parts.push((c > 0 && parts.length ? '+' : '') + c)
+  }
+  if (parts.length === 0) return '0 = 0'
+  let expr = parts.join(' ')
+  if (expr.startsWith('+ ')) expr = expr.slice(2)
+  return expr + ' = 0'
+}
+
+function getFallbackScenario(type) {
+  const fallbacks = {
+    'evenwijdig': { l1: 'y = 2x + 3', l2: 'y = 2x - 5', correct: 'evenwijdig', desc: 'Gelijke rico, ander snijpunt.' },
+    'snijdend': { l1: 'y = 3x + 1', l2: 'y = -x + 1', correct: 'snijdend', desc: 'Verschillende rico.' },
+    'samenvallend': { l1: '2x - 3y + 6 = 0', l2: '4x - 6y + 12 = 0', correct: 'samenvallend', desc: 'Vergelijkingen zijn een veelvoud.' }
+  }
+  return fallbacks[type] || null
+}
+
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 const currentScenarioIndex = ref(0)
 const currentScenario = computed(() => currentLevel.value.scenarios[currentScenarioIndex.value])
@@ -77,29 +192,43 @@ const userChoice = ref(null)
 
 const options = ['snijdend', 'evenwijdig', 'samenvallend']
 
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: Kijk naar de richtingsco&euml;ffici&euml;nten. Zelfde rico = evenwijdig. Dezelfde lijn = samenvallend. Anders = snijdend.'
+  if (c === 2) return 'Hint: Schrijf beide vergelijkingen in de vorm y = ... . Vergelijk de richtingsco&euml;ffici&euml;nt en het snijpunt met de y-as.'
+  return 'Hint: Bij evenwijdig zijn de co&euml;ffici&euml;nten (u, v) evenredig maar de constante w niet. Bij samenvallend is alles evenredig. Anders snijdend.'
+}
+
+function selectOption(opt) {
+  if (isCorrect.value) return
+  userChoice.value = opt
+  // Auto-correct: click-on-target evaluates immediately
+  if (opt === currentScenario.value.correct) {
+    isCorrect.value = true
+    isChecked.value = true
+    feedback.value = {
+      type: 'success',
+      text: 'Helemaal juist! ' + currentScenario.value.desc
+    }
+  } else {
+    attemptCount.value++
+    isCorrect.value = false
+    isChecked.value = true
+    feedback.value = {
+      type: 'error',
+      text: 'Niet juist. ' + getHint()
+    }
+  }
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userChoice.value = null;
   currentScenarioIndex.value = Math.floor(Math.random() * currentLevel.value.scenarios.length);
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-  if (userChoice.value === currentScenario.value.correct) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: `Helemaal juist! ${currentScenario.value.desc}`
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = {
-      type: 'error',
-      text: 'Kijk naar de richtingscoëfficiënten of de verhouding van de coëfficiënten u en v.'
-    }
-  }
 }
 
 function nextLevel() {
@@ -202,21 +331,27 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <p class="mb-2 text-xs font-semibold text-orange-600">Level {{ currentInternalLevel + 1 }} — {{ currentLevel.name }}</p>
+            <p class="mb-2 text-xs font-semibold text-orange-600">Level {{ currentInternalLevel + 1 }} &mdash; {{ currentLevel.name }}</p>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl">
 
               <div class="bg-white p-4 border border-slate-200 rounded mb-6 font-mono text-lg shadow-sm">
-                <p class="text-blue-600">l₁: {{ currentScenario.l1 }}</p>
-                <p class="text-emerald-600 mt-2">l₂: {{ currentScenario.l2 }}</p>
+                <p class="text-blue-600">l&8321;: {{ currentScenario.l1 }}</p>
+                <p class="text-emerald-600 mt-2">l&#x2082;: {{ currentScenario.l2 }}</p>
               </div>
 
+              <!-- Auto-correct: click-on-target, no Controleer button needed -->
               <div class="flex flex-col gap-3">
                 <button v-for="opt in options" :key="opt"
-                        @click="() => { if(!isCorrect) { userChoice = opt; isChecked = false; } }"
+                        @click="selectOption(opt)"
                         class="p-4 border-2 rounded-xl text-left font-bold transition-all capitalize"
-                        :class="userChoice === opt ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-slate-200 hover:border-orange-300 text-slate-700'">
+                        :class="{
+                          'border-orange-500 bg-orange-50 text-orange-700': userChoice === opt && !isCorrect,
+                          'border-emerald-500 bg-emerald-50 text-emerald-700': isCorrect && opt === currentScenario.correct,
+                          'border-red-300 bg-red-50 text-red-600': userChoice === opt && isChecked && !isCorrect,
+                          'border-slate-200 hover:border-orange-300 text-slate-700': userChoice !== opt || isCorrect
+                        }">
                   {{ opt }}
                 </button>
               </div>
@@ -225,14 +360,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -240,14 +375,12 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userChoice" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
-                Controleer
-              </button>
-
-              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <!-- No Controleer button -- auto-correct on click -->
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3"></div>
             </div>
           </div>
         </div>

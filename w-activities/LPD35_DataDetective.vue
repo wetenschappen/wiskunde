@@ -9,7 +9,7 @@ const props = defineProps({
   title: { type: String, default: 'Data & Statistiek: De Data-Detective' },
   instruction: {
     type: String,
-    default: 'Grafieken aflezen is meer dan alleen getallen zoeken. Je moet ze kunnen interpreteren!<br/><br/><strong>Opdracht:</strong> Kijk naar de temperatuurgrafiek van deze week. Iemand beweert: <strong>"Het werd elke dag een beetje warmer, tot de temperatuur op donderdag ineens begon te dalen."</strong> Klopt dit?'
+    default: 'Grafieken aflezen is meer dan alleen getallen zoeken. Je moet ze kunnen interpreteren!<br/><br/><strong>Opdracht:</strong> Kijk naar de grafiek. Klopt de uitspraak?'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -23,86 +23,102 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Lees de grafiek en beoordeel de uitspraak.' })
+const attemptCount = ref(0)
 
-// Internal level system
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    name: 'Niveau 1',
-    chartLabel: 'Temperatuur (°C)',
-    claim: '"Het werd elke dag een beetje warmer, tot de temperatuur op donderdag ineens begon te dalen."',
-    data: [
-      { day: 'Ma', temp: 10 },
-      { day: 'Di', temp: 12 },
-      { day: 'Wo', temp: 15 },
-      { day: 'Do', temp: 15 },
-      { day: 'Vr', temp: 11 }
-    ],
-    correctAnswer: false,
-    successFeedback: 'Goed gezien! Het werd inderdaad warmer van Ma tot Wo, maar op Donderdag bleef de temperatuur GELIJK (horizontale lijn) aan Woensdag. Pas op Vrijdag daalde het.',
-    errorFeedback: 'Kijk heel goed naar het lijnstukje tussen Woensdag en Donderdag. Gaat dat echt omlaag? Of blijft het horizontaal?'
-  },
-  {
-    name: 'Niveau 2',
-    chartLabel: 'Verkoopcijfers (x 100 EUR)',
-    claim: '"De verkoopcijfers stegen deze week elke dag zonder uitzondering."',
-    data: [
-      { day: 'Ma', temp: 5 },
-      { day: 'Di', temp: 8 },
-      { day: 'Wo', temp: 12 },
-      { day: 'Do', temp: 10 },
-      { day: 'Vr', temp: 15 }
-    ],
-    correctAnswer: false,
-    successFeedback: 'Juist! De verkoop steeg Ma-Di-Wo, maar Donderdag DAALDE de verkoop (van 12 naar 10). Pas op Vrijdag steeg het weer. De uitspraak klopt dus niet.',
-    errorFeedback: 'Bekijk Donderdag nog eens. Is de verkoop toen gestegen of gedaald ten opzichte van Woensdag?'
-  },
-  {
-    name: 'Niveau 3',
-    chartLabel: 'Hardloopschema (km)',
-    claim: '"Elke week liep ik meer kilometers dan de week ervoor."',
-    data: [
-      { day: 'Wk 1', temp: 2 },
-      { day: 'Wk 2', temp: 4 },
-      { day: 'Wk 3', temp: 6 },
-      { day: 'Wk 4', temp: 5 },
-      { day: 'Wk 5', temp: 8 }
-    ],
-    correctAnswer: false,
-    successFeedback: 'Correct! Week 4 was een dip (6 km vs 5 km). De bewering "elke week meer" klopt dus niet. Soms moet je de data echt goed bekijken!',
-    errorFeedback: 'Vergelijk week 3 en week 4. Ging het daadwerkelijk omhoog tussen die twee?'
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function generateLevel(levelNum) {
+  // Generate 5 data points
+  const base = levelNum === 0 ? r(5, 12) : levelNum === 1 ? r(8, 20) : r(3, 15)
+  const data = []
+  for (let i = 0; i < 5; i++) {
+    // Each value varies by -3 to +5 from previous, min 1
+    const prev = i === 0 ? base : data[i - 1].temp
+    const delta = r(-3, 5)
+    data.push({ day: ['Ma', 'Di', 'Wo', 'Do', 'Vr'][i], temp: Math.max(1, prev + delta) })
   }
-]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+  // Generate a claim (sometimes true, sometimes false)
+  const claimTypes = [
+    // The claim will always be about whether "it keeps rising" or "it always goes up"
+    { text: 'steeg elke dag zonder uitzondering.', check: (d) => d.every((v, i) => i === 0 || v.temp > d[i-1].temp) },
+    { text: 'daalde nooit gedurende de week.', check: (d) => d.every((v, i) => i === 0 || v.temp >= d[i-1].temp) },
+    { text: 'werd het elke dag kouder.', check: (d) => d.every((v, i) => i === 0 || v.temp < d[i-1].temp) },
+  ]
 
-// Domain Logic
-const userAns = ref(null) // true (Klopt), false (Onzin)
+  const ct = claimTypes[r(0, claimTypes.length - 1)]
+  const actuallyTrue = ct.check(data)
+  // Flip some to make them false
+  const correctAnswer = r(0, 2) === 0 ? actuallyTrue : !actuallyTrue
+  const claim = `"De temperatuur ${ct.text}"`
 
-const points = computed(() => currentLevel.value.data)
+  const dayNames = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag']
+  const highlightIdx = (() => {
+    for (let i = 1; i < data.length; i++) {
+      if (!correctAnswer && ((ct.text.includes('steeg') || ct.text.includes('kouder')) && data[i].temp <= data[i-1].temp)) return i
+      if (!correctAnswer && ct.text.includes('daalde') && data[i].temp < data[i-1].temp) return i
+    }
+    return 3
+  })()
+
+  const labels = ['Temperatuur (°C)', 'Verkoopcijfers (x 100 EUR)', 'Hardloopschema (km)',
+                  'Website bezoekers', 'Productie (eenheden)']
+  const chartLabel = levelNum === 0 ? labels[0] : levelNum === 1 ? labels[1] : labels[r(0, labels.length - 1)]
+
+  const successText = correctAnswer
+    ? `Juist! De bewering klopt. Je hebt de grafiek correct geïnterpreteerd!`
+    : `Goed gezien! De bewering klopt niet. Je hebt de uitzondering in de data gevonden.`
+  const errorText = correctAnswer
+    ? `Kijk nog eens goed naar de grafiek. De bewering is wél correct — kun je zien waarom?`
+    : `Kijk nog eens goed. Ergensis in de grafiek wijkt af van de bewering.`
+
+  return {
+    name: `Niveau ${levelNum + 1}`,
+    chartLabel,
+    claim,
+    data,
+    correctAnswer,
+    successFeedback: successText,
+    errorFeedback: errorText,
+    highlightIdx
+  }
+}
+
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+const points = computed(() => currentLevel.value ? currentLevel.value.data : [])
+
+const userAns = ref(null)
+
+function getHint() {
+  if (attemptCount.value === 1) return 'Vergelijk elke dag met de vorige. Is de trend overal hetzelfde?'
+  if (attemptCount.value === 2) return 'Zoek naar een dag waar de richting verandert (stijging wordt daling of andersom).'
+  return `Kijk naar dag ${['Ma', 'Di', 'Wo', 'Do', 'Vr'][currentLevel.value.highlightIdx]}. Wat gebeurt daar?`
+}
 
 function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Lees de grafiek en beoordeel de uitspraak.' };
-    userAns.value = null;
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    isCorrect.value = false
+    isChecked.value = false
+    attemptCount.value = 0
+    feedback.value = { type: 'info', text: 'Lees de grafiek en beoordeel de uitspraak.' }
+    userAns.value = null
 }
 
 function checkAnswer(ans) {
-  userAns.value = ans;
-  isChecked.value = true;
+  userAns.value = ans
+  isChecked.value = true
 
   if (ans === currentLevel.value.correctAnswer) {
     isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: currentLevel.value.successFeedback
-    }
+    attemptCount.value = 0
+    feedback.value = { type: 'success', text: currentLevel.value.successFeedback }
   } else {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: currentLevel.value.errorFeedback }
+    attemptCount.value++
+    feedback.value = { type: 'error', text: `${currentLevel.value.errorFeedback} ${getHint()}` }
   }
 }
 
@@ -116,15 +132,14 @@ function nextLevel() {
 }
 
 function goToNextStep() {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
 }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -192,6 +207,10 @@ onUnmounted(() => {
                    </button>
                </div>
             </div>
+
+            <div v-if="attemptCount > 0 && !isCorrect" class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+              <p><strong>Poging {{ attemptCount }}:</strong> {{ getHint() }}</p>
+            </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
@@ -217,17 +236,12 @@ onUnmounted(() => {
 
                   <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-6">{{ currentLevel.chartLabel }}</h4>
 
-                  <!-- SVG Graph -->
                   <div class="relative">
                       <svg width="500" height="300" viewBox="0 0 500 300" class="block">
-                          <!-- Origin (50, 250) -->
-
-                          <!-- Grid lines (Y: 0 to 20, step 5) -> 200px / 20 = 10px per unit -->
                           <g stroke="#f1f5f9" stroke-width="2">
                               <line v-for="i in 5" :key="'hg'+i" x1="50" :y1="250 - (i-1)*50" x2="450" :y2="250 - (i-1)*50" />
                           </g>
 
-                          <!-- Axes -->
                           <line x1="50" y1="250" x2="480" y2="250" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
                           <line x1="50" y1="250" x2="50" y2="20" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
 
@@ -237,7 +251,6 @@ onUnmounted(() => {
                               </marker>
                           </defs>
 
-                          <!-- Y Ticks -->
                           <g font-size="12" fill="#64748b" font-weight="bold" text-anchor="end">
                               <text x="40" y="254">0</text>
                               <text x="40" y="204">5</text>
@@ -246,14 +259,10 @@ onUnmounted(() => {
                               <text x="40" y="54">20</text>
                           </g>
 
-                          <!-- X Ticks & Labels -->
-                          <!-- 5 days, spread over 400px -> 80px per day -->
                           <g font-size="14" fill="#475569" font-weight="bold" text-anchor="middle">
                               <text v-for="(pt, idx) in points" :key="'xt'+idx" :x="50 + idx * 80 + 40" y="275">{{ pt.day }}</text>
                           </g>
 
-                          <!-- The Line Path -->
-                          <!-- 10px per degree. Y = 250 - (temp * 10) -->
                           <polyline
                               fill="none"
                               stroke="#0ea5e9"
@@ -262,22 +271,17 @@ onUnmounted(() => {
                               :points="points.map((pt, idx) => `${50 + idx * 80 + 40},${250 - pt.temp * 10}`).join(' ')"
                               class="animate-draw" />
 
-                          <!-- Data Points -->
                           <g v-for="(pt, idx) in points" :key="'pt'+idx">
                               <circle :cx="50 + idx * 80 + 40" :cy="250 - pt.temp * 10" r="6" fill="#0284c7" stroke="white" stroke-width="2" class="animate-fadeIn shadow-sm" :style="`animation-delay: ${idx * 0.2}s`" />
-
-                              <!-- Tooltips on hover -->
                               <text :x="50 + idx * 80 + 40" :y="250 - pt.temp * 10 - 15" text-anchor="middle" font-weight="bold" fill="#0284c7" font-size="12" class="opacity-0 hover:opacity-100 cursor-pointer transition-opacity">
                                   {{ pt.temp }}
                               </text>
                           </g>
 
-                          <!-- Highlight the critical part if answered wrong -->
                           <circle v-if="isChecked && !isCorrect"
-                                  :cx="50 + 3 * 80 + 40"
-                                  :cy="250 - (currentLevel.data[3].temp * 10)"
+                                  :cx="50 + currentLevel.highlightIdx * 80 + 40"
+                                  :cy="250 - (currentLevel.data[currentLevel.highlightIdx].temp * 10)"
                                   r="40" fill="none" stroke="#f43f5e" stroke-width="3" stroke-dasharray="4 4" class="animate-pulse" />
-
                       </svg>
                   </div>
 

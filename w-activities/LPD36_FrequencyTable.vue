@@ -23,44 +23,65 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' })
+const attemptCount = ref(0)
 
-// Internal level system
 const currentInternalLevel = ref(0)
 const totalInternalLevels = ref(3)
 
-const levels = [
-  {
-    name: 'Niveau 1',
-    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Kat', 'Kat', 'Vis'],
-    dogCount: 3, catCount: 4, fishCount: 2, birdCount: 1,
-    instruction: 'Een tabel met <strong>absolute frequenties</strong> is gewoon een chique woord voor "hoeveel keer komt het voor?". Dit is de eerste stap naar een staafdiagram.<br/><br/><strong>Opdracht:</strong> Tel de huisdieren in de lijst en vul de tabel (absolute frequentie) correct in. Teken daarna de grafiek.',
-    successFeedback: 'Uitstekend geteld! De tabel met absolute frequenties is klaar, en het staafdiagram wordt nu automatisch perfect voor jou getekend.'
-  },
-  {
-    name: 'Niveau 2',
-    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Vis', 'Vogel', 'Hond', 'Kat', 'Vogel', 'Vogel', 'Vis'],
-    dogCount: 5, catCount: 3, fishCount: 3, birdCount: 4,
-    instruction: 'Er zijn meer huisdieren in deze lijst!<br/><br/><strong>Opdracht:</strong> Tel opnieuw de absolute frequenties. Gebruik een streepjes-telling om het overzichtelijk te houden.',
-    successFeedback: 'Prima! Met een grotere dataset wordt tellen lastiger, maar je hebt het helemaal correct. Een frequentietabel helpt om grote hoeveelheden data te ordenen.'
-  },
-  {
-    name: 'Niveau 3',
-    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Kat', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Kat', 'Vis', 'Vogel', 'Hond', 'Kat', 'Vis'],
-    dogCount: 7, catCount: 6, fishCount: 4, birdCount: 3,
-    instruction: 'Nu een nog grotere enquete!<br/><br/><strong>Opdracht:</strong> Tel alle huisdieren. Maak een turftabel op papier als dat helpt. De absolute frequenties worden groter!',
-    successFeedback: 'Geweldig! Zelfs met 20 huisdieren heb je de frequenties correct geteld. Absolute frequenties zijn de bouwstenen van alle statistiek!'
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
   }
-]
+  return a
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+const animalNames = ['Hond', 'Kat', 'Vis', 'Vogel']
 
-const rawData = computed(() => currentLevel.value.rawData)
+function generateLevel(levelNum) {
+  let dogCount, catCount, fishCount, birdCount
+  if (levelNum === 0) {
+    dogCount = r(2, 4); catCount = r(2, 5); fishCount = r(1, 3); birdCount = r(1, 3)
+  } else if (levelNum === 1) {
+    dogCount = r(4, 7); catCount = r(3, 6); fishCount = r(2, 5); birdCount = r(3, 5)
+  } else {
+    dogCount = r(6, 9); catCount = r(5, 8); fishCount = r(3, 6); birdCount = r(2, 5)
+  }
+  const rawData = shuffle([
+    ...Array(dogCount).fill('Hond'),
+    ...Array(catCount).fill('Kat'),
+    ...Array(fishCount).fill('Vis'),
+    ...Array(birdCount).fill('Vogel')
+  ])
+  return {
+    name: `Niveau ${levelNum + 1}`,
+    rawData,
+    dogCount, catCount, fishCount, birdCount,
+    instruction: levelNum === 0
+      ? `Een tabel met <strong>absolute frequenties</strong> is gewoon een chique woord voor "hoeveel keer komt het voor?".<br/><br/><strong>Opdracht:</strong> Tel de huisdieren in de lijst en vul de tabel in.`
+      : levelNum === 1
+      ? `Er zijn meer huisdieren in deze lijst!<br/><br/><strong>Opdracht:</strong> Tel opnieuw de absolute frequenties. Gebruik een streepjes-telling om het overzichtelijk te houden.`
+      : `Nu een nog grotere enquete!<br/><br/><strong>Opdracht:</strong> Tel alle huisdieren. Maak een turftabel op papier als dat helpt.`,
+    successFeedback: levelNum === 0
+      ? 'Uitstekend geteld! De tabel met absolute frequenties is klaar, en het staafdiagram wordt nu automatisch perfect voor jou getekend.'
+      : levelNum === 1
+      ? 'Prima! Met een grotere dataset wordt tellen lastiger, maar je hebt het helemaal correct. Een frequentietabel helpt om grote hoeveelheden data te ordenen.'
+      : 'Geweldig! Zelfs met veel huisdieren heb je de frequenties correct geteld. Absolute frequenties zijn de bouwstenen van alle statistiek!'
+  }
+}
+
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+const rawData = computed(() => currentLevel.value ? currentLevel.value.rawData : [])
 
 const yMax = computed(() => {
+    if (!currentLevel.value) return 8
     return Math.max(currentLevel.value.dogCount, currentLevel.value.catCount, currentLevel.value.fishCount, currentLevel.value.birdCount) + 1
 })
 
-// Domain Logic
 const freqDog = ref(null)
 const freqCat = ref(null)
 const freqFish = ref(null)
@@ -68,36 +89,42 @@ const freqBird = ref(null)
 
 const showGraph = ref(false)
 
-function drawGraph() {
-    isChecked.value = true;
+function getHint() {
+  if (attemptCount.value === 1) return 'Maak een turftelling: zet een streepje voor elk dier in de lijst.'
+  if (attemptCount.value === 2) return 'Tel systematisch. Kijk naar één diersoort tegelijk en streep af in de lijst.'
+  return `Tip: Hond = ${currentLevel.value.dogCount}, Kat = ${currentLevel.value.catCount}, Vis = ${currentLevel.value.fishCount}, Vogel = ${currentLevel.value.birdCount}.`
+}
 
+function drawGraph() {
+    isChecked.value = true
     const lv = currentLevel.value
+
     if (freqDog.value === lv.dogCount && freqCat.value === lv.catCount && freqFish.value === lv.fishCount && freqBird.value === lv.birdCount) {
         isCorrect.value = true
+        attemptCount.value = 0
         showGraph.value = true
-        feedback.value = {
-          type: 'success',
-          text: lv.successFeedback
-        }
+        feedback.value = { type: 'success', text: lv.successFeedback }
     } else {
-        isCorrect.value = false
-        if (freqDog.value !== lv.dogCount) feedback.value = { type: 'error', text: 'Tel de Honden nog eens. Streep ze af in je hoofd.'}
-        else if (freqCat.value !== lv.catCount) feedback.value = { type: 'error', text: 'Tel de Katten nog eens. Het zijn er meer dan je denkt.'}
-        else if (freqFish.value !== lv.fishCount) feedback.value = { type: 'error', text: 'Tel de Vissen nog eens.'}
-        else if (freqBird.value !== lv.birdCount) feedback.value = { type: 'error', text: 'Tel de Vogels nog eens.'}
-        else feedback.value = { type: 'error', text: 'Vul alle vakjes in de tabel in.'}
+        attemptCount.value++
+        if (freqDog.value !== lv.dogCount) feedback.value = { type: 'error', text: `Tel de Honden nog eens. ${getHint()}`}
+        else if (freqCat.value !== lv.catCount) feedback.value = { type: 'error', text: `Tel de Katten nog eens. ${getHint()}`}
+        else if (freqFish.value !== lv.fishCount) feedback.value = { type: 'error', text: `Tel de Vissen nog eens. ${getHint()}`}
+        else if (freqBird.value !== lv.birdCount) feedback.value = { type: 'error', text: `Tel de Vogels nog eens. ${getHint()}`}
+        else feedback.value = { type: 'error', text: `Vul alle vakjes in de tabel in. ${getHint()}`}
     }
 }
 
 function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' };
-    freqDog.value = null;
-    freqCat.value = null;
-    freqFish.value = null;
-    freqBird.value = null;
-    showGraph.value = false;
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    isCorrect.value = false
+    isChecked.value = false
+    attemptCount.value = 0
+    feedback.value = { type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' }
+    freqDog.value = null
+    freqCat.value = null
+    freqFish.value = null
+    freqBird.value = null
+    showGraph.value = false
 }
 
 function nextLevel() {
@@ -110,15 +137,14 @@ function nextLevel() {
 }
 
 function goToNextStep() {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
 }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -217,7 +243,6 @@ onUnmounted(() => {
 
               <div class="w-full max-w-4xl flex items-start justify-center gap-12">
 
-                  <!-- Left: Raw Data Box -->
                   <div class="w-64 bg-white p-6 rounded-2xl shadow-md border-2 border-slate-200 shrink-0">
                       <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Ruwe Data (Enquete)</h4>
                       <div class="flex flex-wrap gap-2">
@@ -225,7 +250,6 @@ onUnmounted(() => {
                       </div>
                   </div>
 
-                  <!-- Right: Dynamic Bar Chart -->
                   <div class="flex-1 bg-white p-8 rounded-3xl shadow-xl border-4 border-slate-200 min-h-[400px] relative flex flex-col justify-end"
                        :class="!showGraph ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'">
 
@@ -235,10 +259,8 @@ onUnmounted(() => {
 
                       <h4 class="absolute top-6 left-8 font-bold text-slate-500 uppercase tracking-widest text-xs">Staafdiagram (Huisdieren)</h4>
 
-                      <!-- Chart Area -->
                       <div class="w-full h-64 border-b-4 border-l-4 border-slate-600 relative flex items-end justify-around px-4 pb-0">
 
-                          <!-- Y-axis Ticks -->
                           <div class="absolute left-[-24px] top-0 bottom-0 w-6 flex flex-col justify-between items-end font-bold text-xs text-slate-400">
                               <template v-for="i in yMax" :key="'tick'+i">
                                   <span>{{ yMax - i + 1 }}</span>
@@ -246,13 +268,11 @@ onUnmounted(() => {
                               <span>0</span>
                           </div>
 
-                          <!-- Grid Lines -->
                           <div class="absolute inset-0 flex flex-col justify-between pointer-events-none z-0">
                               <div v-for="i in yMax" :key="i" class="w-full h-0 border-t border-slate-200"></div>
                               <div class="w-full h-0"></div>
                           </div>
 
-                          <!-- Bars -->
                           <div class="w-16 bg-blue-500 rounded-t-sm shadow-md border-x-2 border-t-2 border-blue-600 relative z-10 transition-all duration-1000 ease-out flex justify-center items-end pb-2"
                                :style="{ height: showGraph ? `${(freqDog / yMax) * 100}%` : '0%' }">
                                <span v-if="showGraph" class="text-white font-black drop-shadow-md">{{ freqDog }}</span>

@@ -23,39 +23,58 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de knop om de uitschieter toe te voegen.' })
+const attemptCount = ref(0)
 
 // Internal level system
 const currentInternalLevel = ref(0)
 const totalInternalLevels = ref(3)
 
-const levels = [
-  {
-    name: 'Niveau 1',
-    normalData: [10, 10, 15, 20, 20],
-    outlier: 200,
-    scaleMax: 220,
-    instruction: 'We vergelijken het <strong>Gemiddelde</strong> (alles optellen en delen door aantal) met de <strong>Mediaan</strong> (het exacte midden van de geordende rij).<br/><br/><strong>Opdracht:</strong> Kijk naar het normale zakgeld van 5 leerlingen. Voeg dan ineens een "Uitschieter" toe (200 euro). Welke centrummaat wordt het meest beïnvloed?',
-    feedbackAfter: 'Wow! De uitschieter (&euro;200) is toegevoegd. Kijk wat er met het gemiddelde en de mediaan is gebeurd. Geef je conclusie.'
-  },
-  {
-    name: 'Niveau 2',
-    normalData: [5, 5, 10, 15, 15],
-    outlier: 80,
-    scaleMax: 100,
-    instruction: 'Vijf vrienden vergelijken hun spaargeld: &euro;5, &euro;5, &euro;10, &euro;15, &euro;15.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;80</strong>. Vergelijk hoe het gemiddelde en de mediaan reageren.',
-    feedbackAfter: 'Kijk! De uitschieter (&euro;80) trekt het gemiddelde omhoog, maar de mediaan verandert maar weinig. Welke maat is het bestand tegen uitschieters?'
-  },
-  {
-    name: 'Niveau 3',
-    normalData: [30, 35, 40, 45, 50],
-    outlier: 200,
-    scaleMax: 250,
-    instruction: 'Een groep verdient per week: &euro;30, &euro;35, &euro;40, &euro;45, &euro;50.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;200</strong> (iemand die veel meer verdient). Observeer wat er met het gemiddelde en de mediaan gebeurt.',
-    feedbackAfter: 'Ongelooflijk! De uitschieter (&euro;200) laat het gemiddelde exploderen, maar de mediaan verandert amper. De mediaan is de "robuste" maat!'
-  }
-]
+const levels = ref([])
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const generated = []
+
+  // Level 1 — constrained ranges
+  const l1Normal = [8 + Math.floor(Math.random() * 4), 12 + Math.floor(Math.random() * 4), 15 + Math.floor(Math.random() * 4), 18 + Math.floor(Math.random() * 4), 22 + Math.floor(Math.random() * 4)]
+  l1Normal.sort((a, b) => a - b)
+  const l1Outlier = 150 + Math.floor(Math.random() * 100) // 150-250
+  generated.push({
+    name: 'Niveau 1',
+    normalData: l1Normal,
+    outlier: l1Outlier,
+    scaleMax: Math.max(...l1Normal) + l1Outlier + 20,
+    instruction: `We vergelijken het <strong>Gemiddelde</strong> (alles optellen en delen door aantal) met de <strong>Mediaan</strong> (het exacte midden van de geordende rij).<br/><br/><strong>Opdracht:</strong> Kijk naar het normale zakgeld van 5 leerlingen. Voeg dan ineens een "Uitschieter" toe (&euro;${l1Outlier}). Welke centrummaat wordt het meest beïnvloed?`,
+    feedbackAfter: `Wow! De uitschieter (&euro;${l1Outlier}) is toegevoegd. Kijk wat er met het gemiddelde en de mediaan is gebeurd. Geef je conclusie.`
+  })
+
+  // Level 2 — wider ranges
+  const l2Normal = Array.from({ length: 5 }, () => Math.floor(Math.random() * 15) + 2).sort((a, b) => a - b)
+  const l2Outlier = 60 + Math.floor(Math.random() * 60) // 60-120
+  generated.push({
+    name: 'Niveau 2',
+    normalData: l2Normal,
+    outlier: l2Outlier,
+    scaleMax: Math.max(...l2Normal) + l2Outlier + 20,
+    instruction: `Vijf vrienden vergelijken hun spaargeld: &euro;${l2Normal.join(', &euro;')}.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;${l2Outlier}</strong>. Vergelijk hoe het gemiddelde en de mediaan reageren.`,
+    feedbackAfter: `Kijk! De uitschieter (&euro;${l2Outlier}) trekt het gemiddelde omhoog, maar de mediaan verandert maar weinig. Welke maat is het bestand tegen uitschieters?`
+  })
+
+  // Level 3 — widest ranges
+  const l3Normal = Array.from({ length: 5 }, () => Math.floor(Math.random() * 35) + 15).sort((a, b) => a - b)
+  const l3Outlier = 150 + Math.floor(Math.random() * 160) // 150-310
+  generated.push({
+    name: 'Niveau 3',
+    normalData: l3Normal,
+    outlier: l3Outlier,
+    scaleMax: Math.max(...l3Normal) + l3Outlier + 30,
+    instruction: `Een groep verdient per week: &euro;${l3Normal.join(', &euro;')}.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;${l3Outlier}</strong> (iemand die veel meer verdient). Observeer wat er met het gemiddelde en de mediaan gebeurt.`,
+    feedbackAfter: `Ongelooflijk! De uitschieter (&euro;${l3Outlier}) laat het gemiddelde exploderen, maar de mediaan verandert amper. De mediaan is de "robuste" maat!`
+  })
+
+  return generated
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const hasOutlier = ref(false)
@@ -88,11 +107,13 @@ function addOutlier() {
 }
 
 function resetActivityState() {
+    levels.value = generateLevel()
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op de knop om de uitschieter toe te voegen.' };
     hasOutlier.value = false;
     userAns.value = '';
+    attemptCount.value = 0;
 }
 
 function checkAnswer() {
@@ -109,14 +130,30 @@ function checkAnswer() {
         isCorrect.value = false
         feedback.value = { type: 'error', text: 'Je antwoord klopt! Maar voeg eerst de uitschieter toe in de grafiek om het visueel te bewijzen.'}
     }
+  } else if (userAns.value === 'median') {
+    isCorrect.value = false
+    attemptCount.value++
+    if (attemptCount.value === 1) {
+      feedback.value = { type: 'error', text: 'Kijk naar de getallen in het blauw. De mediaan verandert veel minder dan het gemiddelde. Welke is het meest beïnvloed?'}
+    } else if (attemptCount.value === 2) {
+      feedback.value = { type: 'error', text: 'Let op de oranje lijn (gemiddelde) versus de blauwe lijn (mediaan). Welke schiet omhoog?'}
+    } else {
+      feedback.value = { type: 'error', text: 'Het antwoord is "Gemiddelde". De uitschieter heeft een grote invloed op het gemiddelde omdat alle getallen worden opgeteld.'}
+    }
+  } else if (userAns.value === 'none') {
+    isCorrect.value = false
+    attemptCount.value++
+    if (attemptCount.value === 1) {
+      feedback.value = { type: 'error', text: 'Kijk nog eens goed: een van de twee maten verandert wél.'}
+    } else if (attemptCount.value === 2) {
+      feedback.value = { type: 'error', text: 'Het gemiddelde of de mediaan? Sleep met je ogen de oranje en blauwe lijn.'}
+    } else {
+      feedback.value = { type: 'error', text: 'Het gemiddelde verandert wél. De mediaan blijft bijna gelijk. Kies "Gemiddelde".'}
+    }
   } else {
     isCorrect.value = false
-
-    if (userAns.value === 'median') {
-        feedback.value = { type: 'error', text: 'Kijk naar de getallen in het blauw. De mediaan verandert veel minder dan het gemiddelde. Welke is het meest beïnvloed?'}
-    } else {
-        feedback.value = { type: 'error', text: 'Kies een conclusie uit de lijst.'}
-    }
+    attemptCount.value++
+    feedback.value = { type: 'error', text: 'Kies een conclusie uit de lijst.'}
   }
 }
 
@@ -263,7 +300,7 @@ onUnmounted(() => {
                           <div class="absolute left-10 bottom-14 font-mono text-slate-400 text-xs font-bold">0</div>
                           <div class="absolute left-[calc(10px+200*1.5px)] bottom-14 font-mono text-slate-400 text-xs font-bold">{{ currentLevel.scaleMax }}</div>
 
-                          <!-- Scale: 1 unit = (300px / scaleMax) approximately. Let's use 1.5 px per unit * scaleMax/200 adjustment factor. -->
+                          <!-- Scale: 1 unit = 1.5px per unit * scaleMax/200 adjustment factor. -->
                           <!-- For simplicity we keep 1 unit = 1.5px and let the scaleMax label track it -->
                           <!-- Dots for data -->
                           <div v-for="(val, idx) in currentData" :key="'d'+idx"

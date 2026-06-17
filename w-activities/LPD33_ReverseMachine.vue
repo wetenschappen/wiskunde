@@ -13,24 +13,108 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kies de eerste tegengestelde bewerking.' })
+const attemptCount = ref(0)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  { eq: 'x/2 − 4 = 6', final: 6, correctOp1: '+4', correctOp2: '×2', expectedVal1: 10, expectedVal2: 20, desc: 'x start, /2, -4, eindigt op 6' },
-  { eq: '3x + 1 = 10', final: 10, correctOp1: '−1', correctOp2: '÷3', expectedVal1: 9, expectedVal2: 3, desc: 'x start, ×3, +1, eindigt op 10' },
-  { eq: 'x/3 + 2 = 5',  final: 5, correctOp1: '−2', correctOp2: '×3', expectedVal1: 3, expectedVal2: 9, desc: 'x start, /3, +2, eindigt op 5' },
-]
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevel(levelNum) {
+  let x, a, b, final, correctOp1, correctOp2, expectedVal1, expectedVal2, eq
+
+  if (levelNum === 0) {
+    // Level 1: simple, small numbers, division then add/sub
+    const pattern = r(0, 1)
+    a = r(2, 4)
+    b = r(2, 6)
+    x = r(3, 12) * a
+    const val1 = x / a
+    if (pattern === 0) {
+      final = val1 - b
+      eq = `x/${a} − ${b} = ${final}`
+      correctOp1 = `+${b}`; correctOp2 = `×${a}`
+      expectedVal1 = final + b; expectedVal2 = expectedVal1 * a
+    } else {
+      final = val1 + b
+      eq = `x/${a} + ${b} = ${final}`
+      correctOp1 = `−${b}`; correctOp2 = `×${a}`
+      expectedVal1 = final - b; expectedVal2 = expectedVal1 * a
+    }
+  } else if (levelNum === 1) {
+    // Level 2: multiplication then add/sub, medium ranges
+    const pattern = r(0, 1)
+    a = r(2, 4)
+    b = r(1, 6)
+    x = r(3, 12)
+    const val1 = x * a
+    if (pattern === 0) {
+      final = val1 + b
+      eq = `${a}x + ${b} = ${final}`
+      correctOp1 = `−${b}`; correctOp2 = `÷${a}`
+      expectedVal1 = final - b; expectedVal2 = expectedVal1 / a
+    } else {
+      final = val1 - b
+      eq = `${a}x − ${b} = ${final}`
+      correctOp1 = `+${b}`; correctOp2 = `÷${a}`
+      expectedVal1 = final + b; expectedVal2 = expectedVal1 / a
+    }
+  } else {
+    // Level 3: wider ranges, mix of patterns
+    const pattern = r(0, 3)
+    if (pattern === 0) {
+      a = r(2, 5); b = r(2, 8); x = r(4, 15) * a
+      const val1 = x / a; final = val1 - b
+      eq = `x/${a} − ${b} = ${final}`
+      correctOp1 = `+${b}`; correctOp2 = `×${a}`
+      expectedVal1 = final + b; expectedVal2 = expectedVal1 * a
+    } else if (pattern === 1) {
+      a = r(2, 5); b = r(2, 8); x = r(4, 15) * a
+      const val1 = x / a; final = val1 + b
+      eq = `x/${a} + ${b} = ${final}`
+      correctOp1 = `−${b}`; correctOp2 = `×${a}`
+      expectedVal1 = final - b; expectedVal2 = expectedVal1 * a
+    } else if (pattern === 2) {
+      a = r(2, 5); b = r(1, 9); x = r(3, 15)
+      const val1 = x * a; final = val1 + b
+      eq = `${a}x + ${b} = ${final}`
+      correctOp1 = `−${b}`; correctOp2 = `÷${a}`
+      expectedVal1 = final - b; expectedVal2 = expectedVal1 / a
+    } else {
+      a = r(2, 5); b = r(1, 9); x = r(3, 15)
+      const val1 = x * a; final = val1 - b
+      eq = `${a}x − ${b} = ${final}`
+      correctOp1 = `+${b}`; correctOp2 = `÷${a}`
+      expectedVal1 = final + b; expectedVal2 = expectedVal1 / a
+    }
+  }
+  return { eq, final, correctOp1, correctOp2, expectedVal1, expectedVal2, desc: '' }
+}
+
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 const step = ref(0)
 const op1 = ref(''); const val1 = ref(null); const op2 = ref(''); const val2 = ref(null)
 
-const allOps = computed(() => [
-  '+4', '−4', '×2', '÷2', '−1', '+1', '×3', '÷3', '−2', '+2'
-])
+const allOps = computed(() => {
+  const lvl = currentLevel.value
+  if (!lvl) return []
+  const nums = new Set()
+  const allText = `${lvl.eq} ${lvl.final} ${lvl.expectedVal1} ${lvl.expectedVal2}`
+  const matches = allText.match(/\d+/g) || []
+  matches.forEach(n => { const v = parseInt(n); if (v > 0 && v <= 12) nums.add(v) })
+  ;[1, 2, 3, 4, 5, 6].forEach(n => nums.add(n))
+  const ops = new Set([lvl.correctOp1, lvl.correctOp2])
+  for (const n of nums) {
+    if (ops.size >= 12) break
+    if (!ops.has(`+${n}`)) ops.add(`+${n}`)
+    if (!ops.has(`−${n}`)) ops.add(`−${n}`)
+    if (!ops.has(`×${n}`)) ops.add(`×${n}`)
+    if (!ops.has(`÷${n}`)) ops.add(`÷${n}`)
+  }
+  return Array.from(ops).slice(0, 12)
+})
 
 function getOpClass(op) {
   if (op.includes('+')) return 'bg-emerald-600 border-emerald-400'
@@ -39,26 +123,53 @@ function getOpClass(op) {
   return 'bg-purple-600 border-purple-400'
 }
 
+function getHint() {
+  const lvl = currentLevel.value
+  if (step.value === 1) {
+    if (attemptCount.value === 1) return 'Denk aan de omgekeerde bewerking. Wat is het tegengestelde?'
+    if (attemptCount.value === 2) return `Bereken ${lvl.final} ${lvl.correctOp1}. Welk getal krijg je?`
+    return `Het antwoord is ${lvl.expectedVal1}. Vul dat in.`
+  }
+  if (step.value === 3) {
+    if (attemptCount.value === 1) return 'Controleer je tussenstap nog eens.'
+    if (attemptCount.value === 2) return `Bereken ${lvl.expectedVal1} ${lvl.correctOp2}.`
+    return `Het antwoord is ${lvl.expectedVal2}.`
+  }
+  return ''
+}
+
 function selectOp(op) {
   const lvl = currentLevel.value
   if (step.value === 0) {
     if (op === lvl.correctOp1) {
       op1.value = op; step.value = 1
       feedback.value = { type: 'success', text: `Juist! Het tegengestelde van "${lvl.eq.split(' ').slice(-2,-1)[0]}" is "${op}". Bereken nu ${lvl.final} ${op}.` }
-    } else { feedback.value = { type: 'error', text: `Fout. Wat is het tegengestelde?` } }
+    } else {
+      attemptCount.value++
+      const hint = attemptCount.value === 1 ? 'Wat is het tegengestelde van de laatste bewerking?' : attemptCount.value === 2 ? `De laatste bewerking is ... Het tegengestelde is ${lvl.correctOp1}.` : `Kies ${lvl.correctOp1}.`
+      feedback.value = { type: 'error', text: `Fout. ${hint}` }
+    }
   } else if (step.value === 2) {
     if (op === lvl.correctOp2) {
       op2.value = op; step.value = 3
       feedback.value = { type: 'success', text: `Juist! Het tegengestelde van de eerste bewerking is "${op}". Bereken ${val1.value} ${op}.` }
-    } else { feedback.value = { type: 'error', text: `Fout. Wat is het tegengestelde van de eerste bewerking?` } }
+    } else {
+      attemptCount.value++
+      const hint = attemptCount.value === 1 ? 'Wat is het tegengestelde van de eerste bewerking?' : attemptCount.value === 2 ? `De eerste bewerking is ... Het tegengestelde is ${lvl.correctOp2}.` : `Kies ${lvl.correctOp2}.`
+      feedback.value = { type: 'error', text: `Fout. ${hint}` }
+    }
   }
 }
 
 function checkVal1() {
   if (val1.value === currentLevel.value.expectedVal1) {
     step.value = 2
+    attemptCount.value = 0
     feedback.value = { type: 'success', text: `Correct, ${currentLevel.value.final} ${op1.value} = ${val1.value}. Kies nu de volgende bewerking.` }
-  } else { feedback.value = { type: 'error', text: `Reken nog eens. ${currentLevel.value.final} ${op1.value} = ?` } }
+  } else {
+    attemptCount.value++
+    feedback.value = { type: 'error', text: `Reken nog eens. ${getHint()}` }
+  }
 }
 
 function checkVal2() {
@@ -66,11 +177,16 @@ function checkVal2() {
   if (val2.value === currentLevel.value.expectedVal2) {
     isCorrect.value = true
     feedback.value = { type: 'success', text: `Briljant! x = ${val2.value}. Door alle bewerkingen om te keren vind je de onbekende!` }
-  } else { feedback.value = { type: 'error', text: `Fout. ${val1.value} ${op2.value} = ?` } }
+  } else {
+    attemptCount.value++
+    feedback.value = { type: 'error', text: `Fout. ${getHint()}` }
+  }
 }
 
 function resetActivityState() {
+  levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
   isCorrect.value = false; isChecked.value = false; step.value = 0; op1.value = ''; val1.value = null; op2.value = ''; val2.value = null
+  attemptCount.value = 0
   feedback.value = { type: 'info', text: 'Kies de eerste tegengestelde bewerking.' }
 }
 

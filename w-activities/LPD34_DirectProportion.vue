@@ -9,7 +9,7 @@ const props = defineProps({
   title: { type: String, default: 'Evenredigheden: Recht Evenredig' },
   instruction: {
     type: String,
-    default: 'Een auto rijdt met een constante snelheid van <strong>50 km/uur</strong>. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan. Kijk wat er met de grafiek gebeurt!'
+    default: 'Een auto rijdt met een constante snelheid. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -23,59 +23,42 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Vul de lege vakjes in de tabel in.' })
+const attemptCount = ref(0)
 
-// Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    label: '50 km/uur',
-    speed: 50,
-    answers: { ans2: 100, ans4: 200, ans5: 250 },
-    instruction: 'Een auto rijdt met een constante snelheid van <strong>50 km/uur</strong>. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan. Kijk wat er met de grafiek gebeurt!',
-    successFeedback: 'Perfect! Als je de punten op de grafiek verbindt, krijg je een rechte lijn die vertrekt vanuit de oorsprong (0,0). Dit is hét kenmerk van recht evenredigheid!',
+function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+function generateLevel(levelNum) {
+  let speed
+  if (levelNum === 0) speed = r(40, 60)
+  else if (levelNum === 1) speed = r(55, 80)
+  else speed = r(30, 70)
+  return {
+    label: `${speed} km/uur`,
+    speed,
+    answers: { ans2: speed * 2, ans4: speed * 4, ans5: speed * 5 },
+    instruction: `Een voertuig rijdt met een constante snelheid van <strong>${speed} km/uur</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel. Wat valt je op aan de grafiek?`,
+    successFeedback: `Perfect! Afstanden kloppen. De punten vormen een rechte lijn door de oorsprong — hét kenmerk van recht evenredigheid!`,
     errorHints: {
-      ans2: 'Fout bij 2 uur. Als je in 1 uur 50 km rijdt, hoeveel dan in 2 uur? (Vermenigvuldig met 2)',
-      ans4: 'Fout bij 4 uur. Als je in 2 uur 100 km rijdt, hoeveel dan in 4 uur? (Verdubbel de afstand)',
-      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 50.'
-    }
-  },
-  {
-    label: '60 km/uur',
-    speed: 60,
-    answers: { ans2: 120, ans4: 240, ans5: 300 },
-    instruction: 'Een vrachtwagen rijdt met een constante snelheid van <strong>60 km/uur</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel. Wat verandert er aan de grafiek vergeleken met de auto van 50 km/uur?',
-    successFeedback: 'Knap! De lijn is steiler dan bij 50 km/uur. Hoe hoger de snelheid, hoe steiler de rechte lijn. Het blijft een rechte door de oorsprong!',
-    errorHints: {
-      ans2: 'Fout bij 2 uur. Als je in 1 uur 60 km rijdt, hoeveel dan in 2 uur?',
-      ans4: 'Fout bij 4 uur. Als je in 2 uur 120 km rijdt, hoeveel dan in 4 uur?',
-      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 60.'
-    }
-  },
-  {
-    label: '40 km/uur',
-    speed: 40,
-    answers: { ans2: 80, ans4: 160, ans5: 200 },
-    instruction: 'Een fietser rijdt met een constante snelheid van <strong>40 km/uur</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel. Vergelijk de helling van de lijn met de vorige twee grafieken.',
-    successFeedback: 'Uitstekend! De lijn is minder steil dan bij 50 km/uur. Elke snelheid geeft een andere helling, maar alle lijnen zijn recht en gaan door de oorsprong. Dat is recht evenredigheid!',
-    errorHints: {
-      ans2: 'Fout bij 2 uur. Als je in 1 uur 40 km rijdt, hoeveel dan in 2 uur?',
-      ans4: 'Fout bij 4 uur. Als je in 2 uur 80 km rijdt, hoeveel dan in 4 uur?',
-      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 40.'
+      ans2: `Fout bij 2 uur. Als je in 1 uur ${speed} km rijdt, hoeveel dan in 2 uur?`,
+      ans4: `Fout bij 4 uur. Als je in 2 uur ${speed * 2} km rijdt, hoeveel dan in 4 uur?`,
+      ans5: `Fout bij 5 uur. De formule is Afstand = Tijd × ${speed}.`
     }
   }
-]
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
-const displayInstruction = computed(() => currentLevel.value.instruction)
+const levels = ref([])
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
+const displayInstruction = computed(() => currentLevel.value ? currentLevel.value.instruction : props.instruction)
 
-// Domain Logic
 const ans2 = ref(null)
 const ans4 = ref(null)
 const ans5 = ref(null)
 
 const points = computed(() => {
+    if (!currentLevel.value) return []
     const spd = currentLevel.value.speed
     return [
         { x: 1, y: spd, visible: true },
@@ -85,35 +68,40 @@ const points = computed(() => {
     ]
 })
 
+function getHint() {
+  if (attemptCount.value === 1) return 'Vermenigvuldig de tijd met de snelheid.'
+  if (attemptCount.value === 2) return `Gebruik: afstand = tijd × ${currentLevel.value.speed}.`
+  return `Kijk naar het voorbeeld: in 1 uur is het ${currentLevel.value.speed} km.`
+}
+
 function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Vul de lege vakjes in de tabel in.' };
-    ans2.value = null;
-    ans4.value = null;
-    ans5.value = null;
+    levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
+    isCorrect.value = false
+    isChecked.value = false
+    attemptCount.value = 0
+    feedback.value = { type: 'info', text: 'Vul de lege vakjes in de tabel in.' }
+    ans2.value = null
+    ans4.value = null
+    ans5.value = null
 }
 
 function checkAnswer() {
-  isChecked.value = true;
+  isChecked.value = true
   const lv = currentLevel.value
+  if (!lv) return
 
   if (ans2.value === lv.answers.ans2 && ans4.value === lv.answers.ans4 && ans5.value === lv.answers.ans5) {
     isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: lv.successFeedback
-    }
+    attemptCount.value = 0
+    feedback.value = { type: 'success', text: lv.successFeedback }
   } else {
-    isCorrect.value = false
-    const s = lv.speed
-
+    attemptCount.value++
     if (ans2.value !== lv.answers.ans2) {
-        feedback.value = { type: 'error', text: lv.errorHints.ans2 }
+        feedback.value = { type: 'error', text: `${lv.errorHints.ans2} ${getHint()}` }
     } else if (ans4.value !== lv.answers.ans4) {
-        feedback.value = { type: 'error', text: lv.errorHints.ans4 }
+        feedback.value = { type: 'error', text: `${lv.errorHints.ans4} ${getHint()}` }
     } else if (ans5.value !== lv.answers.ans5) {
-        feedback.value = { type: 'error', text: lv.errorHints.ans5 }
+        feedback.value = { type: 'error', text: `${lv.errorHints.ans5} ${getHint()}` }
     } else {
         feedback.value = { type: 'error', text: 'Vul alle vakjes in de tabel in.'}
     }
@@ -130,15 +118,14 @@ function nextLevel() {
 }
 
 function goToNextStep() {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1)
+    else emit('complete')
 }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
+    currentInternalLevel.value = 0
+    resetActivityState()
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
@@ -254,20 +241,13 @@ onUnmounted(() => {
 
                   <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Grafiek: Afstand i.f.v. Tijd</h4>
 
-                  <!-- SVG Graph -->
                   <div class="relative">
                       <svg width="450" height="350" viewBox="0 0 450 350" class="block">
-                          <!-- Origin (50, 300) -->
-
-                          <!-- Grid lines -->
                           <g stroke="#e2e8f0" stroke-width="1">
-                              <!-- Vertical (x-axis: 0 to 6, step 1) -> 60px per unit -->
                               <line v-for="i in 7" :key="'vg'+i" :x1="50 + (i-1)*60" y1="50" :x2="50 + (i-1)*60" y2="300" />
-                              <!-- Horizontal (y-axis: 0 to 300, step 50) -> 40px per 50 units -->
                               <line v-for="i in 7" :key="'hg'+i" x1="50" :y1="300 - (i-1)*40" x2="410" :y2="300 - (i-1)*40" />
                           </g>
 
-                          <!-- Axes -->
                           <line x1="50" y1="300" x2="420" y2="300" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
                           <line x1="50" y1="300" x2="50" y2="30" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
 
@@ -277,11 +257,9 @@ onUnmounted(() => {
                               </marker>
                           </defs>
 
-                          <!-- Labels -->
                           <text x="400" y="325" font-weight="bold" fill="#64748b" font-size="12">Tijd (h)</text>
                           <text x="40" y="20" font-weight="bold" fill="#64748b" font-size="12" text-anchor="end">Afstand (km)</text>
 
-                          <!-- Ticks X -->
                           <g font-size="10" fill="#94a3b8" font-weight="bold" text-anchor="middle">
                               <text x="50" y="315">0</text>
                               <text x="110" y="315">1</text>
@@ -291,7 +269,6 @@ onUnmounted(() => {
                               <text x="350" y="315">5</text>
                           </g>
 
-                          <!-- Ticks Y -->
                           <g font-size="10" fill="#94a3b8" font-weight="bold" text-anchor="end">
                               <text x="40" y="264">50</text>
                               <text x="40" y="224">100</text>
@@ -301,10 +278,8 @@ onUnmounted(() => {
                               <text x="40" y="64">300</text>
                           </g>
 
-                          <!-- Connecting Line (only when correct): dynamic for each level's speed -->
                           <line v-if="isCorrect" x1="50" y1="300" :x2="50 + 5*60" :y2="300 - (currentLevel.speed * 5 / 50) * 40" stroke="#0ea5e9" stroke-width="3" class="animate-slash origin-bottom-left" />
 
-                          <!-- Data Points -->
                           <g v-for="pt in points" :key="pt.x">
                               <circle v-if="pt.visible"
                                       :cx="50 + pt.x * 60"

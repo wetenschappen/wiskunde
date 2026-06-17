@@ -23,111 +23,130 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op getallen om ze te doorstrepen (1 klik) of te omcirkelen als priemgetal (2 klikken).' })
+const attemptCount = ref(0)
 
 // --- Level System ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    maxNum: 10,
-    primes: [2, 3, 5, 7],
-    instruction: 'Level 1: Laten we klein beginnen met de getallen 1 t/m 10.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door (geen priemgetal).<br/>Stap 2: Omcirkel 2. Streep al zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep al zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.',
-    successFeedback: 'Uitstekend! Je hebt alle priemgetallen tot 10 gevonden. Klaar voor level 2?'
-  },
-  {
-    maxNum: 20,
-    primes: [2, 3, 5, 7, 11, 13, 17, 19],
-    instruction: 'Level 2: De getallen 1 t/m 20 — uitbreiding van hetzelfde algoritme.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door.<br/>Stap 2: Omcirkel 2. Streep zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.',
-    successFeedback: 'Magistraal! Je hebt exact als een computer gewerkt (patroonherkenning en decompositie) en alle priemgetallen onder de 20 gevonden.'
-  },
-  {
-    maxNum: 30,
-    primes: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29],
-    instruction: 'Level 3: De echte uitdaging met getallen 1 t/m 30.<br/><br/><strong>Opdracht:</strong> Voer het algoritme zelfstandig uit.<br/>Let op: er zijn 10 priemgetallen om te vinden!',
-    successFeedback: 'Fenomenaal! Je beheerst de Zeef van Eratosthenes volledig. Alle priemgetallen tot 30 gevonden!'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generatePrimesUpTo(n) {
+  const sieve = Array(n + 1).fill(true)
+  sieve[0] = false
+  sieve[1] = false
+  for (let i = 2; i * i <= n; i++) {
+    if (sieve[i]) {
+      for (let j = i * i; j <= n; j += i) {
+        sieve[j] = false
+      }
+    }
+  }
+  return sieve.reduce((acc, isPrime, idx) => {
+    if (isPrime) acc.push(idx)
+    return acc
+  }, [])
+}
+
+function generateLevel() {
+  // Level 1: small range (8-12)
+  const max1 = 8 + Math.floor(Math.random() * 5) // 8-12
+  const primes1 = generatePrimesUpTo(max1)
+  // Level 2: medium range (18-24)
+  const max2 = 18 + Math.floor(Math.random() * 7) // 18-24
+  const primes2 = generatePrimesUpTo(max2)
+  // Level 3: larger range (28-34)
+  const max3 = 28 + Math.floor(Math.random() * 7) // 28-34
+  const primes3 = generatePrimesUpTo(max3)
+
+  return [
+    {
+      maxNum: max1,
+      primes: primes1,
+      instruction: `Level 1: Laten we klein beginnen met de getallen 1 t/m ${max1}.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door (geen priemgetal).<br/>Stap 2: Omcirkel 2. Streep al zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep al zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.`,
+      successFeedback: `Uitstekend! Je hebt alle priemgetallen tot ${max1} gevonden. Klaar voor level 2?`
+    },
+    {
+      maxNum: max2,
+      primes: primes2,
+      instruction: `Level 2: De getallen 1 t/m ${max2} — uitbreiding van hetzelfde algoritme.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door.<br/>Stap 2: Omcirkel 2. Streep zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.`,
+      successFeedback: `Magistraal! Je hebt als een computer gewerkt (patroonherkenning en decompositie) en alle priemgetallen onder de ${max2} gevonden.`
+    },
+    {
+      maxNum: max3,
+      primes: primes3,
+      instruction: `Level 3: De echte uitdaging met getallen 1 t/m ${max3}.<br/><br/><strong>Opdracht:</strong> Voer het algoritme zelfstandig uit.<br/>Let op: er zijn ${primes3.length} priemgetallen om te vinden!`,
+      successFeedback: `Fenomenaal! Je beheerst de Zeef van Eratosthenes volledig. Alle ${primes3.length} priemgetallen tot ${max3} gevonden!`
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const maxNum = computed(() => currentLevelData.value.maxNum)
-
-// State: 'normal', 'crossed', 'circled'
-const numStates = ref(Array(maxNum.value).fill('normal'))
-
-// Actual primes for current level
 const primes = computed(() => currentLevelData.value.primes)
 
+// State: 'normal', 'crossed', 'circled'
+const numStates = ref([])
+
 function cycleState(index) {
-    if (isCorrect.value) return;
+    if (isCorrect.value) return
     const s = numStates.value[index]
-    if (s === 'normal') numStates.value[index] = 'crossed'
-    else if (s === 'crossed') numStates.value[index] = 'circled'
-    else numStates.value[index] = 'normal'
+    let newState
+    if (s === 'normal') newState = 'crossed'
+    else if (s === 'crossed') newState = 'circled'
+    else newState = 'normal'
+    numStates.value[index] = newState
+
+    // Check for auto-correct after state change
+    const allCorrect = checkAllCorrect()
+    if (allCorrect) {
+      isCorrect.value = true
+      feedback.value = { type: 'success', text: currentLevelData.value.successFeedback }
+    } else {
+      // If all numbers have been interacted with but not all correct, it's a mistake
+      if (numStates.value.every(s => s !== 'normal')) {
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: 'Niet alle getallen zijn juist. Controleer de priemgetallen en hun veelvouden.' }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: 'Onthoud: een priemgetal heeft precies 2 delers (1 en zichzelf). Omcirkel die. Streep de rest door.' }
+        } else {
+          feedback.value = { type: 'error', text: `De priemgetallen tot ${maxNum.value} zijn: ${primes.value.join(', ')}.` }
+        }
+      }
+    }
+}
+
+function checkAllCorrect() {
+  for (let i = 0; i < numStates.value.length; i++) {
+    const num = i + 1
+    const state = numStates.value[i]
+    const isPrime = primes.value.includes(num)
+    if (num === 1 && state !== 'crossed') return false
+    if (isPrime && state !== 'circled') return false
+    if (!isPrime && num !== 1 && state !== 'crossed') return false
+  }
+  return true
 }
 
 function resetActivityState() {
+    levels.value = generateLevel()
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op getallen om ze te doorstrepen (1 klik) of te omcirkelen als priemgetal (2 klikken).' };
-    numStates.value = Array(maxNum.value).fill('normal');
-}
-
-function nextLevel() {
-    currentInternalLevel.value++
-    resetActivityState()
+    numStates.value = Array(currentLevelData.value.maxNum).fill('normal');
+    attemptCount.value = 0;
 }
 
 function handleLevelComplete() {
     if (currentInternalLevel.value < totalInternalLevels - 1) {
-        nextLevel()
+      currentInternalLevel.value++
+      resetActivityState()
     } else {
-        goToNextStep()
+      goToNextStep()
     }
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-
-  let allCorrect = true;
-  let specificError = ''
-
-  for (let i = 0; i < maxNum.value; i++) {
-      const num = i + 1;
-      const state = numStates.value[i];
-      const isPrime = primes.value.includes(num);
-
-      if (num === 1 && state !== 'crossed') {
-          allCorrect = false;
-          specificError = 'Stap 1: Het getal 1 is per definitie geen priemgetal. Streep het door!';
-          break;
-      }
-
-      if (isPrime && state !== 'circled') {
-          allCorrect = false;
-          specificError = `Het getal ${num} is een priemgetal (het heeft geen delers buiten 1 en zichzelf). Je moest dit omcirkelen!`;
-          break;
-      }
-
-      if (!isPrime && num !== 1 && state !== 'crossed') {
-          allCorrect = false;
-          specificError = `Het getal ${num} is géén priemgetal (het is een veelvoud van een ander getal). Je was dit vergeten doorstrepen!`;
-          break;
-      }
-  }
-
-  if (allCorrect) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: currentLevelData.value.successFeedback
-    }
-  } else {
-    isCorrect.value = false
-    feedback.value = { type: 'error', text: specificError || 'Controleer je werk. Zijn alle priemgetallen omcirkeld en al de rest doorstreept?'}
-  }
 }
 
 function goToNextStep() {
@@ -229,11 +248,14 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg bg-indigo-500 border-indigo-700 text-white hover:bg-indigo-400">Algoritme Uitgevoerd</button>
-              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+              <!-- Auto-correct: no check button, grid clicks auto-verify -->
+              <button v-if="isCorrect" @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3 font-bold text-slate-400 transition-all rounded-lg shadow-md bg-slate-700 text-center select-none text-sm">
+                Klik getallen om te markeren
+              </div>
             </div>
           </div>
         </div>

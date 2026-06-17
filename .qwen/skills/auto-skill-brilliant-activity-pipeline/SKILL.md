@@ -5,7 +5,7 @@ description: >-
   activities from curriculum goals (LPDs), using structured multi-run prompts
   with quality gates to prevent LLM rushing/hallucination.
 source: auto-skill
-extracted_at: '2026-06-17T08:31:49.978Z'
+extracted_at: '2026-06-17T09:26:17.973Z'
 ---
 
 # Brilliant Activity Pipeline
@@ -171,69 +171,163 @@ echo "Files: $BEFORE → $AFTER"
 find w-activities/ -name "*.vue" -newer /tmp/reference_point | wc -l
 ```
 
-### Run 3: Deep Quality Pass ("Level 3") — EXECUTED 2026-06-17
+### Run 3: Deep Quality Pass ("Level 3")
 
-**Goal:** Complete the upgrade of all missed files, then add randomisation,
-visual target overlays, and progressive hints.
+**Goal:** Upgrade all 117 LPD files to true Brilliant.org quality by adding
+randomisation, progressive hints, and manipulation=answer.
 
-**⚠️ Real-world finding (applies to ALL runs):**
-The Run 2 agent claimed to have upgraded all files but **skipped 30 of 114**
-(~27%). These were consistently: high-numbered LPDs (28-37), supplementary
-B/K LPDs, and "straggler" 2nd-grade files at the end of listings.
-**Always verify with file timestamps after every run.**
+**Three pillars of Level 3:**
 
-**Critical finding — agents silently fail to write files:**
-When launching subagents in parallel, they frequently **read files successfully
-but never write them back** (no error, just silent omission). This happens
-~60% of the time. The JSONL output shows the `read_file` results but no
-`write_file` calls. To mitigate:
+1. **Randomization / Replayability** — Replace hardcoded `levels[]` arrays with
+   a `generateLevel()` function called inside `resetActivityState()`. Level 1
+   uses constrained random (small numbers), Levels 2-3 use wider ranges. Each
+   time the activity opens, new numbers/targets are generated.
+2. **Progressive Hints (3-traps scaffolding)** — Add `const attemptCount = ref(0)`.
+   On error 1: vague hint. Error 2: specific hint targeting the misconception.
+   Error 3+: direct directive ("Probeer a = 2 in te stellen"). `feedback.text`
+   becomes dynamic based on `attemptCount`.
+3. **Manipulation = Answer (Interaction as Answer)** — Wherever possible,
+   `isCorrect` becomes true during manipulation (click, drag, slider match)
+   instead of via a check button. For activities where a check button remains,
+   it only shows "klopt/niet" while real guidance comes from hints.
 
-1. **After every agent run, verify with grep, not timestamps:**
-   ```bash
-   # Check for the key structural element:
-   grep -c "currentInternalLevel" path/to/file.vue
-   ```
-2. If count is 0, the agent did NOT write the file despite reporting success.
-3. Re-run with the **exact filename list** and the instruction "CRITICAL: you
-   MUST write the complete file back using write_file" in the prompt.
-4. Check again after the re-run.
+#### Concrete Level 3 Code Pattern
 
-**See also:** [Section on Verification After Subagents](#verification-after-subagents).
+Add these to the existing Level 2 structure:
 
-#### Approach (two sub-phases, executed in practice):
+```vue
+<script setup>
+// ... existing Level 2 structure (currentInternalLevel, totalInternalLevels, nextLevel) ...
 
-**Fase 1 — Upgrade missed files (mandatory first):**
-1. Inventory: list files NOT touched in the previous run (old timestamps).
-2. Give the agent the **exact list** of files to upgrade — don't let it
-   discover them itself, it will miss the same ones again.
-3. Use **batches of exactly 3-5 files**. After each batch the agent stops.
-4. **For speed:** launch multiple parallel subagents, each handling a
-   non-overlapping batch. This works because the files are independent.
+// 1. RANDOMIZATION — replace const levels with generateLevel()
+const levels = ref([])
 
-**Fase 2 — Deepen ALL files:**
-- Replace hardcoded `levels[]` arrays with random generation in
-  `resetActivityState()`.
-- Draw **ghost/target overlays** on the SVG so the learner sees what to match.
-- Implement **progressive hints** (3 levels: vague → specific → directive).
-- Use 3-5 file batches with explicit pause after each.
+function generateLevel() {
+  // Return 3 level configs with randomized parameters
+  // Level 0: constrained random (easy numbers)
+  // Level 1: wider ranges
+  // Level 2: full range / more complex
+  return [
+    { /* randomized params for level 1 */ },
+    { /* randomized params for level 2 */ },
+    { /* randomized params for level 3 */ },
+  ]
+}
 
-**Fase 1 upgrade pattern (verified working):**
-Each untouched file needs these structural additions while preserving all
-existing visual design, SVG, and interaction logic:
-1. `currentInternalLevel` ref (0) and `totalInternalLevels` (3)
-2. `levels` array — 3 different configurations per activity
-3. `currentLevel` computed property
-4. `nextLevel()` function with `resetActivityState()` call
-5. Level indicator in the header: `"Level {n} van {totalInternalLevels}"`
-6. Conditional buttons: "Volgend Level" vs "Afronden"
+// 2. PROGRESSIVE HINTS
+const attemptCount = ref(0)
 
-**Quality pitfalls at Run 3:**
-- Agent will try to skip Fase 1 and jump to the "more interesting" Fase 2.
-- Agent will still produce hardcoded levels if you don't explicitly ban them.
-- Agent will add progressive hints only to a few files and claim the rest
-  "already have sufficient hints."
-- ❗ **New finding:** Subagents frequently read files but don't write them.
-  Always verify with `grep -c` afterwards.
+function getHint(level, errorType) {
+  // attemptCount starts at 0, incremented on each wrong attempt
+  if (attemptCount.value <= 1) return 'Vague hint: think about the concept...'
+  else if (attemptCount.value === 2) return 'Specific hint: check your calculation...'
+  else return 'Directive: the answer is...'
+}
+
+function resetActivityState() {
+  // ... existing resets ...
+  levels.value = generateLevel()   // fresh randomization
+  attemptCount.value = 0            // reset hints
+  // ... ensure currentLevel computed still works:
+  // currentLevel = computed(() => levels.value[currentInternalLevel.value])
+}
+</script>
+
+<template>
+  <!-- 3. MANIPULATION = ANSWER: conditional button logic -->
+  <button v-if="!isCorrect && needsCheckButton" @click="checkAnswer">
+    Controleer
+  </button>
+  <button v-if="!isCorrect && isAutoCorrect" disabled class="...">
+    Schuif/klik naar het juiste antwoord
+  </button>
+  <button v-if="!isCorrect && showHintButton" @click="showHint">
+    Geef me een hint
+  </button>
+  <!-- Volgend Level / Afronden buttons unchanged from Level 2 -->
+</template>
+```
+
+#### Interaction-to-Treatment Rules for Manipulation = Answer
+
+| Interaction type (detect from existing code) | Rule |
+|---|---|
+| Click-on-target (SVG grid, radar, clickable shapes) | **Auto-correct** — set `isCorrect.value = true` in click handler. Remove Controleer button entirely. Replace with a hint button or instructional text. |
+| Drag-and-drop into correct slot(s) | **Auto-correct** — validate on each drop; when all slots filled correctly, set `isCorrect.value = true`. Remove Controleer button. |
+| Slider matching a visible target (ghost overlay) | **Auto-correct** — use `watch` on the slider value with a debounce (800ms-1.5s). When value matches target within threshold, set `isCorrect.value = true`. Remove Controleer. |
+| Slider exploration + separate answer field | **Keep check button** — slider is for exploration, answer is typed. Use `attemptCount`-based hints in feedback. |
+| Number/equation text input | **Keep check button** — on wrong, show `attemptCount`-based progressive hint. Button only shows "klopt/niet". |
+| Multi-step calculation (drag operations, button sequence) | **Keep check button** — the answer is a process, not a single interaction. Use `attemptCount`-based hints. |
+
+**Auto-correct hint pattern:** For auto-correct activities, replace the removed
+"Controleer" button with a "Geef me een hint" button that reveals progressively
+more specific guidance by incrementing `attemptCount` and showing the hint tier.
+
+#### Git-Based Rollback Strategy
+
+Run 3 processes many files — a bad batch can corrupt prior work. Use git commits
+as incremental backup points:
+
+```bash
+# Before each batch:
+git add -A && git commit -m "backup before batch N"
+
+# Run the batch...
+
+# After batch verification:
+#   PASS → git add -A && git commit -m "batch N complete"
+#   FAIL → git reset --hard HEAD~1  # restore to pre-batch state
+```
+
+This gives clean rollback for any batch without losing prior batches.
+
+#### Batch Sizing & Parallel Execution (verified working 2026-06-17)
+
+When upgrading 117 files from Level 2 → Level 3:
+
+- **Split into 5 batches of ~23 files each** (logical LPD grouping)
+- **Per batch: launch 3 parallel subagents, each handling 7-8 files**
+- Chunk size of 7-8 files per agent works well with the "CRITICAL: write_file"
+  instruction — agents complete without rushing
+- Verify after each batch before proceeding
+- The `batch` skill can be used or manual agent launches with `agent` tool
+
+#### Verification (Level 3 specific)
+
+Check ALL three pillars with grep:
+
+```bash
+echo "=== Randomization ==="
+for f in w-activities/LPD*.vue; do
+  c=$(grep -c "generateLevel" "$f" 2>/dev/null || echo "0")
+  [ "$c" -eq 0 ] && echo "❌ NO RANDOM: $(basename $f)"
+done
+
+echo "=== Progressive Hints ==="
+for f in w-activities/LPD*.vue; do
+  c=$(grep -c "attemptCount" "$f" 2>/dev/null || echo "0")
+  [ "$c" -eq 0 ] && echo "❌ NO HINTS: $(basename $f)"
+done
+
+echo "=== Summary ==="
+grep -l "generateLevel" w-activities/LPD*.vue | wc -l   # randomization count
+grep -l "attemptCount" w-activities/LPD*.vue | wc -l     # hints count
+```
+
+**Note on false negatives:** Some agents use alternative randomization
+strategies (template shuffling, pool-based selection) instead of a function
+literally named `generateLevel`. These still count as having randomization.
+Spot-check 2-3 files per batch for manipulation=answer correctness.
+
+#### Known Pitfalls (Level 3 specific)
+
+| Problem | Solution |
+|---|---|
+| Agent names the generator function differently | Accept alternative randomization (shuffle, pool, randomInt) — verify intent, not exact name |
+| Agent adds hints only to 1-2 levels, not all 3 | Check `attemptCount` usage spans all 3 levels in `checkAnswer()` |
+| Agent writes `isCorrect = true` but keeps the Controleer button | Spot-check: verify button is removed/hidden for auto-correct activities |
+| Agent skips manipulation=answer entirely and just adds hints | Enforce "you MUST apply ALL three pillars" in the prompt |
+| Agent declares success without writing files (~60% failure rate) | Verify with `grep -c "generateLevel"` + `grep -c "attemptCount"` immediately after each batch; re-run with explicit "write_file" instruction
 
 ## Verification After Subagents
 

@@ -31,47 +31,130 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    name: 'Basis',
-    description: 'Eenvoudige lineaire deler.',
-    p_expr: 'x² + 2x + 1',
-    d_expr: 'x + 1',
-    correctA: -1,
-    correctRest: 0,
-    displayFormula: '({a})² + 2({a}) + 1'
-  },
-  {
-    name: 'Toepassing',
-    description: 'Derdegraads veelterm met positieve a.',
-    p_expr: 'x³ - 2x² + x + 4',
-    d_expr: 'x - 2',
-    correctA: 2,
-    correctRest: 6,
-    displayFormula: '({a})³ - 2({a})² + ({a}) + 4'
-  },
-  {
-    name: 'Uitdaging',
-    description: 'Complexe deler met negatieve coëfficiënten.',
-    p_expr: '2x³ - 5x² + 3x - 7',
-    d_expr: 'x - 3',
-    correctA: 3,
-    correctRest: 11,
-    displayFormula: '2({a})³ - 5({a})² + 3({a}) - 7'
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  let coeffRanges, correctA, correctRest, pItems, dExpr, displayParts
+
+  if (lvl === 0) {
+    // Level 1: simple linear: P(x) = ax² + bx + c, divisor x ± k
+    // Rest = a*k² + b*k + c
+    const k = randInt(1, 3) * (Math.random() > 0.5 ? 1 : -1)
+    const a = randInt(1, 3)
+    const b = randInt(-3, 3)
+    const c = randInt(-3, 3)
+    correctA = -k // if d(x) = x + k then a = -k
+    dExpr = 'x ' + (k >= 0 ? '+ ' + k : '- ' + Math.abs(k))
+    correctRest = a * correctA * correctA + b * correctA + c
+    const signB = b >= 0 ? '+' : '-'
+    const signC = c >= 0 ? '+' : '-'
+    pItems = [
+      { coeff: a, power: 2 },
+      (b !== 0 ? { coeff: Math.abs(b), power: 1, sign: signB } : null),
+      (c !== 0 ? { coeff: Math.abs(c), power: 0, sign: signC } : null)
+    ].filter(Boolean)
+    displayParts = a + '({a})²' + (b >= 0 ? '+' + b : b) + '({a})' + (c >= 0 ? '+' + c : c)
+  } else if (lvl === 1) {
+    // Level 2: cubic: P(x) = ax³ + bx² + cx + d, divisor x - k
+    const k = randInt(2, 4)
+    const a = randInt(1, 3)
+    const b = randInt(-4, 4)
+    const c = randInt(-4, 4)
+    const d = randInt(-5, 5)
+    correctA = k
+    dExpr = 'x - ' + k
+    correctRest = a * k * k * k + b * k * k + c * k + d
+    const signB = b >= 0 ? '+' : '-'
+    const signC = c >= 0 ? '+' : '-'
+    const signD = d >= 0 ? '+' : '-'
+    pItems = [
+      { coeff: a, power: 3 },
+      (b !== 0 ? { coeff: Math.abs(b), power: 2, sign: signB } : null),
+      (c !== 0 ? { coeff: Math.abs(c), power: 1, sign: signC } : null),
+      (d !== 0 ? { coeff: Math.abs(d), power: 0, sign: signD } : null)
+    ].filter(Boolean)
+    displayParts = a + '({a})³' + (b >= 0 ? '+' + b : b) + '({a})²' + (c >= 0 ? '+' + c : c) + '({a})' + (d >= 0 ? '+' + d : d)
+  } else {
+    // Level 3: harder: P(x) = ax³ + bx² + cx + d or 2x³..., divisor x - k
+    const k = randInt(3, 5)
+    const a = randInt(2, 4)
+    const b = randInt(-5, 5)
+    const c = randInt(-5, 5)
+    const d = randInt(-7, 7)
+    correctA = k
+    dExpr = 'x - ' + k
+    correctRest = a * k * k * k + b * k * k + c * k + d
+    const signB = b >= 0 ? '+' : '-'
+    const signC = c >= 0 ? '+' : '-'
+    const signD = d >= 0 ? '+' : '-'
+    pItems = [
+      { coeff: a, power: 3 },
+      (b !== 0 ? { coeff: Math.abs(b), power: 2, sign: signB } : null),
+      (c !== 0 ? { coeff: Math.abs(c), power: 1, sign: signC } : null),
+      (d !== 0 ? { coeff: Math.abs(d), power: 0, sign: signD } : null)
+    ].filter(Boolean)
+    displayParts = a + '({a})³' + (b >= 0 ? '+' + b : b) + '({a})²' + (c >= 0 ? '+' + c : c) + '({a})' + (d >= 0 ? '+' + d : d)
   }
-]
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+  // Build polynomial expression string
+  function formatPoly(items) {
+    return items.map((item, idx) => {
+      let s = ''
+      if (idx === 0) {
+        s = (item.coeff === 1 ? '' : item.coeff === -1 ? '-' : item.coeff) + (item.power > 0 ? 'x' : '')
+      } else {
+        s = ' ' + item.sign + ' ' + (item.coeff === 1 && item.power > 0 ? '' : item.coeff) + (item.power > 0 ? 'x' : '')
+      }
+      if (item.power > 1) s += '<sup>' + item.power + '</sup>'
+      return s
+    }).join('')
+  }
+
+  const pExpr = formatPoly(pItems)
+
+  return {
+    name: lvl === 0 ? 'Basis' : lvl === 1 ? 'Toepassing' : 'Uitdaging',
+    description: lvl === 0 ? 'Eenvoudige lineaire deler.' : lvl === 1 ? 'Derdegraads veelterm met positieve a.' : 'Complexe deler met negatieve co&euml;ffici&euml;nten.',
+    p_expr: pExpr,
+    d_expr: dExpr,
+    correctA,
+    correctRest,
+    displayFormula: displayParts
+  }
+}
+
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 
 const userA = ref('')
 const userRest = ref('')
 
+function getHint() {
+  const c = attemptCount.value
+  if (c === 1) return 'Hint: Als d(x) = x - a, dan is de rest = P(a). Zoek eerst a uit d(x).'
+  if (c === 2) return 'Hint: d(x) = ' + currentLevel.value.d_expr + ', dus a = ' + currentLevel.value.correctA + '. Vul dit in in P(x) om de rest te vinden.'
+  return 'Hint: a = ' + currentLevel.value.correctA + '. Bereken P(' + currentLevel.value.correctA + ') door ' + String(currentLevel.value.correctA) + ' in te vullen in P(x).'
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
@@ -88,19 +171,21 @@ function checkAnswer() {
     isCorrect.value = true
     feedback.value = {
       type: 'success',
-      text: `Helemaal juist! Omdat je deelt door (${currentLevel.value.d_expr}), is de rest gelijk aan P(${currentLevel.value.correctA}) = ${currentLevel.value.correctRest}.`
+      text: 'Helemaal juist! Omdat je deelt door (' + currentLevel.value.d_expr + '), is de rest gelijk aan P(' + currentLevel.value.correctA + ') = ' + currentLevel.value.correctRest + '.'
     }
   } else if (a !== currentLevel.value.correctA) {
+    attemptCount.value++
     isCorrect.value = false
     feedback.value = {
       type: 'error',
-      text: `De waarde van a klopt niet. Als d(x) = x - a en je hebt ${currentLevel.value.d_expr}, wat is dan a?`
+      text: 'De waarde van a klopt niet. Als d(x) = x - a en je hebt ' + currentLevel.value.d_expr + ', wat is dan a?<br/><br/>' + getHint()
     }
   } else {
+    attemptCount.value++
     isCorrect.value = false
     feedback.value = {
       type: 'error',
-      text: 'Je hebt a correct, maar de rest klopt niet. Bereken P(a) door a in te vullen in de veelterm P(x).'
+      text: 'Je hebt a correct, maar de rest klopt niet. Bereken P(a) door a in te vullen in de veelterm P(x).<br/><br/>' + getHint()
     }
   }
 }
@@ -205,13 +290,13 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <p class="mb-2 text-xs font-semibold text-indigo-600">Level {{ currentInternalLevel + 1 }} — {{ currentLevel.name }}</p>
+            <p class="mb-2 text-xs font-semibold text-indigo-600">Level {{ currentInternalLevel + 1 }} &mdash; {{ currentLevel.name }}</p>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
 
               <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm space-y-2">
-                <p class="text-indigo-600 font-bold">P(x) = {{ currentLevel.p_expr }}</p>
+                <p class="text-indigo-600 font-bold" v-html="'P(x) = ' + currentLevel.p_expr"></p>
                 <p class="text-slate-600 font-bold">d(x) = {{ currentLevel.d_expr }}</p>
               </div>
 
@@ -235,14 +320,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -250,6 +335,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
+              <!-- Keep Controleer: number/text input fields -->
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userA || !userRest" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
@@ -271,7 +357,7 @@ onUnmounted(() => {
                 <div class="font-mono text-3xl font-black text-indigo-700">P(x)</div>
                 <div class="text-4xl font-light text-slate-300">/</div>
                 <div class="font-mono text-3xl font-black text-slate-700">(x - a)</div>
-                <div class="text-4xl font-light text-slate-300">→</div>
+                <div class="text-4xl font-light text-slate-300">&rarr;</div>
                 <div class="font-mono text-3xl font-black text-emerald-600">Rest = P(a)</div>
               </div>
 
@@ -280,7 +366,7 @@ onUnmounted(() => {
                 <p class="font-bold text-slate-500 mb-2">Berekening:</p>
                 <p class="font-mono text-xl text-slate-800">
                   P(<span class="text-indigo-600 font-bold">{{ userA }}</span>) =
-                  {{ currentLevel.displayFormula.split('{a}').join(userA) }}
+                  {{ currentLevel.displayFormula.replace(/\{a\}/g, userA) }}
                 </p>
               </div>
 

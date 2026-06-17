@@ -31,48 +31,89 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// --- 3-Level structure ---
+// --- 3-Level structure with generateLevel() ---
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    name: 'Oneven Knopen',
-    instruction: 'Kijk naar deze graaf (het "huisje"). Kan je deze tekenen zonder je pen op te heffen en zonder over dezelfde lijn te gaan? Bepaal eerst hoeveel knopen een oneven graad hebben.',
-    type: 'euler',
-    correctOddNodes: 2,
-    correctHasPath: 'Ja',
-    successFeedback: 'Perfect! Omdat er exact 2 knopen met een oneven graad zijn, is er een Eulerpad mogelijk.',
-    errorFeedbackOdd: 'Tel de graden opnieuw. Hoeveel knopen hebben 1, 3, of 5 verbindingen?',
-    errorFeedbackConclusion: 'Het aantal oneven knopen klopt, maar je conclusie is fout. De stelling van Euler zegt dat er een pad is bij 0 of 2 oneven knopen.'
-  },
-  {
-    name: 'Graad Topknoop',
-    instruction: 'Bekijk dezelfde graaf. Wat is de graad van de topknoop (roze)? Met hoeveel andere knopen is deze verbonden?',
-    type: 'single-number',
-    correctAnswer: 2,
-    successFeedback: 'Juist! De topknoop heeft graad 2: hij is verbonden met de linker- en rechterknoop van het "dak".',
-    errorFeedback: 'Niet juist. Tel het aantal bogen dat vertrekt vanuit de roze knoop bovenaan.'
-  },
-  {
-    name: 'Aantal Bogen',
-    instruction: 'Bekijk dezelfde graaf. Hoeveel bogen (lijnen) bevat deze graaf in totaal? Tel alle verbindingslijnen.',
-    type: 'single-number',
-    correctAnswer: 8,
-    successFeedback: 'Helemaal juist! De graaf bevat 8 bogen. Je kan ook de som van alle graden delen door 2: 16/2 = 8.',
-    errorFeedback: 'Niet juist. Tel het aantal lijnen één voor één. Vergeet de diagonalen en daklijnen niet.'
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateLevel(lvl) {
+  // Euler path graph is fixed ("huisje") but we vary questions
+  if (lvl === 0) {
+    return {
+      name: 'Oneven Knopen',
+      type: 'euler',
+      instruction: 'Kijk naar deze graaf (het "huisje"). Kan je deze tekenen zonder je pen op te heffen en zonder over dezelfde lijn te gaan? Bepaal eerst hoeveel knopen een oneven graad hebben.',
+      correctOddNodes: 2,
+      correctHasPath: 'Ja',
+      successFeedback: 'Perfect! Omdat er exact 2 knopen met een oneven graad zijn, is er een Eulerpad mogelijk.',
+      errorFeedbackOdd: 'Tel de graden opnieuw. Hoeveel knopen hebben 1, 3, of 5 verbindingen?',
+      errorFeedbackConclusion: 'Het aantal oneven knopen klopt, maar je conclusie is fout. De stelling van Euler zegt dat er een pad is bij 0 of 2 oneven knopen.'
+    }
+  } else if (lvl === 1) {
+    // Vary which node's degree is asked
+    const colors = ['roze', 'blauw', 'geel']
+    const nodesByColor = [
+      { node: 'top', color: 'roze', correct: 2 },
+      { node: 'links-midden', color: 'blauw', correct: 4 },
+      { node: 'rechtsonder', color: 'geel', correct: 3 }
+    ]
+    const chosen = nodesByColor[randInt(0, nodesByColor.length - 1)]
+    return {
+      name: 'Graad Bepalen',
+      type: 'single-number',
+      instruction: 'Bekijk dezelfde graaf. Wat is de graad van de ' + chosen.color + 'e knoop' + (chosen.node === 'top' ? ' (bovenaan)' : chosen.node === 'links-midden' ? ' (links in het midden)' : ' (rechts onder)') + '? Met hoeveel andere knopen is deze verbonden?',
+      correctAnswer: chosen.correct,
+      successFeedback: 'Juist! De ' + chosen.color + 'e knoop heeft graad ' + chosen.correct + '.',
+      errorFeedback: 'Niet juist. Tel het aantal bogen dat vertrekt vanuit de ' + chosen.color + 'e knoop.'
+    }
+  } else {
+    return {
+      name: 'Aantal Bogen',
+      type: 'single-number',
+      instruction: 'Bekijk dezelfde graaf. Hoeveel bogen (lijnen) bevat deze graaf in totaal? Tel alle verbindingslijnen.',
+      correctAnswer: 8,
+      successFeedback: 'Helemaal juist! De graaf bevat 8 bogen. Je kan ook de som van alle graden delen door 2: 16/2 = 8.',
+      errorFeedback: 'Niet juist. Tel het aantal lijnen &eacute;&eacute;n voor &eacute;&eacute;n. Vergeet de diagonalen en daklijnen niet.'
+    }
   }
-]
+}
 
-const currentLevel = computed(() => levels[currentInternalLevel.value])
+function generateLevels() {
+  const arr = []
+  for (let i = 0; i < totalInternalLevels; i++) {
+    arr.push(generateLevel(i))
+  }
+  levels.value = arr
+}
+
+const currentLevel = computed(() => levels.value[currentInternalLevel.value])
 const currentInstruction = computed(() => currentLevel.value.instruction || props.instruction)
 
 const userOdd = ref('')
 const userHasPath = ref(null)
 const userAnswer = ref('')
 
+function getHint() {
+  const c = attemptCount.value
+  if (currentInternalLevel.value === 0) {
+    if (c === 1) return 'Hint: De graad van een knoop is het aantal lijnen dat eraan vastzit. Tel voor elke knoop.'
+    if (c === 2) return 'Hint: De topknoop heeft graad 2. De linkse en rechtse middenknopen hebben graad 4. De onderste knopen hebben graad 3. Hoeveel zijn er oneven?'
+    return 'Hint: Twee knopen hebben een oneven graad: de twee onderste (graad 3). De andere drie zijn even.'
+  }
+  if (c === 1) return 'Hint: Tel de bogen die vertrekken uit de gevraagde knoop.'
+  if (c === 2) return 'Hint: Kijk in de tekening naar de knoop in kwestie. Volg elke lijn die eruit komt.'
+  return 'Hint: Het antwoord is een klein geheel getal. Tel opnieuw vanuit de knoop.'
+}
+
 function resetActivityState() {
+  generateLevels()
+  attemptCount.value = 0
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
@@ -102,16 +143,18 @@ function checkAnswer() {
         text: level.successFeedback
       }
     } else if (parseInt(userOdd.value) !== level.correctOddNodes) {
+      attemptCount.value++
       isCorrect.value = false
       feedback.value = {
         type: 'error',
-        text: level.errorFeedbackOdd
+        text: level.errorFeedbackOdd + '<br/><br/>' + getHint()
       }
     } else {
+      attemptCount.value++
       isCorrect.value = false
       feedback.value = {
         type: 'error',
-        text: level.errorFeedbackConclusion
+        text: level.errorFeedbackConclusion + '<br/><br/>' + getHint()
       }
     }
   } else {
@@ -122,10 +165,11 @@ function checkAnswer() {
         text: level.successFeedback
       }
     } else {
+      attemptCount.value++
       isCorrect.value = false
       feedback.value = {
         type: 'error',
-        text: level.errorFeedback
+        text: level.errorFeedback + '<br/><br/>' + getHint()
       }
     }
   }
@@ -218,7 +262,7 @@ onUnmounted(() => {
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
 
-              <!-- Level 1: Euler path analysis (current activity) -->
+              <!-- Level 1: Euler path analysis -->
               <template v-if="currentInternalLevel === 0">
                 <div>
                   <label class="block mb-2 text-sm font-bold text-slate-700">1. Aantal knopen met ONEVEN graad:</label>
@@ -240,10 +284,10 @@ onUnmounted(() => {
                 </div>
               </template>
 
-              <!-- Level 2: Degree of top node -->
+              <!-- Level 2: Degree of a node -->
               <template v-else-if="currentInternalLevel === 1">
                 <div>
-                  <label class="block mb-2 text-sm font-bold text-slate-700">Wat is de graad van de topknoop (roze)?</label>
+                  <label class="block mb-2 text-sm font-bold text-slate-700">Wat is de graad van de gevraagde knoop?</label>
                   <input type="number" v-model="userAnswer"
                          class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-orange-500 transition-colors"
                          placeholder="Graad = ?">
@@ -265,14 +309,14 @@ onUnmounted(() => {
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
-                 class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+                 class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
                    'bg-blue-100 text-blue-800': feedback.type === 'info',
                  }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
-               <span>{{ feedback.text }}</span>
+               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+               <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -280,6 +324,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
+              <!-- Keep Controleer: number inputs + Ja/Nee click -->
               <button v-if="!isCorrect" @click="checkAnswer"
                       :disabled="isChecked && !isCorrect || (currentInternalLevel === 0 ? (!userOdd || !userHasPath) : !userAnswer)"
                       class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
