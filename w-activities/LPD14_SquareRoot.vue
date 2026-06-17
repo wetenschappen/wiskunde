@@ -258,7 +258,7 @@ onUnmounted(() => {
                       <div class="absolute -left-6 top-1/2 -translate-y-1/2 font-black text-slate-600 transform -rotate-90">{{ sideLength }}</div>
                       <div class="absolute -top-6 left-1/2 -translate-x-1/2 font-black text-slate-600">{{ sideLength }}</div>
 
-                      <svg width="300" height="300" class="block">
+                      <svg viewBox="0 0 300 300" class="w-full max-w-sm h-auto block">
                           <!-- Base grid 10x10 outline -->
                           <g stroke="#e2e8f0" stroke-width="1">
                               <line v-for="i in 9" :key="'v'+i" :x1="i * 30" y1="0" :x2="i * 30" y2="300" />

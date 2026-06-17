@@ -254,7 +254,7 @@ onUnmounted(() => {
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
               <!-- SVG Visualisation of Angle and Protractor -->
-              <svg width="600" height="400" class="bg-white rounded-xl shadow-md border-2 border-slate-200">
+              <svg viewBox="0 0 600 400" class="w-full max-w-lg h-auto bg-white rounded-xl shadow-md border-2 border-slate-200">
 
                   <!-- The Protractor (Geodriehoek) - In background -->
                   <g transform="translate(300, 300) scale(1.5)" opacity="0.6">
