@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhGraph,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,35 +32,55 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// Levels Definition
+// Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Maak de rechte die bij deze tabel hoort.',
-    targetA: 2, targetB: -1,
-    table: [ { x: -1, y: -3 }, { x: 0, y: -1 }, { x: 1, y: 1 }, { x: 2, y: 3 } ],
+const levels = ref([])
+
+function generateLevel() {
+  const newLevels = []
+  // Level 1: small numbers, x=0 included
+  const a1 = pickRandom([0.5, 1, 1.5, 2, -0.5, -1])
+  const b1 = pickRandom([-2, -1, 0, 1, 2])
+  newLevels.push(createLevelData(a1, b1, [-1, 0, 1, 2], 1))
+
+  // Level 2: negative rico possible, wider range
+  const a2 = pickRandom([-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2])
+  const b2 = pickRandom([-4, -3, -2, -1, 0, 1, 2, 3, 4])
+  newLevels.push(createLevelData(a2, b2, [-2, 0, 2, 4], 2))
+
+  // Level 3: x=0 not in table, must calculate b
+  const a3 = pickRandom([-3, -2.5, -2, -1.5, 1.5, 2, 2.5, 3])
+  const b3 = pickRandom([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
+  newLevels.push(createLevelData(a3, b3, [2, 4, 6, 8], 3))
+
+  levels.value = newLevels
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function createLevelData(a, b, xValues, level) {
+  const table = xValues.map(x => ({ x, y: a * x + b }))
+  const goalText = level === 1
+    ? 'Opdracht 1: Maak de rechte die bij deze tabel hoort.'
+    : level === 2
+      ? 'Opdracht 2: Let op, de rechte daalt nu!'
+      : 'Opdracht 3: De y-as snijding (x=0) staat niét in de tabel! Je moet b berekenen of aflezen.'
+  return {
+    goalText,
+    targetA: a,
+    targetB: b,
+    table,
     hintA: 'De rico (a) klopt nog niet. Kijk naar de tabel: hoeveel stijgt y als x met 1 toeneemt?',
     hintB: 'Het snijpunt met de y-as (b) klopt niet. Waar snijdt de rode stip de y-as (x=0)?'
-  },
-  {
-    goalText: 'Opdracht 2: Let op, de rechte daalt nu!',
-    targetA: -1, targetB: 3,
-    table: [ { x: -2, y: 5 }, { x: 0, y: 3 }, { x: 2, y: 1 }, { x: 4, y: -1 } ],
-    hintA: 'De grafiek daalt. De parameter "a" moet dus negatief zijn. Kijk hoeveel y afneemt als x met 1 toeneemt.',
-    hintB: 'Je snijpunt met de y-as (b) is fout. Wat is y als x gelijk is aan 0 in de tabel?'
-  },
-  {
-    goalText: 'Opdracht 3: De y-as snijding (x=0) staat niét in de tabel! Je moet b berekenen of aflezen.',
-    targetA: 0.5, targetB: -2,
-    table: [ { x: 2, y: -1 }, { x: 4, y: 0 }, { x: 6, y: 1 }, { x: 8, y: 2 } ],
-    hintA: 'De rico klopt niet. Als x met 2 toeneemt, stijgt y met 1. Wat is dan de stijging per 1 eenheid?',
-    hintB: 'De rico (a) klopt, maar b nog niet. Schuif de lijn omhoog of omlaag tot hij precies door de stippen gaat.'
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Interactive State
 const a = ref(1)
@@ -72,28 +92,22 @@ function resetActivityState() {
   feedback.value = { type: 'info', text: 'Pas a (helling) en b (hoogte) aan om de grafiek te fitten.' };
   a.value = 1;
   b.value = 0;
+  attemptCount.value = 0;
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  const target = currentLevelData.value;
-
+// Auto-correct when sliders match target
+watch([a, b], () => {
+  if (isCorrect.value) return
+  const target = currentLevelData.value
   if (a.value === target.targetA && b.value === target.targetB) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Juist! Je hebt het wiskundige verband tussen de tabel (punten) en de grafiek (lijn) perfect omgezet in een formule.' 
-    }
-  } else {
-    isCorrect.value = false
-    
-    if (a.value !== target.targetA) {
-      feedback.value = { type: 'error', text: target.hintA }
-    } else {
-      feedback.value = { type: 'error', text: target.hintB }
+    isChecked.value = true
+    feedback.value = {
+      type: 'success',
+      text: 'Juist! Je hebt het wiskundige verband tussen de tabel (punten) en de grafiek (lijn) perfect omgezet in een formule.'
     }
   }
-}
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -111,6 +125,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -154,9 +169,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -167,14 +182,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -187,13 +202,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
-              
+
               <div class="text-center bg-white p-4 border border-slate-200 rounded-xl shadow-sm">
                 <p class="font-mono text-2xl font-black text-indigo-600">
                   f(x) = <span class="text-rose-500">{{ a }}</span>x {{ b >= 0 ? '+ ' + b : '- ' + Math.abs(b) }}
@@ -214,7 +229,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -229,11 +244,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
+
+              <button v-if="!isCorrect" @click="resetActivityState" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
+                Probeer opnieuw
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -244,9 +259,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex flex-col md:flex-row items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
-              
+
               <!-- The Table -->
               <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden text-center z-10 w-48 shrink-0">
                 <div class="flex bg-slate-800 text-white font-bold text-lg">
@@ -273,11 +288,11 @@ onUnmounted(() => {
 
                 <!-- The User's Graph of f(x) = ax + b -->
                 <line x1="-8" :y1="-(a * -8 + b)" x2="8" :y2="-(a * 8 + b)" stroke="#4f46e5" stroke-width="0.3" stroke-linecap="round" class="transition-all duration-300" />
-                
+
                 <!-- Target Points from table -->
                 <circle v-for="row in currentLevelData.table" :key="'pt-'+row.x"
                         :cx="row.x" :cy="-row.y" r="0.3" fill="#f43f5e" class="shadow-sm" />
-                
+
               </svg>
 
             </div>

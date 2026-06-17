@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhMagnifyingGlass,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -34,26 +34,51 @@ const feedback = ref({ type: 'info', text: '' })
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
-  {
-    f_str: 'f(x) = 2x - 4', f: (x) => 2 * x - 4,
-    root: 2,
-    signLeft: '-', signRight: '+'
-  },
-  {
-    f_str: 'f(x) = -x + 3', f: (x) => -x + 3,
-    root: 3,
-    signLeft: '+', signRight: '-'
-  },
-  {
-    f_str: 'f(x) = 0.5x + 2', f: (x) => 0.5 * x + 2,
-    root: -4,
-    signLeft: '-', signRight: '+'
+const levels = ref([])
+
+function generateLevel() {
+  const newLevels = []
+
+  // Level 1: simple integer a, b
+  const a1 = pickRandom([1, 2, -1, -2])
+  const b1 = pickRandom([-6, -4, -3, -2, 2, 3, 4, 6])
+  newLevels.push(createFunctionLevel(a1, b1))
+
+  // Level 2: half steps (±0.5)
+  const a2 = pickRandom([0.5, 1, 1.5, 2, -0.5, -1, -1.5, -2])
+  const b2 = pickRandom([-6, -4, -3, -2, -1, 1, 2, 3, 4, 6])
+  newLevels.push(createFunctionLevel(a2, b2))
+
+  // Level 3: more variety
+  const a3 = pickRandom([-3, -2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5, 3])
+  const b3 = pickRandom([-8, -6, -5, -4, -3, 3, 4, 5, 6, 8])
+  newLevels.push(createFunctionLevel(a3, b3))
+
+  levels.value = newLevels
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function createFunctionLevel(a, b) {
+  const root = -b / a
+  const f_str = Number.isInteger(a) ? (a === 1 ? 'x' : a === -1 ? '-x' : a + 'x') : a + 'x'
+  const bStr = b >= 0 ? (b === 0 ? '' : ' + ' + b) : ' - ' + Math.abs(b)
+  const signLeft = a > 0 ? '-' : '+'
+  const signRight = a > 0 ? '+' : '-'
+  return {
+    f_str: 'f(x) = ' + f_str + bStr,
+    f: (x) => a * x + b,
+    root,
+    signLeft,
+    signRight
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 const scanX = ref(0)
 const userSignLeft = ref('')
@@ -76,27 +101,41 @@ function resetActivityState() {
   scanX.value = 0;
   userSignLeft.value = '';
   userSignRight.value = '';
+  attemptCount.value = 0;
 }
 
 function checkAnswer() {
   isChecked.value = true;
+  attemptCount.value++;
   const target = currentLevelData.value;
-  
+
   const rootCorrect = scanX.value === target.root;
   const signsCorrect = userSignLeft.value === target.signLeft && userSignRight.value === target.signRight;
 
   if (rootCorrect && signsCorrect) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect! De nulwaarde en het bijbehorende tekenschema kloppen helemaal.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Perfect! De nulwaarde en het bijbehorende tekenschema kloppen helemaal.'
     }
   } else if (!rootCorrect) {
     isCorrect.value = false
-    feedback.value = { type: 'error', text: 'De nulwaarde klopt niet. Een nulwaarde is de x-coördinaat waar de grafiek de x-as (y=0) snijdt.' }
+    if (attemptCount.value >= 3) {
+      feedback.value = { type: 'error', text: `De nulwaarde is het x-getal waarvoor f(x)=0. Los ${target.f_str} = 0 op. x = ${target.root}.` }
+    } else if (attemptCount.value >= 2) {
+      feedback.value = { type: 'error', text: 'Een nulwaarde is de x-coördinaat waar de grafiek de x-as (y=0) snijdt. Waar gebeurt dat?' }
+    } else {
+      feedback.value = { type: 'error', text: 'De nulwaarde klopt niet. Een nulwaarde is de x-coördinaat waar de grafiek de x-as (y=0) snijdt.' }
+    }
   } else {
     isCorrect.value = false
-    feedback.value = { type: 'error', text: 'De nulwaarde klopt, maar de plus/min tekens zijn fout. Ligt de grafiek vóór de nulwaarde onder (-) of boven (+) de x-as?' }
+    if (attemptCount.value >= 3) {
+      feedback.value = { type: 'error', text: `De nulwaarde (x=${target.root}) klopt. De tekens: vóór de nulwaarde is f(x) ${target.signLeft}, erna is f(x) ${target.signRight}. Kijk naar de grafiek: ligt ze boven (+) of onder (-) de x-as?` }
+    } else if (attemptCount.value >= 2) {
+      feedback.value = { type: 'error', text: `De nulwaarde klopt. Maar kijk naar de grafiek: aan de linkerkant van de nulwaarde, ligt f(x) boven of onder de x-as?` }
+    } else {
+      feedback.value = { type: 'error', text: 'De nulwaarde klopt, maar de plus/min tekens zijn fout. Ligt de grafiek vóór de nulwaarde onder (-) of boven (+) de x-as?' }
+    }
   }
 }
 
@@ -116,6 +155,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -159,9 +199,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -172,14 +212,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -192,9 +232,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
-              
+
               <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
                  <span class="font-bold text-slate-700">Functie: </span>
                  <span class="font-mono font-black text-xl text-teal-600 ml-2">{{ currentLevelData.f_str }}</span>
@@ -240,7 +280,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -255,11 +295,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userSignLeft || !userSignRight" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -270,9 +310,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="450" height="450" viewBox="-8 -8 16 16" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10">
                 <!-- Grid Lines -->
@@ -292,17 +332,17 @@ onUnmounted(() => {
                 <!-- Axes -->
                 <line x1="-8" y1="0" x2="8" y2="0" stroke="#64748b" stroke-width="0.2" />
                 <line x1="0" y1="-8" x2="0" y2="8" stroke="#64748b" stroke-width="0.2" />
-                
+
                 <!-- The Graph -->
                 <line x1="-8" :y1="-currentLevelData.f(-8)" x2="8" :y2="-currentLevelData.f(8)" stroke="#0d9488" stroke-width="0.3" stroke-linecap="round" />
-                
+
                 <!-- Scanner Line -->
                 <line :x1="scanX" y1="-8" :x2="scanX" y2="8" stroke="#f97316" stroke-width="0.2" stroke-dasharray="0.3" class="transition-all duration-150" />
                 <circle :cx="scanX" cy="0" r="0.3" fill="#f97316" class="transition-all duration-150 shadow-sm" />
-                
+
                 <!-- Correct highlight -->
                 <circle v-if="isCorrect" :cx="currentLevelData.root" cy="0" r="0.5" fill="#f97316" class="animate-pulse" />
-                
+
               </svg>
 
             </div>

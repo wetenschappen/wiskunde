@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhTarget,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -35,31 +35,76 @@ const feedback = ref({ type: 'info', text: '' })
 // Levels Definition
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
-  {
-    f_str: 'f(x) = x + 1', f: (x) => x + 1,
-    g_str: 'g(x) = -x + 3', g: (x) => -x + 3,
-    hasIntersection: true, intersectionX: 1,
-    goalText: 'Opdracht 1: Vind het exacte snijpunt op de x-as.'
-  },
-  {
-    f_str: 'f(x) = 0.5x - 2', f: (x) => 0.5 * x - 2,
-    g_str: 'g(x) = -2x + 3', g: (x) => -2 * x + 3,
-    hasIntersection: true, intersectionX: 2,
-    goalText: 'Opdracht 2: Zoek het snijpunt van deze twee rechten.'
-  },
-  {
-    f_str: 'f(x) = 2x + 1', f: (x) => 2 * x + 1,
-    g_str: 'g(x) = 2x - 3', g: (x) => 2 * x - 3,
-    hasIntersection: false, intersectionX: null,
-    goalText: 'Opdracht 3: Valstrik! Zoek het snijpunt... als dat er is.'
+const levels = ref([])
+
+function generateLevel() {
+  const newLevels = []
+
+  // Level 1: simple integer intersection
+  let a1, b1, a2, b2, ix
+  do {
+    a1 = pickRandom([0.5, 1, 1.5, 2, -0.5, -1])
+    b1 = pickRandom([-3, -2, -1, 0, 1, 2, 3])
+    a2 = pickRandom([-2, -1.5, -1, -0.5, 0.5, 1, 1.5])
+    b2 = pickRandom([-3, -2, -1, 0, 1, 2, 3])
+    if (a1 !== a2) {
+      ix = (b2 - b1) / (a1 - a2)
+    }
+  } while (a1 === a2 || !Number.isInteger(ix) || ix < -4 || ix > 4)
+  newLevels.push(makeFunctionLevel(a1, b1, a2, b2, true, ix, 'Opdracht 1: Vind het exacte snijpunt op de x-as.'))
+
+  // Level 2: intersection at non-integer or wider range
+  do {
+    a1 = pickRandom([0.5, 1, 2, -1, -2])
+    b1 = pickRandom([-4, -3, -2, -1, 0, 1, 2, 3, 4])
+    a2 = pickRandom([-2, -1.5, -1, -0.5, 0.5, 1.5, 2])
+    b2 = pickRandom([-4, -3, -2, -1, 0, 1, 2, 3, 4])
+    if (a1 !== a2) {
+      ix = (b2 - b1) / (a1 - a2)
+    }
+  } while (a1 === a2 || !Number.isInteger(ix) || ix < -4 || ix > 4)
+  newLevels.push(makeFunctionLevel(a1, b1, a2, b2, true, ix, 'Opdracht 2: Zoek het snijpunt van deze twee rechten.'))
+
+  // Level 3: parallel lines (no intersection) — always
+  const aPar = pickRandom([1, 1.5, 2, -1, -2])
+  const b1Par = pickRandom([-3, -2, -1, 0, 1, 2, 3])
+  let b2Par
+  do { b2Par = pickRandom([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]) } while (b2Par === b1Par)
+  newLevels.push(makeFunctionLevel(aPar, b1Par, aPar, b2Par, false, null, 'Opdracht 3: Valstrik! Zoek het snijpunt... als dat er is.'))
+
+  levels.value = newLevels
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function makeFunctionLevel(a1, b1, a2, b2, hasIntersection, ix, goalText) {
+  const fStr = formatFn(a1, b1, 'f')
+  const gStr = formatFn(a2, b2, 'g')
+  return {
+    f_str: fStr,
+    f: (x) => a1 * x + b1,
+    g_str: gStr,
+    g: (x) => a2 * x + b2,
+    hasIntersection,
+    intersectionX: ix,
+    goalText
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function formatFn(a, b, label) {
+  const aPart = a === 1 ? '' : a === -1 ? '-' : a
+  const aStr = a === 0 ? '' : aPart + 'x'
+  const bStr = b > 0 ? ' + ' + b : b < 0 ? ' - ' + Math.abs(b) : ''
+  return label + '(x) = ' + aStr + bStr
+}
 
-const scanX = ref(-4) // Slider controls this from -5 to 5
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
+
+const scanX = ref(-4)
 const userClaimsNoIntersection = ref(false)
 
 const y1 = computed(() => currentLevelData.value.f(scanX.value))
@@ -72,6 +117,7 @@ function resetActivityState() {
   feedback.value = { type: 'info', text: 'Gebruik de slider om de rode en blauwe stippen op elkaar te laten vallen.' };
   scanX.value = -4;
   userClaimsNoIntersection.value = false;
+  attemptCount.value = 0;
 }
 
 function toggleNoIntersection() {
@@ -82,39 +128,57 @@ function toggleNoIntersection() {
 
 function checkAnswer() {
   isChecked.value = true;
+  attemptCount.value++;
   const target = currentLevelData.value;
 
   if (!target.hasIntersection) {
     if (userClaimsNoIntersection.value) {
       isCorrect.value = true
-      feedback.value = { type: 'success', text: 'Geweldig inzicht! De rechten hebben dezelfde richtingscoëfficiënt (a=2). Ze zijn evenwijdend, dus het stelsel is strijdig (geen oplossing).' }
+      feedback.value = { type: 'success', text: 'Geweldig inzicht! De rechten hebben dezelfde richtingscoëfficiënt. Ze zijn evenwijdend, dus het stelsel is strijdig (geen oplossing).' }
     } else {
       isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Je zoekt een snijpunt, maar kijk eens goed naar de richtingscoëfficiënt van beide functies. Zullen deze rechten elkaar ooit snijden?' }
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: `Kijk naar de richtingscoëfficiënten: ${currentLevelData.value.f_str} en ${currentLevelData.value.g_str}. De a-waarde is gelijk, dus de lijnen zijn evenwijdig. Ze snijden elkaar NOOIT. Geef aan: "Er is géén snijpunt".` }
+      } else if (attemptCount.value >= 2) {
+        feedback.value = { type: 'error', text: 'Je zoekt een snijpunt, maar kijk eens goed naar de richtingscoëfficiënt van beide functies. Zullen deze rechten elkaar ooit snijden?' }
+      } else {
+        feedback.value = { type: 'error', text: 'Je zoekt een snijpunt, maar kijk eens goed naar de richtingscoëfficiënt van beide functies. Zullen deze rechten elkaar ooit snijden?' }
+      }
     }
     return;
   }
 
-  // It has an intersection
   if (userClaimsNoIntersection.value) {
     isCorrect.value = false
-    feedback.value = { type: 'error', text: 'Je zegt dat er geen snijpunt is, maar de lijnen lopen niet perfect evenwijdig! Blijf zoeken met je scanner.' }
+    if (attemptCount.value >= 3) {
+      feedback.value = { type: 'error', text: 'De lijnen hebben verschillende richtingscoëfficiënten, dus ze snijden elkaar wél. Blijf de scanner verschuiven tot de stippen overlappen.' }
+    } else {
+      feedback.value = { type: 'error', text: 'Je zegt dat er geen snijpunt is, maar de lijnen lopen niet perfect evenwijdig! Blijf zoeken met je scanner.' }
+    }
     return;
   }
 
   if (scanX.value === target.intersectionX) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: `Bingo! Het snijpunt ligt perfect bij x = ${target.intersectionX}. Daar is f(x) = g(x).` 
+    feedback.value = {
+      type: 'success',
+      text: `Bingo! Het snijpunt ligt perfect bij x = ${target.intersectionX}. Daar is f(x) = g(x).`
     }
   } else {
     isCorrect.value = false
-    
+
     if (dist.value < 1) {
-      feedback.value = { type: 'error', text: 'Oeh, heel warm! De stippen zijn bijna samen, maar nog net niet exact.'}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: `Bijna! Het juiste snijpunt is x = ${target.intersectionX}. Zet de scanner daarop.` }
+      } else {
+        feedback.value = { type: 'error', text: 'Oeh, heel warm! De stippen zijn bijna samen, maar nog net niet exact.' }
+      }
     } else {
-      feedback.value = { type: 'error', text: `Niet juist. Bij x = ${scanX.value} is het verschil tussen de lijnen ${dist.value.toFixed(1)}. Je zoekt naar een verschil van 0.`}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: `Het snijpunt is bij x = ${target.intersectionX}. Gebruik de scanner om daar te komen.` }
+      } else {
+        feedback.value = { type: 'error', text: `Niet juist. Bij x = ${scanX.value} is het verschil tussen de lijnen ${dist.value.toFixed(1)}. Je zoekt naar een verschil van 0.` }
+      }
     }
   }
 }
@@ -135,6 +199,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -178,9 +243,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -191,14 +256,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -211,13 +276,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
-              
+
               <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm space-y-2">
                 <p class="text-blue-600 font-bold">{{ currentLevelData.f_str }}</p>
                 <p class="text-emerald-600 font-bold">{{ currentLevelData.g_str }}</p>
@@ -230,9 +295,9 @@ onUnmounted(() => {
                   <span>-5</span><span>0</span><span>5</span>
                 </div>
               </div>
-              
+
               <div class="pt-4 border-t border-slate-200 text-center">
-                 <button @click="toggleNoIntersection" 
+                 <button @click="toggleNoIntersection"
                          class="px-4 py-2 border-2 rounded-lg font-bold text-sm transition-all shadow-sm"
                          :class="userClaimsNoIntersection ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'">
                    Er is géén snijpunt (Strijdig)
@@ -243,7 +308,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -258,11 +323,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
                 Controleer
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -273,9 +338,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="450" height="450" viewBox="-6 -6 12 12" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300 z-10">
                 <!-- Grid Lines -->
@@ -290,23 +355,23 @@ onUnmounted(() => {
 
                 <!-- Graph of f(x) -->
                 <line x1="-6" :y1="-currentLevelData.f(-6)" x2="6" :y2="-currentLevelData.f(6)" stroke="#2563eb" stroke-width="0.3" stroke-linecap="round" />
-                
+
                 <!-- Graph of g(x) -->
                 <line x1="-6" :y1="-currentLevelData.g(-6)" x2="6" :y2="-currentLevelData.g(6)" stroke="#10b981" stroke-width="0.3" stroke-linecap="round" />
-                
+
                 <!-- Scanner Line -->
                 <line v-if="!userClaimsNoIntersection" :x1="scanX" y1="-6" :x2="scanX" y2="6" stroke="#f97316" stroke-width="0.2" stroke-dasharray="0.3" class="transition-all duration-150" />
-                
+
                 <!-- Dot on f(x) -->
                 <circle v-if="!userClaimsNoIntersection" :cx="scanX" :cy="-y1" r="0.2" fill="#2563eb" class="transition-all duration-150" />
                 <!-- Dot on g(x) -->
                 <circle v-if="!userClaimsNoIntersection" :cx="scanX" :cy="-y2" r="0.2" fill="#10b981" class="transition-all duration-150" />
-                
+
                 <!-- Visual Error Connector (Distance between dots) -->
-                <line v-if="!userClaimsNoIntersection && scanX !== currentLevelData.intersectionX && !isCorrect" :x1="scanX" :y1="-y1" :x2="scanX" :y2="-y2" stroke="#ef4444" stroke-width="0.1" stroke-dasharray="0.2" class="transition-all duration-150" />
-                
+                <line v-if="!userClaimsNoIntersection && !isCorrect" :x1="scanX" :y1="-y1" :x2="scanX" :y2="-y2" stroke="#ef4444" stroke-width="0.1" stroke-dasharray="0.2" class="transition-all duration-150" />
+
                 <!-- Highlight intersection if correct -->
-                <circle v-if="isCorrect && currentLevelData.hasIntersection && !userClaimsNoIntersection" :cx="currentLevelData.intersectionX" :cy="-currentLevelData.f(currentLevelData.intersectionX)" r="0.4" fill="#f97316" class="animate-pulse" />
+                <circle v-if="isCorrect && currentLevelData.hasIntersection" :cx="currentLevelData.intersectionX" :cy="-currentLevelData.f(currentLevelData.intersectionX)" r="0.4" fill="#f97316" class="animate-pulse" />
 
               </svg>
 

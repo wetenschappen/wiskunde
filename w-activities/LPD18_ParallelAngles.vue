@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhLines, PhArrowClockwise, PhHandPointing
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Meetkunde: Evenwijdige Rechten' },
-  instruction: { 
-    type: String, 
-    default: 'Als een snijlijn door twee <strong>evenwijdige</strong> rechten snijdt, ontstaan er speciale hoeken (Z-hoeken en F-hoeken) die altijd even groot zijn.<br/><br/><strong>Opdracht:</strong> Draai de snijlijn met de slider. Zoek het gevraagde hoekenpaar en klik de twee juiste hoeken aan.' 
+  instruction: {
+    type: String,
+    default: 'Als een snijlijn door twee <strong>evenwijdige</strong> rechten snijdt, ontstaan er speciale hoeken (Z-hoeken en F-hoeken) die altijd even groot zijn.<br/><br/><strong>Opdracht:</strong> Draai de snijlijn met de slider. Zoek het gevraagde hoekenpaar en klik de twee juiste hoeken aan.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,51 +23,63 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Selecteer exact twee hoeken die het gevraagde hoekenpaar vormen.' })
+const attemptCount = ref(0)
 
-// Level Logic
+// Level Logic — dynamically generated
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levels = ref([])
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Zoek een Z-hoek (Verwisselende Binnenhoeken)',
-    checkFn: (a, b) => (a === 3 && b === 6) || (a === 4 && b === 5),
-    errorF: 'Je hebt een F-hoek (overeenkomstig) gevonden. Die zijn gelijk, maar de opdracht vroeg om een Z-hoek.',
-    errorX: 'Dit zijn overstaande hoeken (X-hoeken). Ze liggen op hetzelfde snijpunt. Je moet het bovenste met het onderste punt verbinden.',
-    hint: 'Kijk naar de binnenkant tussen de twee evenwijdige lijnen. Vormen de hoeken een Z-patroon over de snijlijn?',
-    successMsg: 'Perfect! Een Z-hoek (verwisselende binnenhoeken). Hoe je de snijlijn ook draait, ze blijven gelijk.'
-  },
-  {
-    goalText: 'Opdracht 2: Zoek een F-hoek (Overeenkomstige Hoeken)',
-    checkFn: (a, b) => (a === 1 && b === 5) || (a === 2 && b === 6) || (a === 3 && b === 7) || (a === 4 && b === 8),
-    errorZ: 'Je hebt een Z-hoek gevonden. We zoeken nu een F-hoek!',
-    errorX: 'Dit zijn overstaande hoeken. Kies er één van het bovenste snijpunt en de overeenkomstige op dezelfde plek bij het onderste.',
-    hint: 'Stel je voor dat je de 4 hoeken bovenaan oppakt en naar onderen schuift. Welke vallen dan perfect op elkaar? Dat zijn F-hoeken.',
-    successMsg: 'Uitstekend! F-hoeken liggen op precies dezelfde relatieve positie bij hun snijpunt.'
-  },
-  {
-    goalText: 'Opdracht 3: Zoek een X-hoek (Overstaande Hoeken)',
-    checkFn: (a, b) => (a === 1 && b === 4) || (a === 2 && b === 3) || (a === 5 && b === 8) || (a === 6 && b === 7),
-    errorZ: 'Dit is een Z-hoek. We zoeken nu X-hoeken (bij hetzelfde snijpunt).',
-    errorF: 'Dit is een F-hoek. We zoeken nu X-hoeken (bij hetzelfde snijpunt).',
-    hint: 'X-hoeken (overstaande) liggen kruiselings tegenover elkaar op 1 enkel snijpunt.',
-    successMsg: 'Heel goed. Overstaande hoeken zijn een basisgegeven bij élk snijpunt van twee lijnen.'
-  }
-]
+function generateLevel() {
+  const zPairs = [[3, 6], [4, 5]]
+  const fPairs = [[1, 5], [2, 6], [3, 7], [4, 8]]
+  const xPairs = [[1, 4], [2, 3], [5, 8], [6, 7]]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  const zPick = zPairs[Math.floor(Math.random() * zPairs.length)]
+  const fPick = fPairs[Math.floor(Math.random() * fPairs.length)]
+  const xPick = xPairs[Math.floor(Math.random() * xPairs.length)]
+
+  const zA = zPick[0], zB = zPick[1]
+  const fA = fPick[0], fB = fPick[1]
+  const xA = xPick[0], xB = xPick[1]
+
+  return [
+    {
+      goalText: 'Opdracht 1: Zoek een Z-hoek (Verwisselende Binnenhoeken)',
+      targetA: zA, targetB: zB,
+      hint: 'Kijk naar de binnenkant tussen de twee evenwijdige lijnen. Vormen de hoeken een Z-patroon over de snijlijn?',
+      hint2: 'Een Z-hoek verbindt het ene snijpunt met het andere via de "binnenkant". Hoek ' + zA + ' en hoek ' + zB + ' vormen samen een Z.',
+      hint3: 'Klik op hoek ' + zA + ' en hoek ' + zB + '.',
+      successMsg: 'Perfect! Een Z-hoek (verwisselende binnenhoeken). Hoe je de snijlijn ook draait, ze blijven gelijk.'
+    },
+    {
+      goalText: 'Opdracht 2: Zoek een F-hoek (Overeenkomstige Hoeken)',
+      targetA: fA, targetB: fB,
+      hint: 'Stel je voor dat je de 4 hoeken bovenaan oppakt en naar onderen schuift. Welke vallen dan perfect op elkaar? Dat zijn F-hoeken.',
+      hint2: 'F-hoeken staan op dezelfde positie bij elk snijpunt. Hoek ' + fA + ' en hoek ' + fB + ' zijn een F-hoek.',
+      hint3: 'Klik op hoek ' + fA + ' en hoek ' + fB + '.',
+      successMsg: 'Uitstekend! F-hoeken liggen op precies dezelfde relatieve positie bij hun snijpunt.'
+    },
+    {
+      goalText: 'Opdracht 3: Zoek een X-hoek (Overstaande Hoeken)',
+      targetA: xA, targetB: xB,
+      hint: 'X-hoeken (overstaande) liggen kruiselings tegenover elkaar op 1 enkel snijpunt.',
+      hint2: 'Overstaande hoeken liggen aan hetzelfde snijpunt, kruiselings. Hoek ' + xA + ' en hoek ' + xB + ' zijn een X-hoek.',
+      hint3: 'Klik op hoek ' + xA + ' en hoek ' + xB + '.',
+      successMsg: 'Heel goed. Overstaande hoeken zijn een basisgegeven bij elk snijpunt van twee lijnen.'
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-const transversalAngle = ref(60) // 30 to 150 degrees
+const transversalAngle = ref(60)
 const selectedAngles = ref([])
-
-// Angle IDs:
-// Top intersection: 1 (TL), 2 (TR), 3 (BL), 4 (BR)
-// Bottom intersection: 5 (TL), 6 (TR), 7 (BL), 8 (BR)
 
 function toggleAngle(id) {
     if (isCorrect.value) return;
-    
+
     const idx = selectedAngles.value.indexOf(id)
     if (idx > -1) {
         selectedAngles.value.splice(idx, 1)
@@ -78,43 +90,63 @@ function toggleAngle(id) {
             selectedAngles.value[1] = id
         }
     }
+
+    // Auto-check when 2 angles selected
+    if (selectedAngles.value.length === 2) {
+        checkMatch();
+    }
 }
 
-function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Selecteer exact twee hoeken die het gevraagde hoekenpaar vormen.' };
-    transversalAngle.value = 60;
-    selectedAngles.value = [];
-}
-
-function checkAnswer() {
+function checkMatch() {
   isChecked.value = true;
-  
-  if (selectedAngles.value.length !== 2) {
-      isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Je moet exact TWEE hoeken aanklikken om een paar te vormen.'}
-      return
-  }
+
+  if (selectedAngles.value.length !== 2) return;
 
   const [a, b] = selectedAngles.value.sort()
   const data = currentLevelData.value
 
-  const isZAngle = (a === 3 && b === 6) || (a === 4 && b === 5)
-  const isFAngle = (a === 1 && b === 5) || (a === 2 && b === 6) || (a === 3 && b === 7) || (a === 4 && b === 8)
-  const isXAngle = (a === 1 && b === 4) || (a === 2 && b === 3) || (a === 5 && b === 8) || (a === 6 && b === 7)
+  const isMatch = (a === data.targetA && b === data.targetB);
 
-  if (data.checkFn(a, b)) {
+  if (isMatch) {
     isCorrect.value = true
+    attemptCount.value = 0
     feedback.value = { type: 'success', text: data.successMsg }
   } else {
-    isCorrect.value = false
-    
-    if (isZAngle && data.errorZ) feedback.value = { type: 'error', text: data.errorZ }
-    else if (isFAngle && data.errorF) feedback.value = { type: 'error', text: data.errorF }
-    else if (isXAngle && data.errorX) feedback.value = { type: 'error', text: data.errorX }
-    else feedback.value = { type: 'error', text: data.hint }
+    attemptCount.value++
+
+    const isZAngle = (a === 3 && b === 6) || (a === 4 && b === 5)
+    const isFAngle = (a === 1 && b === 5) || (a === 2 && b === 6) || (a === 3 && b === 7) || (a === 4 && b === 8)
+    const isXAngle = (a === 1 && b === 4) || (a === 2 && b === 3) || (a === 5 && b === 8) || (a === 6 && b === 7)
+
+    if (attemptCount.value <= 1) {
+      if (isZAngle) feedback.value = { type: 'error', text: 'Je hebt een Z-hoek gevonden, maar deze opdracht vraagt iets anders.' }
+      else if (isFAngle) feedback.value = { type: 'error', text: 'Je hebt een F-hoek (overeenkomstig) gevonden, maar deze opdracht vraagt iets anders.' }
+      else if (isXAngle) feedback.value = { type: 'error', text: 'Dit zijn overstaande hoeken (X-hoeken). Ze liggen op hetzelfde snijpunt, maar de opdracht vraagt iets anders.' }
+      else feedback.value = { type: 'error', text: data.hint }
+    } else if (attemptCount.value === 2) {
+      feedback.value = { type: 'error', text: data.hint2 }
+    } else {
+      feedback.value = { type: 'error', text: data.hint3 }
+    }
   }
+}
+
+function getAngleType(a, b) {
+  const s = [a, b].sort()
+  if ((s[0] === 3 && s[1] === 6) || (s[0] === 4 && s[1] === 5)) return 'Z'
+  if ((s[0] === 1 && s[1] === 5) || (s[0] === 2 && s[1] === 6) || (s[0] === 3 && s[1] === 7) || (s[0] === 4 && s[1] === 8)) return 'F'
+  if ((s[0] === 1 && s[1] === 4) || (s[0] === 2 && s[1] === 3) || (s[0] === 5 && s[1] === 8) || (s[0] === 6 && s[1] === 7)) return 'X'
+  return null
+}
+
+function resetActivityState() {
+    levels.value = generateLevel();
+    isCorrect.value = false;
+    isChecked.value = false;
+    attemptCount.value = 0;
+    feedback.value = { type: 'info', text: 'Selecteer exact twee hoeken die het gevraagde hoekenpaar vormen.' };
+    transversalAngle.value = 60;
+    selectedAngles.value = [];
 }
 
 function handleNext() {
@@ -156,7 +188,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -167,8 +199,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -184,7 +216,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-teal-50 p-4 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-teal-800">{{ currentLevelData.goalText }}</p>
             </div>
@@ -194,7 +226,7 @@ onUnmounted(() => {
                <div class="font-black text-3xl text-teal-600 mb-4 bg-white px-4 py-2 rounded shadow-sm inline-block border border-teal-200">
                    {{ transversalAngle }}°
                </div>
-               
+
                <div class="flex gap-2">
                    <div v-for="i in 2" :key="i" class="flex-1 h-12 rounded-lg border-2 border-dashed flex items-center justify-center font-bold text-xl transition-all"
                         :class="selectedAngles[i-1] ? 'border-teal-500 bg-teal-100 text-teal-800' : 'border-slate-300 bg-white text-slate-400'">
@@ -211,20 +243,21 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && selectedAngles.length < 2" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Hoeken</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <!-- Auto-correct on 2-angle selection — no check button -->
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1 py-3"></div>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-3xl flex flex-col items-center">
-                  
+
                   <div class="mb-12 w-full max-w-md bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                       <div class="flex w-full justify-between items-end mb-2">
                           <label class="font-bold text-slate-500 uppercase tracking-widest text-xs">Draai de snijlijn</label>
@@ -237,7 +270,7 @@ onUnmounted(() => {
                   <!-- Visualisation Area -->
                   <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8">
                       <svg width="500" height="300" viewBox="0 0 500 300">
-                          
+
                           <!-- Definitions for arrow heads -->
                           <defs>
                               <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -252,19 +285,16 @@ onUnmounted(() => {
                           <!-- Parallel Line 2 (Bottom) -->
                           <line x1="50" y1="200" x2="450" y2="200" stroke="#475569" stroke-width="4" marker-end="url(#arrowhead)" marker-start="url(#arrowhead)" />
                           <text x="30" y="205" font-weight="bold" fill="#64748b">b</text>
-                          
-                          <!-- Group for the Transversal and its angles -->
-                          <!-- Center of rotation for transversal is (250, 150) -->
+
+                          <!-- Group for the Transversal -->
                           <g :transform="`rotate(${transversalAngle - 90}, 250, 150)`">
-                              <!-- Transversal Line -->
                               <line x1="250" y1="0" x2="250" y2="300" stroke="#0ea5e9" stroke-width="4" />
                           </g>
 
                       </svg>
-                      
+
                       <!-- Overlay HTML buttons for angles -->
                       <!-- Intersection Top -->
-                      <!-- X = 250 - 50/tan(a). Y = 100. -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 - 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 100px)' }">
                           <div @click="toggleAngle(1)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(1) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">1</div>
@@ -274,7 +304,6 @@ onUnmounted(() => {
                       </div>
 
                       <!-- Intersection Bottom -->
-                      <!-- X = 250 + 50/tan(a). Y = 200. -->
                       <div class="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2"
                            :style="{ left: `calc(2rem + ${250 + 50/Math.tan(transversalAngle*Math.PI/180)}px)`, top: 'calc(2rem + 200px)' }">
                           <div @click="toggleAngle(5)" class="cursor-pointer flex items-end justify-end p-2 rounded-tl-full hover:bg-teal-500/20 transition-colors" :class="selectedAngles.includes(5) ? 'bg-teal-500/40 text-teal-800' : 'text-slate-500'">5</div>

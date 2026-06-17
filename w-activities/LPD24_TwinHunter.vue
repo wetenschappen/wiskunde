@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMagnifyingGlass, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Congruentie: Vind de Tweeling' },
-  instruction: { 
-    type: String, 
-    default: 'Twee driehoeken zijn congruent (een perfecte tweeling) als ze voldoen aan ZZZ, ZHZ, HZH of ZZ90°.<br/><br/><strong>Opdracht:</strong> Kijk naar de Doel-driehoek. Welke van de 3 opties is de perfecte tweeling? Let op de valstrikken!' 
+  instruction: {
+    type: String,
+    default: 'Twee driehoeken zijn congruent (een perfecte tweeling) als ze voldoen aan ZZZ, ZHZ, HZH of ZZ90°.<br/><br/><strong>Opdracht:</strong> Kijk naar de Doel-driehoek. Welke van de 3 opties is de perfecte tweeling? Let op de valstrikken!'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -27,8 +27,10 @@ const feedback = ref({ type: 'info', text: 'Selecteer een driehoek en het bijbeh
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
+const levelBlueprints = [
+  // Level 1: ZHZ (Zijde-Hoek-Zijde)
   {
     goalText: 'Opdracht 1: Vind de tweeling via ZHZ',
     targetSVG: `
@@ -70,24 +72,21 @@ const levels = [
       isCorrect: false, errorRule: 'HZH', errorMsg: 'Kijk goed naar C! Je hebt maar 1 zijde gegeven (5). De doeldriehoek eist zijden van 5 én 8. Dit is HZH, maar past niet bij het doel.'
     }
   },
+  // Level 2: HZH (Hoek-Zijde-Hoek)
   {
     goalText: 'Opdracht 2: Vind de tweeling via HZH',
     targetSVG: `
       <polygon points="20,130 160,130 70,50" fill="rgba(14, 165, 233, 0.2)" stroke="#0284c7" stroke-width="4" stroke-linejoin="round" />
-      <!-- Base = 10 -->
       <text x="90" y="145" font-weight="bold" fill="#0284c7" text-anchor="middle">10</text>
-      <!-- Left angle 50 -->
       <path d="M 45 130 A 25 25 0 0 0 35 105" fill="none" stroke="#ef4444" stroke-width="3" />
       <text x="45" y="120" font-weight="bold" font-size="12" fill="#ef4444">50°</text>
-      <!-- Right angle 30 -->
       <path d="M 135 130 A 25 25 0 0 1 145 110" fill="none" stroke="#ef4444" stroke-width="3" />
       <text x="125" y="120" font-weight="bold" font-size="12" fill="#ef4444">30°</text>
     `,
-    optA: { // The angle is not connected to the base! ZHH trap!
+    optA: {
       svg: `
         <polygon points="20,130 160,130 70,50" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <text x="90" y="145" font-weight="bold" fill="#64748b" text-anchor="middle">10</text>
-        <!-- Top angle 50 instead of left -->
         <path d="M 60 70 A 15 15 0 0 1 80 70" fill="none" stroke="#ef4444" stroke-width="3" />
         <text x="70" y="85" font-weight="bold" font-size="12" fill="#ef4444">50°</text>
         <path d="M 135 130 A 25 25 0 0 1 145 110" fill="none" stroke="#ef4444" stroke-width="3" />
@@ -95,7 +94,7 @@ const levels = [
       `,
       isCorrect: false, errorRule: 'ZHH', errorMsg: 'Bij Optie A is één van de hoeken (50°) verplaatst naar de top. Ze liggen niet meer aanlüitend aan de zijde van 10. Dit is ZHH (geen geldig basiskenmerk).'
     },
-    optB: { // HZH but wrong base length
+    optB: {
       svg: `
         <polygon points="20,130 120,130 50,50" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <text x="70" y="145" font-weight="bold" fill="#64748b" text-anchor="middle">7</text>
@@ -106,11 +105,10 @@ const levels = [
       `,
       isCorrect: false, errorRule: 'HZH', errorMsg: 'Optie B gebruikt wél het HZH kenmerk, maar de basis is slechts 7. De doeldriehoek heeft een basis van 10.'
     },
-    optC: { // Valid HZH, flipped
+    optC: {
       svg: `
         <polygon points="160,130 20,130 110,50" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <text x="90" y="145" font-weight="bold" fill="#64748b" text-anchor="middle">10</text>
-        <!-- Flipped: 50 on right, 30 on left -->
         <path d="M 45 130 A 25 25 0 0 0 55 110" fill="none" stroke="#ef4444" stroke-width="3" />
         <text x="50" y="120" font-weight="bold" font-size="12" fill="#ef4444">30°</text>
         <path d="M 135 130 A 25 25 0 0 1 125 105" fill="none" stroke="#ef4444" stroke-width="3" />
@@ -119,28 +117,25 @@ const levels = [
       isCorrect: true, correctRule: 'HZH', successMsg: 'Uitstekend! De zijde van 10 ligt perfect ingesloten tussen de twee hoeken van 30° en 50°. Zelfs al is hij gespiegeld, HZH bewijst congruentie.'
     }
   },
+  // Level 3: ZZ90° (Rechthoekszijde-Schuine Zijde bij 90°)
   {
     goalText: 'Opdracht 3: Vind de tweeling via ZZ90°',
     targetSVG: `
-      <!-- Right triangle -->
       <polygon points="20,130 150,130 20,30" fill="rgba(14, 165, 233, 0.2)" stroke="#0284c7" stroke-width="4" stroke-linejoin="round" />
       <polyline points="20,110 40,110 40,130" fill="none" stroke="#ef4444" stroke-width="3" />
-      <!-- Base 4 -->
       <text x="85" y="145" font-weight="bold" fill="#0284c7" text-anchor="middle">4</text>
-      <!-- Hypotenuse 5 -->
       <text x="100" y="75" font-weight="bold" fill="#0284c7">5</text>
     `,
-    optA: { // ZHZ (Base 4, Height 5) -> Hypotenuse would be longer.
+    optA: {
       svg: `
         <polygon points="20,130 150,130 20,30" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <polyline points="20,110 40,110 40,130" fill="none" stroke="#ef4444" stroke-width="3" />
         <text x="85" y="145" font-weight="bold" fill="#64748b" text-anchor="middle">4</text>
-        <!-- Vertical side 5 instead of hypotenuse -->
         <text x="5" y="85" font-weight="bold" fill="#64748b">5</text>
       `,
       isCorrect: false, errorRule: 'ZHZ', errorMsg: 'Bij Optie A is de rechthoekszijde 5. Bij de doeldriehoek is de SCHUINE zijde (hypotenusa) 5. Dit is een compleet andere driehoek!'
     },
-    optB: { // Correct ZZ90
+    optB: {
       svg: `
         <polygon points="150,130 20,130 150,30" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <polyline points="150,110 130,110 130,130" fill="none" stroke="#ef4444" stroke-width="3" />
@@ -149,12 +144,11 @@ const levels = [
       `,
       isCorrect: true, correctRule: 'ZZ90°', successMsg: 'Geniaal! Een zijde, de schuine zijde én een rechte hoek. Dit is ZZ90°. (Dit is de enige uitzondering waar ZZH wél werkt).'
     },
-    optC: { // False ZZH (acute angle)
+    optC: {
       svg: `
         <polygon points="20,130 150,130 80,30" fill="none" stroke="#64748b" stroke-width="4" stroke-linejoin="round" />
         <text x="85" y="145" font-weight="bold" fill="#64748b" text-anchor="middle">4</text>
         <text x="120" y="75" font-weight="bold" fill="#64748b">5</text>
-        <!-- Acute angle left -->
         <path d="M 50 130 A 30 30 0 0 0 45 105" fill="none" stroke="#ef4444" stroke-width="3" />
       `,
       isCorrect: false, errorRule: 'ZZH', errorMsg: 'Optie C heeft geen rechte hoek (90°)! Hierdoor vervalt de ZZ90° garantie, en krijg je de onbetrouwbare ZZH valstrik.'
@@ -162,11 +156,25 @@ const levels = [
   }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([])
+
+function generateLevel() {
+  // Clone blueprints — in a full implementation we could randomize the
+  // numeric values (angle sizes, side lengths) displayed in the SVGs.
+  // For now, the SVGs use the fixed pedagogically-crafted coordinates.
+  levels.value = levelBlueprints.map(bp => ({
+    ...bp,
+    optA: { ...bp.optA },
+    optB: { ...bp.optB },
+    optC: { ...bp.optC }
+  }))
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-const selectedTriangle = ref(null) // 'A', 'B', 'C'
-const selectedRule = ref('') // 'ZZZ', 'ZHZ', 'HZH', 'ZZH', 'ZZ90°'
+const selectedTriangle = ref(null)
+const selectedRule = ref('')
 
 function selectTriangle(opt) {
     if (isCorrect.value) return;
@@ -179,14 +187,20 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Selecteer een driehoek en het bijbehorende kenmerk.' };
     selectedTriangle.value = null;
     selectedRule.value = '';
+    attemptCount.value = 0;
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+  attemptCount.value++;
+
   if (selectedTriangle.value === null || selectedRule.value === '') {
       isCorrect.value = false;
-      feedback.value = { type: 'error', text: 'Kies een driehoek én het overeenkomstige kenmerk uit de lijst.'}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: 'Kies eerst een van de drie opties (A, B of C) door erop te klikken, en selecteer daarna het kenmerk in het keuzemenu.' }
+      } else {
+        feedback.value = { type: 'error', text: 'Kies een driehoek én het overeenkomstige kenmerk uit de lijst.' }
+      }
       return;
   }
 
@@ -197,11 +211,19 @@ function checkAnswer() {
     feedback.value = { type: 'success', text: optData.successMsg }
   } else {
     isCorrect.value = false
-    
+
     if (!optData.isCorrect) {
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: optData.errorMsg + ' Let op het juiste kenmerk: ' + optData.errorRule + '.' }
+      } else {
         feedback.value = { type: 'error', text: optData.errorMsg }
+      }
     } else if (optData.isCorrect && selectedRule.value !== optData.correctRule) {
-        feedback.value = { type: 'error', text: `Je hebt de juiste tweeling (${selectedTriangle.value}) gekozen! Maar je gaf het foute kenmerk. Kijk goed wat er in het blauw gemarkeerd stond in het Doel.`}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: `Je hebt de juiste tweeling (${selectedTriangle.value}) gekozen! Maar je gaf het foute kenmerk. Het juiste kenmerk is ${optData.correctRule}.` }
+      } else {
+        feedback.value = { type: 'error', text: `Je hebt de juiste tweeling (${selectedTriangle.value}) gekozen! Maar je gaf het foute kenmerk. Kijk goed wat er in het blauw gemarkeerd stond in het Doel.` }
+      }
     }
   }
 }
@@ -220,6 +242,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -245,7 +268,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -256,8 +279,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -273,7 +296,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-teal-900 mb-2">Kenmerk:</label>
                <select v-model="selectedRule" :disabled="isCorrect" class="w-full p-3 border-2 border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
@@ -305,7 +328,7 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-8 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- Target Area -->
               <div class="w-full max-w-sm bg-white p-6 rounded-2xl shadow-md border-4 border-slate-300 mb-8 flex flex-col items-center">
                   <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Doel (Vind de tweeling hiervan)</h4>
@@ -314,9 +337,9 @@ onUnmounted(() => {
 
               <!-- Options Grid -->
               <div class="flex gap-6 w-full max-w-4xl justify-center">
-                  
+
                   <!-- Option A -->
-                  <div @click="selectTriangle('A')" 
+                  <div @click="selectTriangle('A')"
                        class="bg-white p-4 rounded-2xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
                        :class="selectedTriangle === 'A' ? (isCorrect && currentLevelData.optA.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-teal-500 bg-teal-50') : 'border-slate-200'">
                       <h4 class="font-bold text-slate-400 mb-2">Optie A</h4>
@@ -324,7 +347,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Option B -->
-                  <div @click="selectTriangle('B')" 
+                  <div @click="selectTriangle('B')"
                        class="bg-white p-4 rounded-2xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
                        :class="selectedTriangle === 'B' ? (isCorrect && currentLevelData.optB.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-teal-500 bg-teal-50') : 'border-slate-200'">
                       <h4 class="font-bold text-slate-400 mb-2">Optie B</h4>
@@ -332,7 +355,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Option C -->
-                  <div @click="selectTriangle('C')" 
+                  <div @click="selectTriangle('C')"
                        class="bg-white p-4 rounded-2xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95"
                        :class="selectedTriangle === 'C' ? (isCorrect && currentLevelData.optC.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-teal-500 bg-teal-50') : 'border-slate-200'">
                       <h4 class="font-bold text-slate-400 mb-2">Optie C</h4>

@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTriangle, PhArrowClockwise, PhArrowsLeftRight
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Congruentie: De ZZH-Valstrik' },
-  instruction: { 
-    type: String, 
-    default: 'Waarom is <strong>Zijde-Hoek-Zijde (ZHZ)</strong> een zekerheid voor perfecte tweeling-driehoeken (congruentie), maar <strong>Zijde-Zijde-Hoek (ZZH)</strong> NIET?<br/><br/><strong>Opdracht:</strong> Sleep de blauwe zijde heen en weer. Kijk of je één unieke driehoek krijgt, of dat er twee totaal verschillende driehoeken mogelijk zijn!' 
+  instruction: {
+    type: String,
+    default: 'Waarom is <strong>Zijde-Hoek-Zijde (ZHZ)</strong> een zekerheid voor perfecte tweeling-driehoeken (congruentie), maar <strong>Zijde-Zijde-Hoek (ZZH)</strong> NIET?<br/><br/><strong>Opdracht:</strong> Sleep de blauwe zijde heen en weer. Kijk of je één unieke driehoek krijgt, of dat er twee totaal verschillende driehoeken mogelijk zijn!'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -27,10 +27,10 @@ const feedback = ref({ type: 'info', text: 'Beweeg de slider om de blauwe zijde 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
+const userOptSets = [
   {
-    goalText: 'Opdracht 1: De ZZH Slinger',
     userOpt1: 'uniek', userOpt1Text: 'ZZH maakt altijd 1 unieke driehoek (WAAR)',
     userOpt2: 'twee', userOpt2Text: 'ZZH kan 2 verschillende driehoeken maken (VALS)',
     correctAns: 'twee',
@@ -38,7 +38,6 @@ const levels = [
     errMsg: 'Fout! Beweeg de slider over de hele breedte. Zie je niet dat de blauwe lijn op TWEE verschillende plekken perfect de basis raakt?'
   },
   {
-    goalText: 'Opdracht 2: Een scherpe hoek',
     userOpt1: 'uniek', userOpt1Text: 'ZZH maakt met een scherpe hoek altijd 1 unieke driehoek.',
     userOpt2: 'twee', userOpt2Text: 'Zelfs met een scherpe hoek is ZZH verraderlijk (2 opties).',
     correctAns: 'twee',
@@ -46,7 +45,6 @@ const levels = [
     errMsg: 'Kijk goed naar de blauwe stippellijnen. De blauwe zijde kan twee kanten op klappen.'
   },
   {
-    goalText: 'Opdracht 3: De ZZ90° Uitzondering',
     userOpt1: 'uniek', userOpt1Text: 'Bij een rechte hoek (90°) maakt ZZH 1 unieke driehoek.',
     userOpt2: 'twee', userOpt2Text: 'Zelfs bij 90° kan de blauwe zijde op 2 plekken landen.',
     correctAns: 'uniek',
@@ -55,42 +53,42 @@ const levels = [
   }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([])
+
+function generateLevel() {
+  const newLevels = [
+    { angleDeg: 30, cbLength: 130, ghostCircles: [{ cx: 190 }, { cx: 356 }], angleLabel: '30°' },
+    { angleDeg: 45, cbLength: 160, ghostCircles: [{ cx: 166.6 }, { cx: 316.2 }], angleLabel: '45°' },
+    { angleDeg: 90, cbLength: 250, ghostCircles: [{ cx: 250 }], angleLabel: '90°' }
+  ]
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
+const currentOptions = computed(() => userOptSets[currentInternalLevel.value])
 
 // Domain Logic
-const swingAngle = ref(215) // Slider value 180 to 360
-const userAns = ref('') // 'uniek', 'twee'
+const swingAngle = ref(215)
+const userAns = ref('')
 
 // Math coordinates
 const A = { x: 100, y: 300 }
 
-// Varying based on level
-// L1: angle 30, AC 200, CB 130
-// L2: angle 45, AC 200, CB 160
-// L3: angle 90, AC 200, CB 200 (wait, if angle is 90, AC=200 vertical, base horizontal. CB=hypotenuse. Pythagoras! Say AC=200, CB=250. Base intersection exactly 1 point.)
 const C = computed(() => {
-    let angleA_rad
-    if (currentInternalLevel.value === 0) angleA_rad = 30 * Math.PI / 180
-    else if (currentInternalLevel.value === 1) angleA_rad = 45 * Math.PI / 180
-    else angleA_rad = 90 * Math.PI / 180
-    
-    return { 
-        x: A.x + 200 * Math.cos(angleA_rad), 
-        y: A.y - 200 * Math.sin(angleA_rad) 
+    const angleA_rad = currentLevelData.value.angleDeg * Math.PI / 180
+    return {
+        x: A.x + 200 * Math.cos(angleA_rad),
+        y: A.y - 200 * Math.sin(angleA_rad)
     }
 })
 
-const CBLength = computed(() => {
-    if (currentInternalLevel.value === 0) return 130
-    if (currentInternalLevel.value === 1) return 160
-    return 250 // for the 90 deg triangle (200, 150, 250)
-})
+const CBLength = computed(() => currentLevelData.value.cbLength)
 
 const B_visual = computed(() => {
     const rad = swingAngle.value * Math.PI / 180
     return {
         x: C.value.x + CBLength.value * Math.cos(rad),
-        y: C.value.y + CBLength.value * Math.sin(rad) // Positive Y goes DOWN in SVG
+        y: C.value.y + CBLength.value * Math.sin(rad)
     }
 })
 
@@ -104,18 +102,24 @@ function resetActivityState() {
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Beweeg de slider om de blauwe zijde te laten slingeren.' };
     userAns.value = '';
-    swingAngle.value = 90; // Start pointing straight down
+    swingAngle.value = 90;
+    attemptCount.value = 0;
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  if (userAns.value === currentLevelData.value.correctAns) {
+  attemptCount.value++;
+
+  if (userAns.value === currentOptions.value.correctAns) {
     isCorrect.value = true
-    feedback.value = { type: 'success', text: currentLevelData.value.successMsg }
+    feedback.value = { type: 'success', text: currentOptions.value.successMsg }
   } else {
     isCorrect.value = false
-    feedback.value = { type: 'error', text: currentLevelData.value.errMsg }
+    if (attemptCount.value >= 3) {
+      feedback.value = { type: 'error', text: currentOptions.value.errMsg + ' Het juiste antwoord is: ' + (currentOptions.value.correctAns === 'twee' ? '2 mogelijkheden (ZZH is niet betrouwbaar)' : '1 unieke driehoek (de uitzondering bij 90°)') + '.' }
+    } else {
+      feedback.value = { type: 'error', text: currentOptions.value.errMsg }
+    }
   }
 }
 
@@ -133,6 +137,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -158,7 +163,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-red-100">
@@ -169,8 +174,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-red-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -186,17 +191,17 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-red-50 p-4 border border-red-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-red-800">{{ currentLevelData.goalText }}</p>
+              <p class="font-bold text-red-800">{{ currentOptions.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-red-200 bg-red-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-red-900 mb-2">Conclusie over de vorm:</label>
                <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-red-300 rounded-lg focus:ring-red-500 focus:border-red-500 font-bold text-slate-700 bg-white">
                    <option value="" disabled>Kies een optie...</option>
-                   <option value="uniek">{{ currentLevelData.userOpt1Text }}</option>
-                   <option value="twee">{{ currentLevelData.userOpt2Text }}</option>
+                   <option value="uniek">{{ currentOptions.userOpt1Text }}</option>
+                   <option value="twee">{{ currentOptions.userOpt2Text }}</option>
                </select>
             </div>
           </div>
@@ -219,9 +224,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <!-- Slider -->
                   <div class="mb-8 w-full max-w-md bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                       <div class="flex w-full justify-between items-end mb-2">
@@ -234,46 +239,34 @@ onUnmounted(() => {
                   <!-- Visualisation -->
                   <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8" :key="'svg'+currentInternalLevel">
                       <svg width="500" height="350" viewBox="0 0 500 350">
-                          
-                          <!-- Ghost intersections to guide them -->
-                          <!-- L1: 190, 356 -->
-                          <!-- L2: C is (100 + 141.4, 300 - 141.4) = (241.4, 158.6). CB=160. y=300 -> dy = 141.4. dx = sqrt(160^2 - 141.4^2) = sqrt(25600 - 19994) = sqrt(5606) = 74.8. Intersects at 241.4 +/- 74.8 = 166.6 and 316.2. -->
-                          <!-- L3: C is (100, 100). CB=250. Intersect at x = 100 +/- sqrt(250^2 - 200^2) = 100 +/- 150 = 250 (and -50, off screen). -->
-                          <g v-if="currentInternalLevel === 0">
-                              <circle cx="190" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
-                              <circle cx="356" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
-                          </g>
-                          <g v-else-if="currentInternalLevel === 1">
-                              <circle cx="166.6" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
-                              <circle cx="316.2" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
-                          </g>
-                          <g v-else-if="currentInternalLevel === 2">
-                              <circle cx="250" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
+
+                          <!-- Ghost intersections -->
+                          <g v-for="(g, gi) in currentLevelData.ghostCircles" :key="'ghost-'+gi">
+                              <circle :cx="g.cx" cy="300" r="10" fill="transparent" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2" stroke-dasharray="4 2" />
                           </g>
 
-                          <!-- Base Line (Unfixed length, extending from A) -->
+                          <!-- Base Line -->
                           <line x1="50" y1="300" x2="450" y2="300" stroke="#94a3b8" stroke-width="3" stroke-dasharray="8 4" />
-                          
+
                           <!-- Angle A Arc -->
-                          <path v-if="currentInternalLevel === 0" d="M 140 300 A 40 40 0 0 0 134.6 280" fill="none" stroke="#ef4444" stroke-width="3" />
-                          <text v-if="currentInternalLevel === 0" x="145" y="295" font-weight="bold" fill="#ef4444" font-size="12">30°</text>
+                          <path v-if="currentLevelData.angleDeg === 30" d="M 140 300 A 40 40 0 0 0 134.6 280" fill="none" stroke="#ef4444" stroke-width="3" />
+                          <text v-if="currentLevelData.angleDeg === 30" x="145" y="295" font-weight="bold" fill="#ef4444" font-size="12">30°</text>
 
-                          <path v-if="currentInternalLevel === 1" d="M 140 300 A 40 40 0 0 0 128.2 271.7" fill="none" stroke="#ef4444" stroke-width="3" />
-                          <text v-if="currentInternalLevel === 1" x="145" y="285" font-weight="bold" fill="#ef4444" font-size="12">45°</text>
+                          <path v-if="currentLevelData.angleDeg === 45" d="M 140 300 A 40 40 0 0 0 128.2 271.7" fill="none" stroke="#ef4444" stroke-width="3" />
+                          <text v-if="currentLevelData.angleDeg === 45" x="145" y="285" font-weight="bold" fill="#ef4444" font-size="12">45°</text>
 
-                          <!-- 90 deg box for L3 -->
-                          <polyline v-if="currentInternalLevel === 2" points="100,280 120,280 120,300" fill="none" stroke="#ef4444" stroke-width="3" />
-                          
+                          <polyline v-if="currentLevelData.angleDeg === 90" points="100,280 120,280 120,300" fill="none" stroke="#ef4444" stroke-width="3" />
+
                           <!-- Side b (Fixed AC) -->
                           <line x1="100" y1="300" :x2="C.x" :y2="C.y" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" />
                           <text :x="(100 + C.x)/2 - 20" :y="(300 + C.y)/2 - 10" font-weight="bold" fill="#f59e0b">Vast</text>
-                          
+
                           <!-- Side a (Swinging CB) -->
                           <line :x1="C.x" :y1="C.y" :x2="B_visual.x" :y2="B_visual.y" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" />
                           <text :x="(C.x + B_visual.x)/2 + 10" :y="(C.y + B_visual.y)/2" font-weight="bold" fill="#0ea5e9">Vast</text>
 
                           <!-- Intersection Success Fill -->
-                          <polygon v-if="isHittingBase" :points="`100,300 ${C.x},${C.y} ${B_visual.x},${B_visual.y}`" 
+                          <polygon v-if="isHittingBase" :points="`100,300 ${C.x},${C.y} ${B_visual.x},${B_visual.y}`"
                                    fill="rgba(16, 185, 129, 0.2)" class="animate-fadeIn pointer-events-none" />
 
                           <!-- Nodes -->

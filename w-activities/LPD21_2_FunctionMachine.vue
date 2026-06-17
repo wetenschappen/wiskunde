@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhFunction,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,18 +31,48 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
 // Levels
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = ref(3)
+const levels = ref([])
 
-const levels = [
-  { targetA: 3, targetB: -2 },   // f(x) = 3x - 2
-  { targetA: -2, targetB: 5 },   // f(x) = -2x + 5
-  { targetA: 0.5, targetB: 1 }   // f(x) = 0.5x + 1
-]
+function generateLevel() {
+  const result = []
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  // Level 1: Small integer coefficients (positive a)
+  const a1 = Math.floor(Math.random() * 4) + 2 // 2..5
+  const b1 = Math.floor(Math.random() * 7) - 3 // -3..3
+  result.push({ targetA: a1, targetB: b1,
+    hint1: 'Test meer getallen in de machine om een patroon te ontdekken.',
+    hint2: 'Bereken eerst het verschil tussen opeenvolgende outputs. Dat is a.',
+    hint3: `De formule is f(x) = ${a1}x ${b1 >= 0 ? '+ ' + b1 : '- ' + Math.abs(b1)}.`
+  })
+
+  // Level 2: Negative slope a
+  const a2 = -(Math.floor(Math.random() * 4) + 1) // -4..-1
+  const b2 = Math.floor(Math.random() * 9) - 4 // -4..4
+  result.push({ targetA: a2, targetB: b2,
+    hint1: 'Let op of de output groter of kleiner wordt als de input toeneemt.',
+    hint2: 'Als output daalt naarmate input stijgt, is a negatief.',
+    hint3: `De formule is f(x) = ${a2}x ${b2 >= 0 ? '+ ' + b2 : '- ' + Math.abs(b2)}.`
+  })
+
+  // Level 3: Fractional a
+  const aOptions = [0.5, 1.5, -0.5, -1.5]
+  const a3 = aOptions[Math.floor(Math.random() * aOptions.length)]
+  const b3 = Math.floor(Math.random() * 5) - 2 // -2..2
+  result.push({ targetA: a3, targetB: b3,
+    hint1: 'Kijk goed naar de tabel. Wordt de output met een halve eenheid groter?',
+    hint2: 'Misschien is a geen geheel getal. Wat gebeurt er als x met 2 toeneemt?',
+    hint3: `De formule is f(x) = ${a3}x ${b3 >= 0 ? '+ ' + b3 : '- ' + Math.abs(b3)}.`
+  })
+
+  return result
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Interactive State
 const inputs = [0, 1, 2, 4]
@@ -69,7 +99,6 @@ function onDrop() {
     currentOutput.value = out;
     if (!history.value.some(h => h.in === draggedItem)) {
       history.value.push({ in: draggedItem, out: out });
-      // Sort history by input
       history.value.sort((a, b) => a.in - b.in);
     }
     draggedItem = null;
@@ -77,9 +106,16 @@ function onDrop() {
   }
 }
 
+function getHint(data) {
+  if (attemptCount.value >= 3) return data.hint3
+  if (attemptCount.value >= 2) return data.hint2
+  return data.hint1
+}
+
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
+  attemptCount.value = 0;
   feedback.value = { type: 'info', text: 'Sleep de blokken in de trechter om data te verzamelen.' };
   history.value = [];
   currentOutput.value = '?';
@@ -97,31 +133,34 @@ function checkAnswer() {
 
   const targetA = currentLevelData.value.targetA;
   const targetB = currentLevelData.value.targetB;
+  const hint = getHint(currentLevelData.value);
 
   if (userA.value === targetA && userB.value === targetB) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Bingo! Je hebt het wiskundige algoritme van de machine perfect nagebouwd.' 
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
+      text: 'Bingo! Je hebt het wiskundige algoritme van de machine perfect nagebouwd.'
     }
   } else {
     isCorrect.value = false
+    attemptCount.value++
     if (userA.value !== targetA) {
-      feedback.value = { 
-        type: 'error', 
-        text: 'De richtingscoëfficiënt (a) klopt niet. Kijk naar je tabel: hoeveel verandert de output als de input met 1 toeneemt?'
+      feedback.value = {
+        type: 'error',
+        text: 'De richtingscoëfficiënt (a) klopt niet. Kijk naar je tabel: hoeveel verandert de output als de input met 1 toeneemt? ' + hint
       }
     } else {
-      feedback.value = { 
-        type: 'error', 
-        text: 'De toename per eenheid (a) is juist, maar je startwaarde (b) klopt niet. Wat is de output als de input exact 0 is?'
+      feedback.value = {
+        type: 'error',
+        text: 'De toename per eenheid (a) is juist, maar je startwaarde (b) klopt niet. Wat is de output als de input exact 0 is? ' + hint
       }
     }
   }
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
     currentInternalLevel.value++;
     resetActivityState();
   } else {
@@ -136,6 +175,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = generateLevel();
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -179,9 +219,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-fuchsia-100">
@@ -192,14 +232,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-fuchsia-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -212,7 +252,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl shadow-inner">
               <p class="font-bold text-slate-800 mb-2">Gelogde Data:</p>
               <div class="bg-white rounded border border-slate-200 overflow-hidden shadow-sm">
@@ -231,7 +271,7 @@ onUnmounted(() => {
 
               <div class="mt-8 space-y-6">
                 <p class="font-bold text-slate-800 mb-2 uppercase text-xs tracking-wider">Bouw de formule</p>
-                
+
                 <div class="text-center bg-white p-3 rounded-lg border-2 border-fuchsia-200 shadow-sm font-mono font-black text-xl text-fuchsia-600">
                   f(x) = {{ userA }}x {{ userB >= 0 ? '+ ' + userB : '- ' + Math.abs(userB) }}
                 </div>
@@ -258,7 +298,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -273,11 +313,11 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
+
               <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
@@ -288,9 +328,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
-              
+
               <!-- Inputs Panel -->
               <div class="flex gap-6">
                 <div v-for="num in inputs" :key="num"
@@ -304,7 +344,7 @@ onUnmounted(() => {
 
               <!-- Machine -->
               <div class="relative flex flex-col items-center justify-center mt-4">
-                
+
                 <!-- The animated dropping input (ghost) -->
                 <div v-if="draggedItem !== null" class="absolute -top-16 w-12 h-12 bg-white/50 border-2 border-slate-300 border-dashed rounded-lg flex items-center justify-center text-slate-300 font-black animate-pulse z-0 pointer-events-none">
                   {{ draggedItem }}
@@ -314,15 +354,15 @@ onUnmounted(() => {
                 <div @dragover.prevent @drop="onDrop" class="w-40 h-20 bg-slate-300 rounded-t-full border-t-8 border-l-8 border-r-8 border-slate-500 flex items-center justify-center z-10 transition-colors shadow-inner" :class="draggedItem !== null ? 'bg-fuchsia-200 border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)]' : ''">
                   <span class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-6" :class="draggedItem !== null ? 'text-fuchsia-700' : ''">Sleep Hier</span>
                 </div>
-                
+
                 <!-- Body -->
                 <div class="w-64 h-56 bg-slate-800 rounded-3xl shadow-2xl flex flex-col items-center justify-center relative z-20 border-b-[12px] border-slate-900 overflow-hidden">
-                   
+
                    <!-- Internal visual flair -->
                    <div class="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#fff_10px,#fff_20px)] pointer-events-none"></div>
 
                    <div class="text-5xl font-black text-white tracking-widest z-10 drop-shadow-md">f(x)</div>
-                   
+
                    <!-- Fake gears moving -->
                    <div class="absolute bottom-6 left-6 text-slate-600 animate-spin-slow">⚙️</div>
                    <div class="absolute top-6 right-6 text-slate-600 animate-spin-slow" style="animation-direction: reverse;">⚙️</div>

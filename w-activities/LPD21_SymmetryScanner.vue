@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSymmetryHorizontal, PhArrowClockwise, PhArrowsClockwise, PhSplitHorizontal
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Meetkunde: Symmetrie-Scanner' },
-  instruction: { 
-    type: String, 
-    default: 'Mensen denken vaak dat bepaalde figuren heel symmetrisch zijn, totdat ze het echt uittesten.<br/><br/><strong>Opdracht:</strong> Gebruik de Symmetrie-Scanner. Test de <strong>Lijnsymmetrie</strong> (spiegelen over een as) en de <strong>Puntsymmetrie</strong> (180° draaien). Bepaal daarna de eigenschap van de figuur.' 
+  instruction: {
+    type: String,
+    default: 'Mensen denken vaak dat bepaalde figuren heel symmetrisch zijn, totdat ze het echt uittesten.<br/><br/><strong>Opdracht:</strong> Gebruik de Symmetrie-Scanner. Test de <strong>Lijnsymmetrie</strong> (spiegelen over een as) en de <strong>Puntsymmetrie</strong> (180° draaien). Bepaal daarna de eigenschap van de figuur.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,51 +23,119 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de scanner-knoppen om de figuur te testen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = ref(3)
+const levels = ref([])
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Het Parallellogram',
-    shapeSVG: '<polygon points="100,50 350,50 300,150 50,150" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
-    shapeSVGRed: '<polygon points="100,50 350,50 300,150 50,150" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
-    correctAns: 'point',
-    successMsg: 'Perfect! Een parallellogram past na 180° draaien (puntsymmetrie) exact op zichzelf, maar als je hem spiegelt (lijnsymmetrie) steken de hoeken uit!',
-    errLine: 'Heb je de Lijnsymmetrie-test (spiegelen) uitgevoerd? De rode vorm valt NIET perfect over de blauwe vorm.',
-    errBoth: 'Puntsymmetrie klopt, maar de lijnsymmetrie-test mislukt. Kijk naar de uitstekende rode hoeken!'
-  },
-  {
-    goalText: 'Opdracht 2: De Vlieger',
-    shapeSVG: '<polygon points="200,20 300,80 200,180 100,80" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
-    shapeSVGRed: '<polygon points="200,20 300,80 200,180 100,80" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
-    correctAns: 'line',
-    successMsg: 'Heel goed! Je kan een vlieger exact in de helft vouwen (spiegelen), maar als je hem ondersteboven draait (180°) past hij niet meer.',
-    errPoint: 'Heb je de Puntsymmetrie-test (draaien) uitgevoerd? De puntige staart steekt nu plots bovenaan uit!',
-    errBoth: 'Lijnsymmetrie klopt, maar de puntsymmetrie-test mislukt. Hij mag niet uitsteken.'
-  },
-  {
-    goalText: 'Opdracht 3: De Rechthoek',
-    shapeSVG: '<polygon points="50,50 350,50 350,150 50,150" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
-    shapeSVGRed: '<polygon points="50,50 350,50 350,150 50,150" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
-    correctAns: 'both',
-    successMsg: 'Fantastisch! Een rechthoek is een zeer regelmatige figuur. Je kan hem vouwen én ondersteboven draaien, hij past altijd!',
-    errLine: 'Heb je de Puntsymmetrie-test niet geprobeerd? Draai hem eens om, hij past ook perfect!',
-    errPoint: 'Heb je de Lijnsymmetrie-test niet geprobeerd? Spiegel hem eens, hij past ook perfect!'
-  }
-]
+function generateLevel() {
+  const pool = [
+    {
+      goalText: 'Opdracht: Het Parallellogram',
+      shapeSVG: '<polygon points="100,50 350,50 300,150 50,150" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="100,50 350,50 300,150 50,150" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'point',
+      successMsg: 'Perfect! Een parallellogram past na 180° draaien (puntsymmetrie) exact op zichzelf, maar als je hem spiegelt (lijnsymmetrie) steken de hoeken uit!',
+      errLine: 'Heb je de Lijnsymmetrie-test (spiegelen) uitgevoerd? De rode vorm valt NIET perfect over de blauwe vorm.',
+      errPoint: 'Puntsymmetrie klopt, maar de lijnsymmetrie-test mislukt. Kijk naar de uitstekende rode hoeken!',
+      errBoth: 'Hij slaagt maar voor één test. Probeer beide testen opnieuw.',
+      errNone: 'Hij heeft wel symmetrie. Test beide soorten.',
+      hint1: 'Probeer beide testen. Let op of de rode en blauwe vorm perfect samenvallen.',
+      hint2: 'Bij lijnsymmetrie moet de gespiegelde vorm exact passen. Bij puntsymmetrie moet 180° draaien werken.',
+      hint3: 'Een parallellogram heeft puntsymmetrie (geen lijnsymmetrie).'
+    },
+    {
+      goalText: 'Opdracht: De Vlieger',
+      shapeSVG: '<polygon points="200,20 300,80 200,180 100,80" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="200,20 300,80 200,180 100,80" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'line',
+      successMsg: 'Heel goed! Je kan een vlieger exact in de helft vouwen (spiegelen), maar als je hem ondersteboven draait (180°) past hij niet meer.',
+      errPoint: 'Heb je de Puntsymmetrie-test (draaien) uitgevoerd? De puntige staart steekt nu plots bovenaan uit!',
+      errLine: 'Lijnsymmetrie klopt, maar de puntsymmetrie-test mislukt. Hij mag niet uitsteken.',
+      errBoth: 'Hij slaagt maar voor één test. Probeer beide testen opnieuw.',
+      errNone: 'Hij heeft wel symmetrie. Test beide soorten.',
+      hint1: 'Probeer beide testen. Welke past perfect?',
+      hint2: 'Let op of de vorm symmetrisch is over een middellijn (spiegelas).',
+      hint3: 'Een vlieger heeft lijnsymmetrie (geen puntsymmetrie).'
+    },
+    {
+      goalText: 'Opdracht: De Rechthoek',
+      shapeSVG: '<polygon points="50,50 350,50 350,150 50,150" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="50,50 350,50 350,150 50,150" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'both',
+      successMsg: 'Fantastisch! Een rechthoek is een zeer regelmatige figuur. Je kan hem vouwen én ondersteboven draaien, hij past altijd!',
+      errLine: 'Heb je de Puntsymmetrie-test niet geprobeerd? Draai hem eens om, hij past ook perfect!',
+      errPoint: 'Heb je de Lijnsymmetrie-test niet geprobeerd? Spiegel hem eens, hij past ook perfect!',
+      errBoth: 'Hij slaagt voor allebei! Kies "beide".',
+      errNone: 'Hij heeft zeker symmetrie. Test beide soorten opnieuw.',
+      hint1: 'Probeer beide testen zorgvuldig. Wat zie je?',
+      hint2: 'Een rechthoek is zeer symmetrisch. Test beide soorten.',
+      hint3: 'Een rechthoek heeft zowel lijn- als puntsymmetrie.'
+    },
+    {
+      goalText: 'Opdracht: Het Vierkant',
+      shapeSVG: '<polygon points="100,30 300,30 300,170 100,170" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="100,30 300,30 300,170 100,170" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'both',
+      successMsg: 'Super! Een vierkant is de meest symmetrische veelhoek. Je kan hem op vele manieren vouwen én 180° draaien.',
+      errLine: 'Probeer ook de puntsymmetrie-test. Een vierkant heeft beide!',
+      errPoint: 'Probeer ook de lijnsymmetrie-test. Een vierkant heeft beide!',
+      errBoth: 'Hij slaagt voor allebei! Kies "beide".',
+      errNone: 'Hij heeft zeker symmetrie. Test beide soorten.',
+      hint1: 'Dit is een zeer regelmatige figuur. Beide testen zouden moeten werken.',
+      hint2: 'Een vierkant is symmetrisch in vele opzichten.',
+      hint3: 'Een vierkant heeft zowel lijn- als puntsymmetrie.'
+    },
+    {
+      goalText: 'Opdracht: De Ruit',
+      shapeSVG: '<polygon points="200,20 350,100 200,180 50,100" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="200,20 350,100 200,180 50,100" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'point',
+      successMsg: 'Juist! Een ruit (geroteerd vierkant) heeft puntsymmetrie: na 180° draaien past hij perfect. Maar lijnsymmetrie werkt niet in deze stand.',
+      errLine: 'De lijnsymmetrie-test (spiegelen) werkt niet voor deze ruit. Probeer de andere test.',
+      errPoint: 'De puntsymmetrie-test werkt! Maar kijk ook naar lijnsymmetrie.',
+      errBoth: 'Hij slaagt maar voor één test. Welke?',
+      errNone: 'Hij heeft wel symmetrie! Test beide soorten opnieuw.',
+      hint1: 'Probeer de puntsymmetrie-test. Draai de figuur 180°.',
+      hint2: 'Deze ruit heeft puntsymmetrie maar geen lijnsymmetrie in deze stand.',
+      hint3: 'Een ruit heeft puntsymmetrie (geen lijnsymmetrie in deze oriëntatie).'
+    },
+    {
+      goalText: 'Opdracht: De Onregelmatige Vijfhoek',
+      shapeSVG: '<polygon points="200,30 320,80 280,160 120,160 80,80" fill="rgba(59, 130, 246, 0.5)" stroke="#2563eb" stroke-width="4" stroke-linejoin="round" />',
+      shapeSVGRed: '<polygon points="200,30 320,80 280,160 120,160 80,80" fill="rgba(239, 68, 68, 0.4)" stroke="#dc2626" stroke-width="4" stroke-dasharray="10 5" stroke-linejoin="round" />',
+      correctAns: 'none',
+      successMsg: 'Goed gezien! Deze onregelmatige vijfhoek heeft geen enkele symmetrie. Niet alle figuren zijn symmetrisch!',
+      errLine: 'Kijk nog eens goed. De gespiegelde versie past niet precies.',
+      errPoint: 'Kijk nog eens goed. Na 180° draaien past hij niet precies.',
+      errBoth: 'Hij heeft geen van beide. Test nog eens en kijk goed.',
+      errNone: 'Dat klopt! Hij heeft inderdaad geen symmetrie.',
+      hint1: 'Sommige figuren hebben helemaal geen symmetrie. Test beide soorten.',
+      hint2: 'Let op of de rode vorm exact over de blauwe valt. Bij geen enkele test zou dat moeten lukken.',
+      hint3: 'Deze vijfhoek heeft geen lijn- en geen puntsymmetrie.'
+    }
+  ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, 3)
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const testState = ref('none') // 'none', 'line', 'point'
 const userAns = ref('')
 
+function getHint(data) {
+  if (attemptCount.value >= 3) return data.hint3
+  if (attemptCount.value >= 2) return data.hint2
+  return data.hint1
+}
+
 function runTest(type) {
     if (isCorrect.value) return;
-    
-    // reset first to re-trigger animation
     testState.value = 'none'
     setTimeout(() => {
         testState.value = type
@@ -77,6 +145,7 @@ function runTest(type) {
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Klik op de scanner-knoppen om de figuur te testen.' };
     testState.value = 'none';
     userAns.value = '';
@@ -84,36 +153,39 @@ function resetActivityState() {
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   const target = currentLevelData.value.correctAns;
-  
+  const hint = getHint(currentLevelData.value);
+
   if (userAns.value === target) {
     if (testState.value === 'none') {
         isCorrect.value = false
-        feedback.value = { type: 'error', text: 'Het antwoord is correct, maar gebruik de scanner knoppen eerst om het met je eigen ogen te bewijzen!'}
+        attemptCount.value++
+        feedback.value = { type: 'error', text: 'Het antwoord is correct, maar gebruik de scanner knoppen eerst om het met je eigen ogen te bewijzen! ' + hint }
     } else {
         isCorrect.value = true
+        attemptCount.value = 0
         feedback.value = { type: 'success', text: currentLevelData.value.successMsg }
     }
   } else {
     isCorrect.value = false
-    
+    attemptCount.value++
     if (userAns.value === 'line') {
-        feedback.value = { type: 'error', text: currentLevelData.value.errLine || 'Kijk goed. Past hij na het spiegelen écht perfect?' }
+        feedback.value = { type: 'error', text: (currentLevelData.value.errLine || 'Kijk goed. Past hij na het spiegelen écht perfect?') + ' ' + hint }
     } else if (userAns.value === 'point') {
-        feedback.value = { type: 'error', text: currentLevelData.value.errPoint || 'Kijk goed. Past hij na 180° draaien écht perfect?' }
+        feedback.value = { type: 'error', text: (currentLevelData.value.errPoint || 'Kijk goed. Past hij na 180° draaien écht perfect?') + ' ' + hint }
     } else if (userAns.value === 'both') {
-        feedback.value = { type: 'error', text: currentLevelData.value.errBoth || 'Hij slaagt niet voor allebei de testen. Probeer ze nog eens.' }
+        feedback.value = { type: 'error', text: (currentLevelData.value.errBoth || 'Hij slaagt niet voor allebei de testen.') + ' ' + hint }
     } else if (userAns.value === 'none') {
-        feedback.value = { type: 'error', text: 'Deze vorm heeft minstens één soort symmetrie. Test ze allebei nog eens goed.' }
+        feedback.value = { type: 'error', text: (currentLevelData.value.errNone || 'Deze vorm heeft minstens één soort symmetrie.') + ' ' + hint }
     } else {
-        feedback.value = { type: 'error', text: 'Kies een antwoord uit de lijst.'}
+        feedback.value = { type: 'error', text: 'Kies een antwoord uit de lijst. ' + hint }
     }
   }
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
     currentInternalLevel.value++;
     resetActivityState();
   } else {
@@ -126,6 +198,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = generateLevel();
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -151,7 +224,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-fuchsia-100">
@@ -162,8 +235,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-fuchsia-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -179,7 +252,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-fuchsia-50 p-4 border border-fuchsia-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-fuchsia-800">{{ currentLevelData.goalText }}</p>
             </div>
@@ -214,9 +287,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex flex-col items-center">
-                  
+
                   <div class="flex gap-4 mb-12">
                       <button @click="runTest('line')" :disabled="isCorrect" class="px-6 py-3 font-bold bg-white text-fuchsia-700 border-2 border-fuchsia-500 rounded-xl shadow-md flex items-center gap-2 hover:bg-fuchsia-50 active:scale-95 transition-all">
                           <PhSplitHorizontal weight="bold" class="w-6 h-6" /> Test Lijnsymmetrie
@@ -228,10 +301,10 @@ onUnmounted(() => {
 
                   <!-- Visualisation Area -->
                   <div class="relative w-[500px] h-[300px] bg-white shadow-xl border-4 border-slate-200 rounded-2xl flex items-center justify-center overflow-hidden" :key="currentInternalLevel">
-                      
+
                       <!-- Center Point for Point Symmetry -->
                       <circle v-if="testState === 'point'" cx="250" cy="150" r="4" fill="#6366f1" class="absolute z-30 top-[146px] left-[246px] rounded-full w-2 h-2 bg-indigo-500" />
-                      
+
                       <!-- Axis of Symmetry for Line Symmetry -->
                       <div v-if="testState === 'line'" class="absolute w-1 h-full bg-slate-400 border-x border-white border-dashed z-30"></div>
 

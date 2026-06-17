@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCompass, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Constructie: Driehoek met Passer' },
-  instruction: { 
-    type: String, 
-    default: 'Waarom gebruiken we een passer om driehoeken te tekenen? Omdat een cirkel álle punten bevat die op een vaste afstand liggen!<br/><br/><strong>Opdracht:</strong> Construeer de gevraagde driehoek. De basis (het onderste lijnstuk) is al getekend. Gebruik de passer-knoppen om het exacte derde hoekpunt te vinden.' 
+  instruction: {
+    type: String,
+    default: 'Waarom gebruiken we een passer om driehoeken te tekenen? Omdat een cirkel álle punten bevat die op een vaste afstand liggen!<br/><br/><strong>Opdracht:</strong> Construeer de gevraagde driehoek. De basis (het onderste lijnstuk) is al getekend. Gebruik de passer-knoppen om het exacte derde hoekpunt te vinden.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,54 +23,90 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de eerste passer-knop om te beginnen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = ref(3)
+const levels = ref([])
 
-// Base is always scaled so 1 unit = 50px for visual clarity, unless stated otherwise.
-// L1: 5-4-3 (Right Triangle). Base=5 (250px).
-// L2: 6-5-5 (Isosceles). Base=6 (300px).
-// L3: 7-4-5 (Scalene). Base=7 (350px).
+function generateLevel() {
+  const pool = [
+    {
+      goalText: 'Opdracht A: Zijden van 5 cm, 4 cm en 3 cm.',
+      baseLen: 5, rA: 4, rB: 3,
+      pA: { x: 175, y: 350 }, pB: { x: 425, y: 350 },
+      pC: { x: 335, y: 230 },
+      successMsg: 'Perfect! Je hebt een rechthoekige driehoek met zijden 5, 4 en 3 geconstrueerd. Dit is altijd een perfecte 90° driehoek!',
+      hint1: 'Start met een cirkel vanuit A met straal ' + 4 + '.',
+      hint2: 'Teken dan een cirkel vanuit B met straal ' + 3 + '.',
+      hint3: 'Het snijpunt boven de basis is het derde hoekpunt C.'
+    },
+    {
+      goalText: 'Opdracht B: Zijden van 5 cm, 5 cm en 4 cm.',
+      baseLen: 5, rA: 5, rB: 4,
+      pA: { x: 175, y: 350 }, pB: { x: 425, y: 350 },
+      pC: { x: 345, y: 166.7 },
+      successMsg: 'Knap! Zijden 5, 5 en 4. Twee zijden zijn even lang (gelijkbenig), dus het snijpunt ligt bijna in het midden.',
+      hint1: 'Cirkel A met straal ' + 5 + ', cirkel B met straal ' + 4 + '.',
+      hint2: 'Let op: de stralen hebben verschillende lengtes.',
+      hint3: 'Het snijpunt is het derde hoekpunt C van deze gelijkbenige driehoek.'
+    },
+    {
+      goalText: 'Opdracht C: Zijden van 6 cm, 5 cm en 5 cm.',
+      baseLen: 6, rA: 5, rB: 5,
+      pA: { x: 150, y: 350 }, pB: { x: 450, y: 350 },
+      pC: { x: 300, y: 150 },
+      successMsg: 'Fantastisch! Zijden 6, 5 en 5. Omdat twee zijden even lang zijn, spreken we van een Gelijkbenige driehoek. Het snijpunt ligt perfect in het midden boven de basis.',
+      hint1: 'Beide cirkels hebben dezelfde straal (' + 5 + ').',
+      hint2: 'Symmetrie! De cirkels zijn even groot, dus het snijpunt ligt in het midden.',
+      hint3: 'Verbind A, B en het snijpunt C voor een gelijkbenige driehoek.'
+    },
+    {
+      goalText: 'Opdracht D: Zijden van 6 cm, 4 cm en 4 cm.',
+      baseLen: 6, rA: 4, rB: 4,
+      pA: { x: 150, y: 350 }, pB: { x: 450, y: 350 },
+      pC: { x: 300, y: 217.7 },
+      successMsg: 'Uitstekend! Zijden 6, 4 en 4. Een smallere gelijkbenige driehoek - het snijpunt ligt lager dan bij langere gelijke zijden.',
+      hint1: 'Beide stralen zijn ' + 4 + '. Teken de cirkels.',
+      hint2: 'De cirkels overlappen elkaar gedeeltelijk.',
+      hint3: 'Het bovenste snijpunt van de twee cirkels is punt C.'
+    },
+    {
+      goalText: 'Opdracht E: Zijden van 7 cm, 4 cm en 5 cm.',
+      baseLen: 7, rA: 4, rB: 5,
+      pA: { x: 125, y: 350 }, pB: { x: 475, y: 350 },
+      pC: { x: 267.85, y: 210 },
+      successMsg: 'Geweldig! Zijden 7, 4 en 5. Omdat alle zijden verschillend zijn, is dit een Ongelijkbenige (willekeurige) driehoek.',
+      hint1: 'Cirkel A met straal ' + 4 + ', cirkel B met straal ' + 5 + '.',
+      hint2: 'De verschillende stralen geven een asymmetrisch snijpunt.',
+      hint3: 'Het snijpunt van beide cirkels is punt C van deze ongelijkbenige driehoek.'
+    },
+    {
+      goalText: 'Opdracht F: Zijden van 7 cm, 6 cm en 5 cm.',
+      baseLen: 7, rA: 6, rB: 5,
+      pA: { x: 125, y: 350 }, pB: { x: 475, y: 350 },
+      pC: { x: 339.3, y: 140 },
+      successMsg: 'Super! Zijden 7, 6 en 5. Een mooie ongelijkbenige driehoek met een scherpe punt!',
+      hint1: 'Eerst cirkel A met straal ' + 6 + '.',
+      hint2: 'Dan cirkel B met straal ' + 5 + '.',
+      hint3: 'Verbind A, B en C voor de volledige driehoek.'
+    }
+  ]
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Zijden van 5 cm, 4 cm en 3 cm.',
-    baseLen: 5, rA: 4, rB: 3,
-    pA: { x: 175, y: 350 }, pB: { x: 425, y: 350 },
-    // Intersection calculation:
-    // x = (c^2 + b^2 - a^2) / 2c. Here c=5, b=4, a=3. x = (25+16-9)/10 = 32/10 = 3.2
-    // y = sqrt(b^2 - x^2) = sqrt(16 - 10.24) = sqrt(5.76) = 2.4
-    // C.x = 175 + 3.2 * 50 = 335
-    // C.y = 350 - 2.4 * 50 = 230
-    pC: { x: 335, y: 230 },
-    successMsg: 'Perfect! Je hebt een driehoek met zijden 5, 4 en 3 geconstrueerd. Wist je dat dit altijd een perfecte rechthoekige driehoek oplevert?'
-  },
-  {
-    goalText: 'Opdracht 2: Zijden van 6 cm, 5 cm en 5 cm.',
-    baseLen: 6, rA: 5, rB: 5,
-    pA: { x: 150, y: 350 }, pB: { x: 450, y: 350 },
-    // c=6, b=5, a=5. x = (36+25-25)/12 = 3.
-    // y = sqrt(25 - 9) = 4.
-    // C.x = 150 + 3 * 50 = 300
-    // C.y = 350 - 4 * 50 = 150
-    pC: { x: 300, y: 150 },
-    successMsg: 'Fantastisch! Zijden 6, 5 en 5. Omdat twee zijden even lang zijn, spreken we van een Gelijkbenige driehoek. Het snijpunt ligt perfect in het midden boven de basis.'
-  },
-  {
-    goalText: 'Opdracht 3: Zijden van 7 cm, 4 cm en 5 cm.',
-    baseLen: 7, rA: 4, rB: 5,
-    pA: { x: 125, y: 350 }, pB: { x: 475, y: 350 },
-    // c=7, b=4, a=5. x = (49+16-25)/14 = 40/14 = 2.857
-    // y = sqrt(16 - 8.16) = sqrt(7.84) = 2.8
-    // C.x = 125 + 2.857 * 50 = 267.85
-    // C.y = 350 - 2.8 * 50 = 210
-    pC: { x: 267.85, y: 210 },
-    successMsg: 'Geweldig! Zijden 7, 4 en 5. Omdat alle zijden verschillend zijn, is dit een Ongelijkbenige (willekeurige) driehoek.'
-  }
-]
+  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, 3)
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
+
+function getHint() {
+  const data = currentLevelData.value
+  if (!data) return ''
+  if (attemptCount.value >= 3) return data.hint3
+  if (attemptCount.value >= 2) return data.hint2
+  return data.hint1
+}
 
 // Domain Logic
 const circleADrawn = ref(false)
@@ -85,23 +121,30 @@ function drawCircleA() {
 
 function drawCircleB() {
     if (isCorrect.value) return;
+    if (!circleADrawn.value) {
+        attemptCount.value++
+        feedback.value = { type: 'error', text: 'Teken eerst de cirkel vanuit A! ' + getHint() }
+        return
+    }
     circleBDrawn.value = true
     feedback.value = { type: 'info', text: `Goed. Elk punt op de rode cirkel ligt exact ${currentLevelData.value.rB} eenheden van punt B.` }
 }
 
 function placePointC() {
     if (isCorrect.value) return;
-    if (circleADrawn.value && circleBDrawn.value) {
-        pointCPlaced.value = true
-        checkAnswer()
-    } else {
-        feedback.value = { type: 'error', text: 'Je moet eerst beide cirkels tekenen om te weten waar ze elkaar snijden!' }
+    if (!circleADrawn.value || !circleBDrawn.value) {
+        attemptCount.value++
+        feedback.value = { type: 'error', text: 'Je moet eerst beide cirkels tekenen om te weten waar ze elkaar snijden! ' + getHint() }
+        return
     }
+    pointCPlaced.value = true
+    checkAnswer()
 }
 
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Klik op de eerste passer-knop om te beginnen.' };
     circleADrawn.value = false;
     circleBDrawn.value = false;
@@ -110,15 +153,16 @@ function resetActivityState() {
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   if (pointCPlaced.value) {
     isCorrect.value = true
+    attemptCount.value = 0
     feedback.value = { type: 'success', text: currentLevelData.value.successMsg }
   }
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
     currentInternalLevel.value++;
     resetActivityState();
   } else {
@@ -131,6 +175,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = generateLevel();
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -156,7 +201,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -167,8 +212,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -184,14 +229,14 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
                <h4 class="font-bold text-slate-700 mb-3">Stappenplan:</h4>
-               
+
                <div class="flex flex-col gap-2">
                    <button @click="drawCircleA" :disabled="isCorrect || circleADrawn" class="py-2 px-4 rounded border-2 font-bold text-left transition-colors flex items-center justify-between" :class="circleADrawn ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        <span>1. Passer in A (straal = {{ currentLevelData.rA }})</span>
@@ -227,17 +272,17 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- SVG Visualisation -->
               <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-8" :key="currentInternalLevel">
                   <svg width="600" height="500" viewBox="0 0 600 500">
-                      
+
                       <!-- The Circles -->
                       <g>
                           <!-- Circle A -->
                           <circle v-if="circleADrawn" :cx="currentLevelData.pA.x" :cy="currentLevelData.pA.y" :r="currentLevelData.rA * 50" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="8 4" class="animate-fadeIn" />
                           <circle v-if="circleADrawn" :cx="currentLevelData.pA.x" :cy="currentLevelData.pA.y" :r="currentLevelData.rA * 50" fill="rgba(59, 130, 246, 0.05)" class="animate-fadeIn" />
-                          
+
                           <!-- Radius line A -->
                           <line v-if="circleADrawn && !pointCPlaced" :x1="currentLevelData.pA.x" :y1="currentLevelData.pA.y" :x2="currentLevelData.pC.x" :y2="currentLevelData.pC.y" stroke="#3b82f6" stroke-width="2" class="animate-fadeIn" />
                           <text v-if="circleADrawn && !pointCPlaced" :x="(currentLevelData.pA.x + currentLevelData.pC.x)/2 - 10" :y="(currentLevelData.pA.y + currentLevelData.pC.y)/2 - 10" font-weight="bold" fill="#3b82f6" class="animate-fadeIn">{{ currentLevelData.rA }} cm</text>
@@ -245,7 +290,7 @@ onUnmounted(() => {
                           <!-- Circle B -->
                           <circle v-if="circleBDrawn" :cx="currentLevelData.pB.x" :cy="currentLevelData.pB.y" :r="currentLevelData.rB * 50" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 4" class="animate-fadeIn" />
                           <circle v-if="circleBDrawn" :cx="currentLevelData.pB.x" :cy="currentLevelData.pB.y" :r="currentLevelData.rB * 50" fill="rgba(239, 68, 68, 0.05)" class="animate-fadeIn" />
-                          
+
                           <!-- Radius line B -->
                           <line v-if="circleBDrawn && !pointCPlaced" :x1="currentLevelData.pB.x" :y1="currentLevelData.pB.y" :x2="currentLevelData.pC.x" :y2="currentLevelData.pC.y" stroke="#ef4444" stroke-width="2" class="animate-fadeIn" />
                           <text v-if="circleBDrawn && !pointCPlaced" :x="(currentLevelData.pB.x + currentLevelData.pC.x)/2 + 10" :y="(currentLevelData.pB.y + currentLevelData.pC.y)/2 - 10" font-weight="bold" fill="#ef4444" class="animate-fadeIn">{{ currentLevelData.rB }} cm</text>
@@ -256,7 +301,7 @@ onUnmounted(() => {
                           <polygon :points="`${currentLevelData.pA.x},${currentLevelData.pA.y} ${currentLevelData.pB.x},${currentLevelData.pB.y} ${currentLevelData.pC.x},${currentLevelData.pC.y}`" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="4" stroke-linejoin="round" />
                           <circle :cx="currentLevelData.pC.x" :cy="currentLevelData.pC.y" r="5" fill="#1e293b" />
                           <text :x="currentLevelData.pC.x - 5" :y="currentLevelData.pC.y - 15" font-weight="bold" fill="#1e293b">C</text>
-                          
+
                           <text :x="(currentLevelData.pA.x + currentLevelData.pC.x)/2 - 20" :y="(currentLevelData.pA.y + currentLevelData.pC.y)/2 - 10" font-weight="bold" fill="#047857">{{ currentLevelData.rA }} cm</text>
                           <text :x="(currentLevelData.pB.x + currentLevelData.pC.x)/2 + 10" :y="(currentLevelData.pB.y + currentLevelData.pC.y)/2 - 10" font-weight="bold" fill="#047857">{{ currentLevelData.rB }} cm</text>
                       </g>
@@ -265,7 +310,7 @@ onUnmounted(() => {
                       <line :x1="currentLevelData.pA.x" :y1="currentLevelData.pA.y" :x2="currentLevelData.pB.x" :y2="currentLevelData.pB.y" stroke="#1e293b" stroke-width="4" />
                       <circle :cx="currentLevelData.pA.x" :cy="currentLevelData.pA.y" r="5" fill="#1e293b" />
                       <circle :cx="currentLevelData.pB.x" :cy="currentLevelData.pB.y" r="5" fill="#1e293b" />
-                      
+
                       <text :x="currentLevelData.pA.x - 20" :y="currentLevelData.pA.y + 25" font-weight="bold" fill="#1e293b">A</text>
                       <text :x="currentLevelData.pB.x + 5" :y="currentLevelData.pB.y + 25" font-weight="bold" fill="#1e293b">B</text>
                       <text :x="(currentLevelData.pA.x + currentLevelData.pB.x)/2" :y="currentLevelData.pA.y + 25" font-weight="bold" fill="#64748b" text-anchor="middle">{{ currentLevelData.baseLen }} cm</text>

@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScissors, PhArrowClockwise, PhArrowsLeftRight
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Oppervlakte: Parallellogram' },
-  instruction: { 
-    type: String, 
-    default: 'Je mag geen formuleblad gebruiken! Gelukkig kan je elke formule zelf ontdekken. Een parallellogram is stiekem gewoon een bekende vorm in vermomming.<br/><br/><strong>Opdracht:</strong> Gebruik de schaar om het uitstekende stukje af te knippen en naar de andere kant te verplaatsen. Bereken daarna de oppervlakte.' 
+  instruction: {
+    type: String,
+    default: 'Je mag geen formuleblad gebruiken! Gelukkig kan je elke formule zelf ontdekken. Een parallellogram is stiekem gewoon een bekende vorm in vermomming.<br/><br/><strong>Opdracht:</strong> Gebruik de schaar om het uitstekende stukje af te knippen en naar de andere kant te verplaatsen. Bereken daarna de oppervlakte.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -27,15 +27,39 @@ const feedback = ref({ type: 'info', text: 'Klik op de knop om de vorm te transf
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-// base, height, shear. (30px = 1 unit)
-const levels = [
-  { base: 8, height: 5, shear: 3 }, // 8x5=40
-  { base: 10, height: 4, shear: 4 }, // 10x4=40
-  { base: 6, height: 6, shear: 2 }  // 6x6=36
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+
+  // Level 1: small numbers
+  const b1 = pickRandom([4, 5, 6])
+  const h1 = pickRandom([3, 4, 5])
+  const s1 = pickRandom([2, 3])
+  newLevels.push({ base: b1, height: h1, shear: s1 })
+
+  // Level 2: medium
+  const b2 = pickRandom([6, 7, 8, 9])
+  const h2 = pickRandom([4, 5, 6])
+  const s2 = pickRandom([3, 4])
+  newLevels.push({ base: b2, height: h2, shear: s2 })
+
+  // Level 3: larger numbers
+  const b3 = pickRandom([5, 6, 7, 8, 9, 10])
+  const h3 = pickRandom([5, 6, 7])
+  const s3 = pickRandom([2, 3, 4])
+  newLevels.push({ base: b3, height: h3, shear: s3 })
+
+  levels.value = newLevels
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const targetArea = computed(() => currentLevelData.value.base * currentLevelData.value.height)
 
 // Domain Logic
@@ -54,17 +78,19 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Klik op de knop om de vorm te transformeren.' };
     step.value = 0;
     userAns.value = null;
+    attemptCount.value = 0;
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+  attemptCount.value++;
+
   if (userAns.value === targetArea.value) {
     if (step.value === 1) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: 'Briljant! Je hoeft de formule voor een parallellogram dus niet te blokken. Het is gewoon basis × hoogte, net als bij de rechthoek!' 
+        feedback.value = {
+          type: 'success',
+          text: 'Briljant! Je hoeft de formule voor een parallellogram dus niet te blokken. Het is gewoon basis × hoogte, net als bij de rechthoek!'
         }
     } else {
         isCorrect.value = false
@@ -72,14 +98,19 @@ function checkAnswer() {
     }
   } else {
     isCorrect.value = false
-    
+
     const data = currentLevelData.value;
-    const hypotenuse = Math.sqrt(data.height*data.height + data.shear*data.shear);
-    // Rough check if they multiplied base by slanted side
-    if (Math.abs(userAns.value - (data.base * hypotenuse)) < 2) {
-        feedback.value = { type: 'error', text: 'Je hebt de basis vermenigvuldigd met de schuine zijde. Fout! Kijk naar de getransformeerde vorm (de rechthoek). Je hebt de loodrechte HOOGTE nodig.'}
+    if (attemptCount.value >= 3) {
+      feedback.value = { type: 'error', text: `De rechthoek na het knippen is ${data.base} bij ${data.height}. Oppervlakte = ${data.base} × ${data.height} = ${targetArea.value} cm².` }
+    } else if (attemptCount.value >= 2) {
+      feedback.value = { type: 'error', text: `Kijk naar de getransformeerde vorm. Het is een rechthoek van ${data.base} bij ${data.height}. Wat is de oppervlakte van een rechthoek? (lengte × breedte)` }
     } else {
-        feedback.value = { type: 'error', text: `Kijk naar de getransformeerde vorm. Het is een rechthoek van ${data.base} bij ${data.height}. Wat is de oppervlakte daarvan? (L × B)`}
+      const hypotenuse = Math.sqrt(data.height * data.height + data.shear * data.shear);
+      if (Math.abs(userAns.value - (data.base * hypotenuse)) < 2) {
+        feedback.value = { type: 'error', text: 'Je hebt de basis vermenigvuldigd met de schuine zijde. Fout! Kijk naar de getransformeerde vorm (de rechthoek). Je hebt de loodrechte HOOGTE nodig.' }
+      } else {
+        feedback.value = { type: 'error', text: `Kijk naar de getransformeerde vorm. Het is een rechthoek van ${data.base} bij ${data.height}. Wat is de oppervlakte daarvan? (L × B)` }
+      }
     }
   }
 }
@@ -98,6 +129,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -123,7 +155,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -134,8 +166,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -151,7 +183,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner text-center">
                <label class="block text-sm font-bold text-orange-900 mb-2">Oppervlakte Parallellogram:</label>
                <div class="flex items-center gap-2">
@@ -180,49 +212,34 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex flex-col items-center">
-                  
+
                   <div class="mb-12">
-                      <button @click="transformShape" :disabled="isCorrect || step === 1" 
+                      <button @click="transformShape" :disabled="isCorrect || step === 1"
                               class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                           <PhScissors weight="bold" class="w-6 h-6" /> Snij en Verplaats
                       </button>
                   </div>
 
                   <!-- Visualisation Area -->
-                  <!-- 1 unit = 30px -->
                   <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-12" :key="currentInternalLevel">
                       <svg width="600" height="300" viewBox="0 0 600 300" class="block">
-                          
+
                           <!-- Grid lines -->
                           <g stroke="#e2e8f0" stroke-width="1">
                               <line v-for="i in 19" :key="'v'+i" :x1="i * 30" y1="0" :x2="i * 30" y2="300" />
                               <line v-for="i in 9" :key="'h'+i" x1="0" :y1="i * 30" x2="600" :y2="i * 30" />
                           </g>
 
-                          <!-- Calculated coords based on level -->
                           <!-- Origin: x=120, y=240 (bottom left) -->
-                          <!-- Height goes UP (y decreases) -->
                           <g :transform="`translate(120, 240)`">
-                              <!-- p0: (0,0). p1: (base*30, 0) -->
-                              <!-- p2: (base*30 + shear*30, -height*30) -->
-                              <!-- p3: (shear*30, -height*30) -->
-                              
-                              <!-- Static Middle + Right Triangle -->
-                              <!-- This is the part that does NOT move. -->
-                              <!-- From (shear*30, 0) to (base*30 + shear*30, 0) to (base*30 + shear*30, -height*30) to (shear*30, -height*30) ... Wait -->
-                              <!-- The parallelogram is P0(0,0), P1(b,0), P2(b+s, -h), P3(s, -h). -->
-                              <!-- The left triangle is P0(0,0), P_mid(s,0), P3(s,-h). -->
-                              <!-- The rest is P_mid(s,0) to P1(b,0) to P2(b+s,-h) to P3(s,-h). -->
-                              <polygon :points="`${currentLevelData.shear*30},0 ${currentLevelData.base*30},0 ${currentLevelData.base*30 + currentLevelData.shear*30},${-currentLevelData.height*30} ${currentLevelData.shear*30},${-currentLevelData.height*30}`" 
+                              <polygon :points="`${currentLevelData.shear*30},0 ${currentLevelData.base*30},0 ${currentLevelData.base*30 + currentLevelData.shear*30},${-currentLevelData.height*30} ${currentLevelData.shear*30},${-currentLevelData.height*30}`"
                                        fill="rgba(249, 115, 22, 0.5)" stroke="#ea580c" stroke-width="3" stroke-linejoin="round" />
 
                               <!-- The Moving Triangle (Left side originally) -->
-                              <!-- Original: 0,0 to shear*30,0 to shear*30,-height*30 -->
-                              <!-- Moves by base*30 to the right -->
                               <g class="transition-all duration-1000 ease-in-out" :style="{ transform: step === 1 ? `translateX(${currentLevelData.base*30}px)` : 'translateX(0)' }">
-                                  <polygon :points="`0,0 ${currentLevelData.shear*30},0 ${currentLevelData.shear*30},${-currentLevelData.height*30}`" 
+                                  <polygon :points="`0,0 ${currentLevelData.shear*30},0 ${currentLevelData.shear*30},${-currentLevelData.height*30}`"
                                            fill="rgba(249, 115, 22, 0.8)" stroke="#ea580c" stroke-width="3" stroke-linejoin="round" />
                               </g>
 
@@ -230,7 +247,7 @@ onUnmounted(() => {
                               <!-- Height -->
                               <line :x1="-20" y1="0" :x2="-20" :y2="-currentLevelData.height*30" stroke="#64748b" stroke-width="2" stroke-dasharray="4 2" />
                               <text :x="-30" :y="-currentLevelData.height*15" font-weight="bold" fill="#64748b" text-anchor="end" alignment-baseline="middle">{{ currentLevelData.height }}</text>
-                              
+
                               <!-- Base -->
                               <line x1="0" y1="20" :x2="currentLevelData.base*30" y2="20" stroke="#64748b" stroke-width="2" />
                               <text :x="currentLevelData.base*15" y="40" font-weight="bold" fill="#64748b" text-anchor="middle">{{ currentLevelData.base }}</text>

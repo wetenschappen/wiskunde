@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhTrendUp,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -31,81 +31,131 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
+const attemptCount = ref(0)
 
-// Levels Definition
+// Levels
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = ref(3)
+const levels = ref([])
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Maak een grafiek die door het blauwe punt (2, 4) gaat.',
-    targetA: 2,
-    hasPoint: true, pointX: 2, pointY: 4,
+function generateLevel() {
+  const result = []
+
+  // Level 1: Positive slope matching a visible point
+  const px = Math.floor(Math.random() * 4) + 1 // 1..4
+  const py = Math.floor(Math.random() * 6) + 1 // 1..6
+  const a1 = Math.round(py / px * 10) / 10 // Ensure clean fraction
+
+  result.push({
+    goalText: `Opdracht 1: Maak een grafiek die door het blauwe punt (${px}, ${py}) gaat.`,
+    targetA: a1,
+    hasPoint: true, pointX: px, pointY: py,
     hintNegative: 'Dit is een dalende rechte, maar het punt ligt in het positieve kwadrant. De grafiek moet stijgen!',
     hintTooSteep: 'De rechte is te steil, hij gaat bóven het punt door. Maak de richtingscoëfficiënt kleiner.',
     hintTooFlat: 'De rechte is niet steil genoeg, hij gaat onder het punt door. Maak de richtingscoëfficiënt groter.'
-  },
-  {
-    goalText: 'Opdracht 2: Maak een grafiek die dalend is en voor elke 1 stap naar rechts, 3 stappen zakt.',
-    targetA: -3,
-    hasPoint: false, pointX: 0, pointY: 0,
-    hintNegative: 'Je rechte stijgt! Als hij 3 stappen zakt per stap naar rechts, moet de factor negatief zijn.',
-    hintTooSteep: 'Bijna! Hij daalt nu te zacht of te extreem. Kijk goed naar het oranje hulptriangeltje op de grafiek.',
-    hintTooFlat: 'Bijna! Hij daalt nu te zacht of te extreem. Kijk goed naar het oranje hulptriangeltje op de grafiek.'
-  },
-  {
-    goalText: 'Opdracht 3: Maak de rechte volledig horizontaal (constante functie).',
-    targetA: 0,
-    hasPoint: false, pointX: 0, pointY: 0,
-    hintNegative: 'Nee, de grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.',
-    hintTooSteep: 'Nee, de grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.',
-    hintTooFlat: 'Nee, de grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.'
-  }
-]
+  })
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  // Level 2: Negative slope
+  const a2 = -(Math.floor(Math.random() * 4) + 2) // -5..-2
+  const desc = Math.abs(a2)
+  result.push({
+    goalText: `Opdracht 2: Maak een grafiek die dalend is en voor elke 1 stap naar rechts, ${desc} stappen zakt.`,
+    targetA: a2,
+    hasPoint: false, pointX: 0, pointY: 0,
+    hintNegative: 'Je rechte stijgt! Als hij daalt, moet de factor negatief zijn.',
+    hintTooSteep: `Bijna! Hij daalt nu te veel. Kijk naar het oranje hulptriangeltje. De daling moet ${desc} zijn per stap.`,
+    hintTooFlat: `Bijna! Hij daalt nu te weinig. De daling moet ${desc} zijn per stap.`
+  })
+
+  // Level 3: Horizontal (a=0) or fractional slope
+  const level3Options = [
+    {
+      goalText: 'Opdracht 3: Maak de rechte volledig horizontaal (constante functie).',
+      targetA: 0,
+      hintNegative: 'De grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.',
+      hintTooSteep: 'De grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.',
+      hintTooFlat: 'De grafiek gaat nog steeds naar boven of beneden. Hij moet perfect horizontaal zijn.'
+    },
+    {
+      goalText: 'Opdracht 3: Maak een stijgende rechte die precies door (4, 6) gaat.',
+      targetA: 1.5,
+      hintNegative: 'De rechte daalt, maar (4, 6) ligt boven. De rechte moet stijgen!',
+      hintTooSteep: 'Te steil. Voor x=4 is de y-waarde te hoog. Probeer een kleinere a.',
+      hintTooFlat: 'Te vlak. Voor x=4 is de y-waarde te laag. Probeer een grotere a.'
+    }
+  ]
+  result.push(level3Options[Math.floor(Math.random() * level3Options.length)])
+
+  return result
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // State
 const a = ref(1)
 
+let hintTimer = null
+
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
+  attemptCount.value = 0;
+  if (hintTimer) clearTimeout(hintTimer);
   feedback.value = { type: 'info', text: 'Beweeg de slider om de grafiek te laten kantelen.' };
-  
+
   // Start away from the target
-  if (currentLevelData.value.targetA === 2) a.value = -1;
-  else if (currentLevelData.value.targetA === -3) a.value = 1;
-  else a.value = 2;
+  const data = currentLevelData.value
+  if (!data) {
+    a.value = 1
+    return
+  }
+  if (data.targetA > 0) a.value = -3
+  else if (data.targetA < 0) a.value = 3
+  else a.value = 3
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  const targetA = currentLevelData.value.targetA;
+// Auto-correct when slider matches target
+watch(a, (newVal) => {
+  if (isCorrect.value || !currentLevelData.value) return
+  if (hintTimer) clearTimeout(hintTimer)
 
-  if (a.value === targetA) {
+  const targetA = currentLevelData.value.targetA
+
+  if (newVal === targetA) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Uitstekend! Je hebt de juiste richtingscoëfficiënt gevonden.' 
+    isChecked.value = true
+    attemptCount.value = 0
+    feedback.value = {
+      type: 'success',
+      text: 'Uitstekend! Je hebt de juiste richtingscoëfficiënt gevonden.'
     }
-  } else {
-    isCorrect.value = false
-    
-    if (Math.sign(a.value) !== Math.sign(targetA) && targetA !== 0) {
-      feedback.value = { type: 'error', text: currentLevelData.value.hintNegative }
-    } else if (a.value > targetA) {
-      // a > targetA means it's steeper (if target is positive) or less steep (if target is negative)
-      // To keep it simple, just use the hints from the level object
-      feedback.value = { type: 'error', text: currentLevelData.value.hintTooSteep }
-    } else {
-      feedback.value = { type: 'error', text: currentLevelData.value.hintTooFlat }
-    }
+    return
   }
+
+  // Show debounced hint after 2 seconds on a wrong value
+  const data = currentLevelData.value
+  hintTimer = setTimeout(() => {
+    attemptCount.value++
+    let msg
+    if (Math.sign(newVal) !== Math.sign(targetA) && targetA !== 0) {
+      msg = data.hintNegative
+    } else if (newVal > targetA) {
+      msg = data.hintTooSteep
+    } else if (newVal < targetA) {
+      msg = data.hintTooFlat
+    } else {
+      msg = 'Blijf de slider aanpassen tot de lijn door de juiste positie gaat.'
+    }
+    feedback.value = { type: 'error', text: msg }
+  }, 2000)
+})
+
+function checkAnswer() {
+  // Legacy - not used since auto-correct replaces the check button
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
     currentInternalLevel.value++;
     resetActivityState();
   } else {
@@ -120,6 +170,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = generateLevel();
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -156,6 +207,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  if (hintTimer) clearTimeout(hintTimer)
   if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
 </script>
@@ -163,9 +215,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -176,14 +228,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-teal-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -196,13 +248,13 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-teal-50 p-5 border border-teal-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-teal-800 text-lg">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
-              
+
               <div class="text-center">
                 <p class="font-mono text-3xl font-black text-teal-600">f(x) = {{ a }}x</p>
               </div>
@@ -219,7 +271,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -234,24 +286,21 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1"></div>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Coordinate System SVG -->
               <svg width="450" height="450" viewBox="-10 -10 20 20" class="overflow-visible bg-white/90 rounded-xl shadow-md border border-slate-300">
                 <!-- Grid Lines -->
@@ -271,17 +320,16 @@ onUnmounted(() => {
                 </g>
 
                 <!-- The Graph of f(x) = a * x -->
-                <!-- x1=-10, y1=-10*a, x2=10, y2=10*a. SVG y is inverted so y = -y -->
                 <line x1="-10" :y1="10 * a" x2="10" :y2="-10 * a" stroke="#0d9488" stroke-width="0.4" stroke-linecap="round" class="transition-all duration-300" />
-                
+
                 <!-- Rico helper triangle (1 right, 'a' up) -->
                 <path v-if="a !== 0" :d="`M 0 0 L 1 0 L 1 ${-a}`" fill="none" stroke="#f59e0b" stroke-width="0.2" stroke-dasharray="0.3" class="transition-all duration-300" />
-                
+
                 <!-- Text on helper triangle -->
                 <text v-if="a !== 0" x="0.5" y="0.8" font-size="0.6" fill="#f59e0b" font-weight="bold">1</text>
                 <text v-if="a > 0" x="1.4" :y="-a/2" font-size="0.6" fill="#f59e0b" font-weight="bold">+{{ a }}</text>
                 <text v-if="a < 0" x="1.4" :y="-a/2" font-size="0.6" fill="#f59e0b" font-weight="bold">{{ a }}</text>
-                
+
               </svg>
 
             </div>

@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhArrowsClockwise, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Transformaties: Puntspiegeling = Rotatie' },
-  instruction: { 
-    type: String, 
-    default: 'Een puntspiegeling klinkt ingewikkeld ("spiegelen doorheen een punt"), maar eigenlijk is het een heel simpele rotatie!<br/><br/><strong>Opdracht:</strong> De gestippelde vorm is de puntspiegeling van de blauwe vorm door punt C. Draai de blauwe vorm met de slider tot hij perfect past. Hoeveel graden heb je gedraaid?' 
+  instruction: {
+    type: String,
+    default: 'Een puntspiegeling klinkt ingewikkeld ("spiegelen doorheen een punt"), maar eigenlijk is het een heel simpele rotatie!<br/><br/><strong>Opdracht:</strong> De gestippelde vorm is de puntspiegeling van de blauwe vorm door punt C. Draai de blauwe vorm met de slider tot hij perfect past. Hoeveel graden heb je gedraaid?'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -27,32 +27,56 @@ const feedback = ref({ type: 'info', text: 'Gebruik de slider om de vorm rond pu
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const attemptCount = ref(0)
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Een L-vorm',
-    centerX: 250, centerY: 200,
-    shapeSVG: '<polygon points="150,100 200,100 200,150 250,150 250,200 150,200" fill="rgba(99, 102, 241, 0.8)" stroke="#4f46e5" stroke-width="3" stroke-linejoin="round" />',
-    targetSVG: '<polygon points="350,300 300,300 300,250 250,250 250,200 350,200" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="8 4" stroke-linejoin="round" />'
-  },
-  {
-    goalText: 'Opdracht 2: Een asymmetrische pijl',
-    centerX: 200, centerY: 200,
-    shapeSVG: '<polygon points="100,150 200,100 150,200" fill="rgba(236, 72, 153, 0.8)" stroke="#db2777" stroke-width="3" stroke-linejoin="round" />',
-    targetSVG: '<polygon points="300,250 200,300 250,200" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="8 4" stroke-linejoin="round" />'
-  },
-  {
-    goalText: 'Opdracht 3: Een willekeurige vierhoek',
-    centerX: 300, centerY: 200,
-    shapeSVG: '<polygon points="200,100 250,50 300,150 200,150" fill="rgba(16, 185, 129, 0.8)" stroke="#059669" stroke-width="3" stroke-linejoin="round" />',
-    targetSVG: '<polygon points="400,300 350,350 300,250 400,250" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="8 4" stroke-linejoin="round" />'
+const levels = ref([])
+
+function generateLevel() {
+  const newLevels = []
+  const cx = 250, cy = 200
+
+  // Level 1: simple L-shape (4 points)
+  const pts1 = [
+    [150, 100], [200, 100], [200, 150], [250, 150],
+    [250, 200], [150, 200]
+  ]
+  newLevels.push(makeLevel(pts1, cx, cy, 1, 'Een L-vorm'))
+
+  // Level 2: asymmetric triangle
+  const pts2 = [
+    [100, 150], [200, 100], [150, 200]
+  ]
+  newLevels.push(makeLevel(pts2, cx, cy, 2, 'Een asymmetrische driehoek'))
+
+  // Level 3: quadrilateral
+  const pts3 = [
+    [200, 100], [250, 50], [300, 150], [200, 150]
+  ]
+  newLevels.push(makeLevel(pts3, cx, cy, 3, 'Een willekeurige vierhoek'))
+
+  levels.value = newLevels
+}
+
+function makeLevel(points, cx, cy, level, label) {
+  const shapePts = points.map(p => `${p[0]},${p[1]}`).join(' ')
+  const rotatedPts = points.map(p => `${2*cx - p[0]},${2*cy - p[1]}`).join(' ')
+  const colors = ['rgba(99, 102, 241, 0.8)', 'rgba(236, 72, 153, 0.8)', 'rgba(16, 185, 129, 0.8)']
+  const strokes = ['#4f46e5', '#db2777', '#059669']
+  const color = colors[(level - 1) % colors.length]
+  const stroke = strokes[(level - 1) % strokes.length]
+  return {
+    goalText: `Opdracht ${level}: ${label}`,
+    centerX: cx,
+    centerY: cy,
+    shapeSVG: `<polygon points="${shapePts}" fill="${color}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" />`,
+    targetSVG: `<polygon points="${rotatedPts}" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="8 4" stroke-linejoin="round" />`
   }
-]
+}
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-const rotation = ref(0) // 0 to 360
+const rotation = ref(0)
 const userAns = ref(null)
 
 const isOverlapping = computed(() => rotation.value === 180)
@@ -63,33 +87,53 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Gebruik de slider om de vorm rond punt C te draaien.' };
     rotation.value = 0;
     userAns.value = null;
+    attemptCount.value = 0;
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+  attemptCount.value++;
+
   if (userAns.value === 180) {
     if (isOverlapping.value) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: 'Perfect! Een puntspiegeling is wiskundig EXACT hetzelfde als een rotatie van 180 graden (een halve draai). Wat de vorm ook is!' 
+        feedback.value = {
+          type: 'success',
+          text: 'Perfect! Een puntspiegeling is wiskundig EXACT hetzelfde als een rotatie van 180 graden (een halve draai). Wat de vorm ook is!'
         }
     } else {
         isCorrect.value = false
-        feedback.value = { type: 'error', text: '180 is correct! Draai de vorm nu ook fysiek naar 180° met de slider om het te bewijzen.'}
+        if (attemptCount.value >= 3) {
+          feedback.value = { type: 'error', text: '180 is correct! Zet de slider exact op 180° en klik opnieuw op Controleer.' }
+        } else if (attemptCount.value >= 2) {
+          feedback.value = { type: 'error', text: 'Het antwoord "180" klopt! Maar je moet de slider ook naar 180° zetten om het te bewijzen.' }
+        } else {
+          feedback.value = { type: 'error', text: '180 is correct! Draai de vorm nu ook fysiek naar 180° met de slider om het te bewijzen.' }
+        }
     }
   } else {
     isCorrect.value = false
-    
+
     if (userAns.value === 360 || userAns.value === 0) {
-        feedback.value = { type: 'error', text: 'Bij 360° of 0° doe je niets of draai je helemaal rond. De vorm ligt dan terug op zijn startpositie, niet op het spiegelbeeld.'}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: '0° of 360° betekent geen draaiing. Je moet exact een halve draai maken (180°).' }
+      } else {
+        feedback.value = { type: 'error', text: 'Bij 360° of 0° doe je niets of draai je helemaal rond. De vorm ligt dan terug op zijn startpositie, niet op het spiegelbeeld.' }
+      }
     } else if (userAns.value === 90 || userAns.value === 270) {
-        feedback.value = { type: 'error', text: 'Bij 90° of 270° (kwartdraai) staat de vorm haaks. Probeer de slider te slepen en kijk wanneer hij overlapt met het doel.'}
+      feedback.value = { type: 'error', text: 'Bij 90° of 270° (kwartdraai) staat de vorm haaks. Probeer de slider te slepen en kijk wanneer hij overlapt met het doel.' }
     } else if (isOverlapping.value) {
-        feedback.value = { type: 'error', text: `Je vorm overlapt perfect! Kijk nu naar de hoekgrootte bovenaan de slider. Vul dat getal in.`}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: 'Vorm overlapt! Lees de hoek bovenaan de slider af en typ dat getal in.' }
+      } else {
+        feedback.value = { type: 'error', text: `Je vorm overlapt perfect! Kijk nu naar de hoekgrootte bovenaan de slider. Vul dat getal in.` }
+      }
     } else {
-        feedback.value = { type: 'error', text: 'Fout. Sleep de slider tot de vormen overlappen en lees de hoek af.'}
+      if (attemptCount.value >= 3) {
+        feedback.value = { type: 'error', text: 'Sleep de slider tot de vormen exact overlappen. Dat gebeurt bij 180°.' }
+      } else {
+        feedback.value = { type: 'error', text: 'Fout. Sleep de slider tot de vormen overlappen en lees de hoek af.' }
+      }
     }
   }
 }
@@ -108,6 +152,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    generateLevel()
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -133,7 +178,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -144,8 +189,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -161,7 +206,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
@@ -197,9 +242,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <!-- Control -->
                   <div class="mb-12 w-full max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-slate-200 z-10">
                       <div class="flex justify-between items-end mb-4">
@@ -214,7 +259,7 @@ onUnmounted(() => {
                   <!-- Visualisation Area -->
                   <div class="relative bg-white shadow-xl rounded-3xl overflow-hidden border-4 border-slate-200 p-4" :key="currentInternalLevel">
                       <svg width="500" height="400" viewBox="0 0 500 400" class="block">
-                          
+
                           <g v-html="currentLevelData.targetSVG"></g>
 
                           <circle :cx="currentLevelData.centerX" :cy="currentLevelData.centerY" r="6" fill="#1e293b" />
@@ -223,7 +268,7 @@ onUnmounted(() => {
                           <!-- ORIGINAL SHAPE (Rotatable Group) -->
                           <g :transform="`rotate(${rotation}, ${currentLevelData.centerX}, ${currentLevelData.centerY})`">
                               <g class="transition-colors duration-300"
-                                 :class="isOverlapping ? '[&>*]:fill-emerald-500/80 [&>*]:stroke-emerald-600' : ''" 
+                                 :class="isOverlapping ? '[&>*]:fill-emerald-500/80 [&>*]:stroke-emerald-600' : ''"
                                  v-html="currentLevelData.shapeSVG"></g>
                           </g>
 

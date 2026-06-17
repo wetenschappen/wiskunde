@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMapPin, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Meetkunde: Stratenplan Symbolen' },
-  instruction: { 
-    type: String, 
-    default: 'Kijk naar de kaart van de stad. Welke straten lopen evenwijdig (∥) of loodrecht (⊥) op elkaar?<br/><br/><strong>Opdracht:</strong> Kies het juiste wiskundige symbool voor elke combinatie van straten.' 
+  instruction: {
+    type: String,
+    default: 'Kijk naar de kaart van de stad. Welke straten lopen evenwijdig (∥) of loodrecht (⊥) op elkaar?<br/><br/><strong>Opdracht:</strong> Kies het juiste wiskundige symbool voor elke combinatie van straten.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,97 +23,84 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de lege knoppen om een symbool (∥, ⊥ of ∦) te kiezen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = ref(3)
 
-// Map:
-// a: horizontal
-// b: horizontal
-// c: vertical
-// d: diagonal
-
-const levels = [
-  {
-    goalText: 'Opdracht 1: Basis Relaties',
-    relations: [
-      { id: 1, left: 'a', right: 'b', userSym: '', correctSym: '∥', hint: 'Kijk naar straat a en b. Ze gaan in exact dezelfde richting en snijden elkaar nooit. Dat heet EVENWIJDIG (∥).' },
-      { id: 2, left: 'a', right: 'c', userSym: '', correctSym: '⊥', hint: 'Kijk naar straat a en c. Ze kruisen elkaar in een perfecte hoek van 90 graden. Dat heet LOODRECHT (⊥).' }
-    ]
-  },
-  {
-    goalText: 'Opdracht 2: Diagonale Snijding',
-    relations: [
-      { id: 1, left: 'c', right: 'd', userSym: '', correctSym: '∦', hint: 'Kijk naar straat c en d. Ze snijden elkaar, maar staan ze perfect loodrecht (90°)? Nee. Dan gebruik je het symbool ∦.' },
-      { id: 2, left: 'b', right: 'c', userSym: '', correctSym: '⊥', hint: 'Kijk naar straat b en c. Ze vormen een perfect kruispunt van 90 graden. Dat is LOODRECHT (⊥).' }
-    ]
-  },
-  {
-    goalText: 'Opdracht 3: Alles door elkaar',
-    relations: [
-      { id: 1, left: 'a', right: 'd', userSym: '', correctSym: '∦', hint: 'Straat a is horizontaal, straat d is schuin. Ze snijden, maar niet loodrecht. Dus ∦.' },
-      { id: 2, left: 'b', right: 'a', userSym: '', correctSym: '∥', hint: 'Straat b en a zijn beide horizontaal. Ze snijden elkaar nooit. Dat is EVENWIJDIG (∥).' },
-      { id: 3, left: 'c', right: 'a', userSym: '', correctSym: '⊥', hint: 'Straat c (verticaal) en straat a (horizontaal) staan perfect LOODRECHT (⊥) op elkaar.' }
-    ]
-  }
+// All possible street relation pairs with their correct symbols and hints
+const relationPool = [
+  { left: 'a', right: 'b', correctSym: '∥', hint1: 'Straat a en b gaan beide horizontaal. Ze snijden elkaar nooit.', hint2: 'Evenwijdige straten hebben dezelfde richting. a en b lopen parallel.', hint3: 'a ∥ b (evenwijdig)' },
+  { left: 'a', right: 'c', correctSym: '⊥', hint1: 'Straat a (horizontaal) en c (verticaal). Hoe staan die op elkaar?', hint2: 'Horizontaal en verticaal vormen een perfecte kruising van 90°.', hint3: 'a ⊥ c (loodrecht)' },
+  { left: 'b', right: 'c', correctSym: '⊥', hint1: 'Straat b (horizontaal) en c (verticaal).', hint2: 'Let op het rechte-hoek-tekentje bij het kruispunt.', hint3: 'b ⊥ c (loodrecht)' },
+  { left: 'a', right: 'd', correctSym: '∦', hint1: 'Straat a is horizontaal. Straat d is schuin. Ze snijden elkaar, maar is het 90°?', hint2: 'Ze snijden elkaar niet onder een rechte hoek, dus het is niet ⊥ maar ∦.', hint3: 'a ∦ d (snijdend, niet loodrecht)' },
+  { left: 'b', right: 'd', correctSym: '∦', hint1: 'Straat b is horizontaal. Straat d is schuin. Ze snijden elkaar.', hint2: 'Horizontaal en schuin zijn nooit loodrecht tenzij de schuine exact 90° staat.', hint3: 'b ∦ d (snijdend, niet loodrecht)' },
+  { left: 'c', right: 'd', correctSym: '∦', hint1: 'Straat c is verticaal. Straat d is schuin.', hint2: 'Verticaal en schuin zijn nooit loodrecht. Ze zijn ook niet evenwijdig.', hint3: 'c ∦ d (snijdend, niet loodrecht)' }
 ]
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+const levels = ref([])
 
-// Deep copy of relations for the current level to avoid mutating the source template
-const currentRelations = ref([])
+function generateLevel() {
+  const shuffled = [...relationPool].sort(() => Math.random() - 0.5)
+  // Split into 3 levels: ~2 relations each
+  const level1relations = shuffled.slice(0, 2)
+  const level2relations = shuffled.slice(2, 5)
+  const level3relations = shuffled.slice(5, 7)
 
-function setupLevel() {
-    currentRelations.value = JSON.parse(JSON.stringify(currentLevelData.value.relations))
+  // Give each a goalText
+  return [
+    { goalText: 'Opdracht 1: Basis Relaties', relations: level1relations.map(r => ({ ...r, userSym: '' })) },
+    { goalText: 'Opdracht 2: Gemengde Straten', relations: level2relations.map(r => ({ ...r, userSym: '' })) },
+    { goalText: 'Opdracht 3: Uitdagende Combinaties', relations: level3relations.map(r => ({ ...r, userSym: '' })) }
+  ]
 }
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 const symbols = ['∥', '⊥', '∦']
 
+function getHint(rel) {
+  if (attemptCount.value >= 3) return rel.hint3
+  if (attemptCount.value >= 2) return rel.hint2
+  return rel.hint1
+}
+
 function cycleSymbol(index) {
     if (isCorrect.value) return;
-    const current = currentRelations.value[index].userSym
+    const current = levels.value[currentInternalLevel.value].relations[index].userSym
     let nextIdx = symbols.indexOf(current) + 1
     if (nextIdx >= symbols.length) nextIdx = 0
-    currentRelations.value[index].userSym = symbols[nextIdx]
+    levels.value[currentInternalLevel.value].relations[index].userSym = symbols[nextIdx]
+
+    // Auto-check: all relations filled in
+    const rels = levels.value[currentInternalLevel.value].relations
+    const allFilled = rels.every(r => r.userSym !== '')
+    if (allFilled) {
+        const allCorrect = rels.every(r => r.userSym === r.correctSym)
+        if (allCorrect) {
+            isCorrect.value = true
+            attemptCount.value = 0
+            feedback.value = { type: 'success', text: 'Uitstekend! Je hebt de straten perfect geanalyseerd.' }
+        } else {
+            attemptCount.value++
+            const wrongRelation = rels.find(r => r.userSym !== r.correctSym)
+            feedback.value = { type: 'error', text: getHint(wrongRelation) }
+        }
+    } else {
+        feedback.value = { type: 'info', text: 'Klik op de resterende knoppen om een symbool te kiezen.' }
+    }
 }
 
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Klik op de lege knoppen om een symbool (∥, ⊥ of ∦) te kiezen.' };
-    setupLevel();
-}
-
-function checkAnswer() {
-  isChecked.value = true;
-  
-  const anyEmpty = currentRelations.value.some(r => r.userSym === '')
-  if (anyEmpty) {
-      isCorrect.value = false
-      feedback.value = { type: 'error', text: 'Kies voor elke combinatie een symbool.'}
-      return
-  }
-
-  const allCorrect = currentRelations.value.every(r => r.userSym === r.correctSym)
-
-  if (allCorrect) {
-    isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Uitstekend! Je hebt de straten perfect geanalyseerd.' 
-    }
-  } else {
-    isCorrect.value = false
-    
-    // Provide specific didactic feedback for the first wrong answer found
-    const wrongRelation = currentRelations.value.find(r => r.userSym !== r.correctSym)
-    feedback.value = { type: 'error', text: wrongRelation.hint }
-  }
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
     currentInternalLevel.value++;
     resetActivityState();
   } else {
@@ -126,6 +113,7 @@ function handleNext() {
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0;
+    levels.value = generateLevel();
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -151,7 +139,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -162,8 +150,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -179,24 +167,24 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner">
                <h4 class="font-bold text-slate-700 mb-4">Relaties:</h4>
-               
+
                <div class="flex flex-col gap-4">
-                   <div v-for="(rel, idx) in currentRelations" :key="rel.id" class="flex items-center justify-center gap-4 bg-white p-3 rounded-lg border border-slate-200 shadow-sm transition-all" :class="isCorrect ? 'border-emerald-400 bg-emerald-50' : ''">
+                   <div v-for="(rel, idx) in currentLevelData.relations" :key="idx" class="flex items-center justify-center gap-4 bg-white p-3 rounded-lg border border-slate-200 shadow-sm transition-all" :class="isCorrect ? 'border-emerald-400 bg-emerald-50' : ''">
                        <span class="font-black text-2xl text-slate-600">{{ rel.left }}</span>
-                       
+
                        <button @click="cycleSymbol(idx)" :disabled="isCorrect"
                                class="w-12 h-12 rounded-lg border-2 flex items-center justify-center font-black text-2xl transition-colors"
-                               :class="rel.userSym ? (isCorrect ? 'border-emerald-500 bg-emerald-100 text-emerald-700' : 'border-orange-500 bg-orange-100 text-orange-700') : 'border-dashed border-slate-400 text-slate-400 hover:bg-slate-50'">
+                               :class="isCorrect ? 'border-emerald-500 bg-emerald-100 text-emerald-700' : (rel.userSym ? (rel.userSym === rel.correctSym ? 'border-emerald-400 bg-emerald-50 text-emerald-600' : 'border-orange-500 bg-orange-100 text-orange-700') : 'border-dashed border-slate-400 text-slate-400 hover:bg-slate-50')">
                            {{ rel.userSym || '?' }}
                        </button>
-                       
+
                        <span class="font-black text-2xl text-slate-600">{{ rel.right }}</span>
                    </div>
                </div>
@@ -210,27 +198,27 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Symbolen</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1"></div>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative bg-emerald-50">
-              
+
               <!-- Map Visualization -->
               <div class="w-full max-w-3xl aspect-[4/3] bg-emerald-100 border-4 border-emerald-300 rounded-3xl overflow-hidden shadow-xl relative">
-                  
+
                   <!-- Grass decor -->
                   <div class="absolute top-10 left-10 w-32 h-32 bg-emerald-200/50 rounded-full blur-xl"></div>
                   <div class="absolute bottom-20 right-20 w-48 h-48 bg-emerald-200/50 rounded-full blur-xl"></div>
 
                   <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="absolute inset-0">
-                      
+
                       <!-- Street A (Horizontal Top) -->
                       <g>
                           <line x1="0" y1="200" x2="800" y2="200" stroke="#475569" stroke-width="24" />
@@ -256,7 +244,7 @@ onUnmounted(() => {
                           <!-- Right angle indicators at intersection of a and c -->
                           <polyline points="588,200 588,188 600,188" fill="none" stroke="#f1f5f9" stroke-width="2" />
                           <polyline points="588,400 588,388 600,388" fill="none" stroke="#f1f5f9" stroke-width="2" />
-                          
+
                           <!-- Label c -->
                           <rect x="620" y="50" width="30" height="30" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" />
                           <text x="635" y="70" text-anchor="middle" font-weight="900" font-size="18" fill="#0f172a">c</text>
