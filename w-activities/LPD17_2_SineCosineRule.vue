@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhListDashes,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -36,44 +36,78 @@ const feedback = ref({ type: 'info', text: '' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-// type: 'zijde' of 'hoek'
-const levels = [
-  {
-    name: 'Situatie: Z-H-Z',
-    targetRule: 'cosinus',
-    data: [
-      { id: 'd1', type: 'zijde', val: '5', label: 'Zijde b' },
-      { id: 'd2', type: 'hoek', val: '60°', label: 'Hoek α' },
-      { id: 'd3', type: 'zijde', val: '7', label: 'Zijde c' }
-    ]
-  },
-  {
-    name: 'Situatie: H-H-Z',
-    targetRule: 'sinus',
-    data: [
-      { id: 'd1', type: 'hoek', val: '40°', label: 'Hoek α' },
-      { id: 'd2', type: 'hoek', val: '80°', label: 'Hoek β' },
-      { id: 'd3', type: 'zijde', val: '12', label: 'Zijde a' }
-    ]
-  },
-  {
-    name: 'Situatie: Z-Z-Z',
-    targetRule: 'cosinus',
-    data: [
-      { id: 'd1', type: 'zijde', val: '8', label: 'Zijde a' },
-      { id: 'd2', type: 'zijde', val: '9', label: 'Zijde b' },
-      { id: 'd3', type: 'zijde', val: '10', label: 'Zijde c' }
-    ]
-  }
-]
+const attemptCount = ref(0)
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  // Level 1: Z-H-Z → cosinusregel
+  const sides1 = [3 + Math.floor(Math.random() * 6), 4 + Math.floor(Math.random() * 8)] // 3-8, 4-11
+  const angle1 = 30 + Math.floor(Math.random() * 4) * 15 // 30, 45, 60, 75
+
+  // Level 2: H-H-Z → sinusregel
+  const angle2a = 30 + Math.floor(Math.random() * 6) * 10 // 30, 40, 50, 60, 70, 80
+  const angle2b = angle2a + 20 + Math.floor(Math.random() * 4) * 10 // at least 30 more
+  const side2 = 8 + Math.floor(Math.random() * 10) // 8-17
+
+  // Level 3: Z-Z-Z → cosinusregel
+  const sides3 = [
+    5 + Math.floor(Math.random() * 5),  // 5-9
+    6 + Math.floor(Math.random() * 6),  // 6-11
+    7 + Math.floor(Math.random() * 7)   // 7-13
+  ]
+
+  levels.value = [
+    {
+      name: 'Situatie: Z-H-Z',
+      targetRule: 'cosinus',
+      data: [
+        { id: 'd1', type: 'zijde', val: `${sides1[0]}`, label: 'Zijde b' },
+        { id: 'd2', type: 'hoek', val: `${angle1}°`, label: `Hoek α` },
+        { id: 'd3', type: 'zijde', val: `${sides1[1]}`, label: 'Zijde c' }
+      ],
+      hints: [
+        'Bij Z-H-Z heb je twee zijden en de ingesloten hoek. Welke regel heeft 2 zijden en een hoek?',
+        'De cosinusregel gebruikt b, c en α. De sinusregel heeft een overstaand paar nodig.',
+        'Vul alle 3 waarden in de COSINUSREGEL. Die heeft b² + c² - 2bc·cos(α).'
+      ]
+    },
+    {
+      name: 'Situatie: H-H-Z',
+      targetRule: 'sinus',
+      data: [
+        { id: 'd1', type: 'hoek', val: `${angle2a}°`, label: 'Hoek α' },
+        { id: 'd2', type: 'hoek', val: `${angle2b}°`, label: 'Hoek β' },
+        { id: 'd3', type: 'zijde', val: `${side2}`, label: 'Zijde a' }
+      ],
+      hints: [
+        'Bij H-H-Z heb je twee hoeken en een zijde. Welke regel gebruikt een overstaand paar?',
+        'De sinusregel heeft a/sin(α) = b/sin(β). Je hebt a en α als paar, en β gegeven.',
+        'Vul alle 3 waarden in de SINUSREGEL. Die heeft a/sin(α) = b/sin(β).'
+      ]
+    },
+    {
+      name: 'Situatie: Z-Z-Z',
+      targetRule: 'cosinus',
+      data: [
+        { id: 'd1', type: 'zijde', val: `${sides3[0]}`, label: 'Zijde a' },
+        { id: 'd2', type: 'zijde', val: `${sides3[1]}`, label: 'Zijde b' },
+        { id: 'd3', type: 'zijde', val: `${sides3[2]}`, label: 'Zijde c' }
+      ],
+      hints: [
+        'Bij Z-Z-Z heb je alleen zijden. Welke regel werkt zonder hoeken?',
+        'De cosinusregel a² = b² + c² - 2bc·cos(α) kan met enkel zijden als je een hoek zoekt.',
+        'Vul alle 3 zijden in de COSINUSREGEL. Plaats de onbekende zijde als "a".'
+      ]
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Interactive State
 const selectedDataId = ref(null)
 
 // Slots for Cosinusregel: a² = b² + c² - 2bc * cos(α)
-// Needs: side_a, side_b1, side_c1, side_b2, side_c2, angle_alpha
 const cosRuleSlots = ref({
   side_a: null,
   side_b1: null,
@@ -101,7 +135,7 @@ function fillSlot(rule, slotKey, expectedType) {
   if (!selectedDataId.value) return;
 
   const dataItem = currentLevelData.value.data.find(d => d.id === selectedDataId.value);
-  
+
   // Type check!
   if (dataItem.type !== expectedType) {
     feedback.value = { type: 'error', text: `Je probeert een ${dataItem.type} in een veld voor een ${expectedType} te plaatsen!` };
@@ -114,44 +148,63 @@ function fillSlot(rule, slotKey, expectedType) {
   } else {
     sinRuleSlots.value[slotKey] = dataItem;
   }
-  
+
   selectedDataId.value = null;
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: '' };
+  feedback.value = { type: 'info', text: 'Voeg nog een waarde toe of wissel van regel.' };
+
+  // Auto-validate: check if all 3 placed in the correct rule
+  autoValidate();
+}
+
+function countFilledUnique(slotsRef) {
+  const filled = Object.values(slotsRef).filter(v => v !== null);
+  const uniqueIds = new Set(filled.map(f => f.id));
+  return uniqueIds.size;
+}
+
+function autoValidate() {
+  const cosFilled = countFilledUnique(cosRuleSlots);
+  const sinFilled = countFilledUnique(sinRuleSlots);
+  const target = currentLevelData.value;
+
+  if (target.targetRule === 'cosinus' && cosFilled === 3) {
+    isCorrect.value = true;
+    isChecked.value = true;
+    feedback.value = { type: 'success', text: 'Fantastisch! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
+  } else if (target.targetRule === 'sinus' && sinFilled === 3) {
+    isCorrect.value = true;
+    isChecked.value = true;
+    feedback.value = { type: 'success', text: 'Fantastisch! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
+  }
 }
 
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
+  attemptCount.value = 0;
   feedback.value = { type: 'info', text: 'Selecteer een waarde en plaats hem in de juiste regel.' };
   selectedDataId.value = null;
-  
+
   Object.keys(cosRuleSlots.value).forEach(k => cosRuleSlots.value[k] = null);
   Object.keys(sinRuleSlots.value).forEach(k => sinRuleSlots.value[k] = null);
+  generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  // Count filled unique items per rule
-  const countFilledUnique = (slotsRef) => {
-     const filled = Object.values(slotsRef.value).filter(v => v !== null);
-     const uniqueIds = new Set(filled.map(f => f.id));
-     return uniqueIds.size;
-  }
+  attemptCount.value++;
 
   const cosFilled = countFilledUnique(cosRuleSlots);
   const sinFilled = countFilledUnique(sinRuleSlots);
 
-  // You need all 3 pieces of data mapped into ONE rule to solve it (since rules relate 4 things, 3 knowns = 1 unknown left)
-  const target = currentLevelData.value;
-  
   if (cosFilled < 3 && sinFilled < 3) {
-    isCorrect.value = false;
-    feedback.value = { type: 'error', text: 'Plaats eerst ALLE 3 de meetwaarden in één van de twee regels.' };
+    const hints = currentLevelData.value.hints
+    const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
+    feedback.value = { type: 'error', text: hints[hintIdx] };
     return;
   }
 
+  const target = currentLevelData.value;
   if (target.targetRule === 'cosinus' && cosFilled === 3) {
     isCorrect.value = true;
     feedback.value = { type: 'success', text: 'Fantastisch! Met de cosinusregel blijft er nu exact 1 onbekende over, dus je kan het oplossen.' };
@@ -159,10 +212,8 @@ function checkAnswer() {
     isCorrect.value = true;
     feedback.value = { type: 'success', text: 'Fantastisch! De sinusregel is hier perfect, want je kent een overstaand paar (zijde+hoek) en nog een hoek.' };
   } else {
-    isCorrect.value = false;
-    // They filled the wrong rule
     if (cosFilled === 3) {
-      feedback.value = { type: 'error', text: 'Kijk naar de cosinusregel. Heb je niet 2 onbekenden over? Bijv: je kent de hoek niet, én een zijde niet. Probeer de sinusregel.' };
+      feedback.value = { type: 'error', text: 'Kijk naar de cosinusregel. Heb je niet 2 onbekenden over? Probeer de sinusregel.' };
     } else {
       feedback.value = { type: 'error', text: 'Kijk naar de sinusregel. Je mist nu waarschijnlijk een compleet overstaand paar. Probeer de cosinusregel.' };
     }
@@ -228,9 +279,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-100">
@@ -241,14 +292,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -261,14 +312,14 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-emerald-50 p-4 border border-emerald-200 rounded-xl shadow-sm mb-6">
               <p class="font-bold text-emerald-800">{{ currentLevelData.name }}</p>
             </div>
-            
+
             <div class="space-y-4">
               <p class="font-bold text-slate-800">Gegeven Meetwaarden:</p>
-              
+
               <div class="flex flex-col gap-3">
                 <button v-for="data in currentLevelData.data" :key="data.id"
                         @click="selectData(data.id)"
@@ -283,7 +334,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -298,12 +349,8 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -313,11 +360,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-8 overflow-y-auto gap-8 items-center justify-center pattern-grid">
-            
+
             <!-- Cosinusregel Box -->
             <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-md p-6">
               <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Cosinusregel</h3>
-              
+
               <div class="flex items-center justify-center gap-3 text-2xl font-mono font-bold text-slate-700 flex-wrap">
                 <!-- a^2 -->
                 <button @click="fillSlot('cosinus', 'side_a', 'zijde')" class="h-14 min-w-[3.5rem] px-2 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors" :class="cosRuleSlots.side_a ? 'border-blue-500 bg-blue-50 text-blue-700 border-solid' : (selectedDataId ? 'border-blue-300 hover:bg-blue-50 cursor-pointer' : 'border-slate-300 text-slate-300')">
@@ -361,9 +408,9 @@ onUnmounted(() => {
             <!-- Sinusregel Box -->
             <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-md p-6">
               <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Sinusregel</h3>
-              
+
               <div class="flex items-center justify-center gap-6 text-2xl font-mono font-bold text-slate-700 flex-wrap">
-                
+
                 <!-- Left Fraction -->
                 <div class="flex flex-col items-center gap-2">
                   <!-- a -->

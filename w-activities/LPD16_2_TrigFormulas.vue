@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhSwap,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -36,41 +36,67 @@ const feedback = ref({ type: 'info', text: '' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const baseAngle = 40 // Constant base angle alpha for all levels
+const attemptCount = ref(0)
+const levels = ref([])
+const baseAngle = ref(40) // Will be randomized by generateLevel
 
-const levels = [
-  {
-    name: 'Tegengestelde Hoek (-α)',
-    goalText: 'Opdracht 1: Draai hoek B naar de tegengestelde hoek (-α).',
-    targetAngle: 360 - baseAngle, // -40
-    validate: (a) => a === 360 - baseAngle,
-    successText: 'Correct! Zoals je ziet blijven de x-waarden (cosinus) gelijk, maar draait de y-waarde (sinus) om van teken!',
-    hint: 'De tegengestelde hoek klapt de driehoek omlaag over de x-as.'
-  },
-  {
-    name: 'Supplementaire Hoek (180° - α)',
-    goalText: 'Opdracht 2: Draai hoek B naar de supplementaire hoek (180° - α).',
-    targetAngle: 180 - baseAngle,
-    validate: (a) => a === 180 - baseAngle,
-    successText: 'Juist! Nu zie je dat de y-waarden (sinus) perfect gelijk zijn, maar de x-waarde (cosinus) van teken is gewisseld.',
-    hint: 'Supplementair betekent dat ze samen 180° zijn. Klap de hoek over de y-as naar het tweede kwadrant.'
-  },
-  {
-    name: 'Anti-Supplementaire Hoek (180° + α)',
-    goalText: 'Opdracht 3: Draai hoek B naar (180° + α).',
-    targetAngle: 180 + baseAngle,
-    validate: (a) => a === 180 + baseAngle,
-    successText: 'Perfect! Zowel de sinus als cosinus zijn nu omgewisseld van teken vergeleken met hoek α.',
-    hint: 'Tel een halve cirkel (180°) op bij de basishoek α. Waar kom je dan uit?'
-  }
-]
+function generateLevel() {
+  // Randomize base angle (between 20 and 50, step 5)
+  const base = (20 + Math.floor(Math.random() * 7) * 5) // 20, 25, 30, 35, 40, 45, 50
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+  // Level targets derived from base angle
+  const target1 = 360 - base // opposite (-α)
+  const target2 = 180 - base  // supplementary (180° - α)
+  const target3 = 180 + base  // anti-supplementary (180° + α)
+
+  baseAngle.value = base
+
+  levels.value = [
+    {
+      name: 'Tegengestelde Hoek (-α)',
+      goalText: `Opdracht 1: Draai hoek B naar de tegengestelde hoek (-α).`,
+      targetAngle: target1,
+      validate: (a) => a === target1,
+      successText: 'Correct! De x-waarden (cosinus) blijven gelijk, maar de y-waarde (sinus) draait om van teken!',
+      hints: [
+        'De tegengestelde hoek klapt de driehoek omlaag over de x-as.',
+        `Als α = ${base}°, dan is de tegengestelde hoek 360° - ${base}°.`,
+        `Probeer ${target1}°.`
+      ]
+    },
+    {
+      name: 'Supplementaire Hoek (180° - α)',
+      goalText: `Opdracht 2: Draai hoek B naar de supplementaire hoek (180° - α).`,
+      targetAngle: target2,
+      validate: (a) => a === target2,
+      successText: 'Juist! De y-waarden (sinus) zijn gelijk, maar de x-waarde (cosinus) is van teken gewisseld.',
+      hints: [
+        'Supplementair betekent dat ze samen 180° zijn. Klap de hoek over de y-as.',
+        `180° - ${base}° = ?`,
+        `Probeer ${target2}°.`
+      ]
+    },
+    {
+      name: 'Anti-Supplementaire Hoek (180° + α)',
+      goalText: `Opdracht 3: Draai hoek B naar (180° + α).`,
+      targetAngle: target3,
+      validate: (a) => a === target3,
+      successText: 'Perfect! Zowel de sinus als cosinus zijn nu omgewisseld van teken vergeleken met hoek α.',
+      hints: [
+        'Tel een halve cirkel (180°) op bij de basishoek α.',
+        `180° + ${base}° = ?`,
+        `Probeer ${target3}°.`
+      ]
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Interactive State for Angle B
 const userAngle = ref(0)
 
-const alphaRad = computed(() => baseAngle * (Math.PI / 180))
+const alphaRad = computed(() => baseAngle.value * (Math.PI / 180))
 const betaRad = computed(() => userAngle.value * (Math.PI / 180))
 
 const cosAlpha = computed(() => Math.cos(alphaRad.value))
@@ -82,27 +108,32 @@ const sinBeta = computed(() => Math.sin(betaRad.value))
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
+  attemptCount.value = 0;
   feedback.value = { type: 'info', text: 'Pas de slider aan om de juiste verwante hoek te vinden.' };
-  userAngle.value = 0; // Start at 0 to force interaction
+  userAngle.value = 0;
+  generateLevel();
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  
-  if (currentLevelData.value.validate(userAngle.value)) {
+// Auto-correct on slider change
+watch(userAngle, (newAngle) => {
+  if (isCorrect.value || !currentLevelData.value) return;
+  if (currentLevelData.value.validate(newAngle)) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: currentLevelData.value.successText 
+    feedback.value = {
+      type: 'success',
+      text: currentLevelData.value.successText
     }
-  } else {
-    isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: `Niet helemaal. ${currentLevelData.value.hint}`
+  } else if (!isChecked.value && newAngle !== 0) {
+    attemptCount.value++
+    if (attemptCount.value >= 5) {
+      const hintIdx = Math.min(Math.floor((attemptCount.value - 1) / 3), currentLevelData.value.hints.length - 1)
+      feedback.value = {
+        type: 'info',
+        text: `Niet helemaal. ${currentLevelData.value.hints[hintIdx]}`
+      }
     }
   }
-}
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -163,9 +194,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -176,14 +207,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -196,14 +227,14 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-5 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800 text-lg">{{ currentLevelData.name }}</p>
               <p class="text-sm text-indigo-600 mt-2">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl shadow-inner space-y-6">
-              
+
               <!-- Alpha reference -->
               <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
                 <span class="font-bold text-slate-600">Referentie hoek α</span>
@@ -240,7 +271,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -255,12 +286,8 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -270,11 +297,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <svg width="450" height="450" viewBox="-150 -150 300 300" class="overflow-visible bg-white rounded-full shadow-inner border-4 border-slate-200 z-10">
-                
+
                 <!-- Inner grid subtle -->
                 <g stroke="#f1f5f9" stroke-width="1">
                   <line v-for="i in 11" :key="'v'+i" :x1="(i-6)*20" y1="-100" :x2="(i-6)*20" y2="100" />
@@ -284,7 +311,7 @@ onUnmounted(() => {
                 <!-- Axes -->
                 <line x1="-130" y1="0" x2="130" y2="0" stroke="#94a3b8" stroke-width="2" />
                 <line x1="0" y1="-130" x2="0" y2="130" stroke="#94a3b8" stroke-width="2" />
-                
+
                 <!-- Circle R=100 -->
                 <circle cx="0" cy="0" r="100" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4" />
 
@@ -311,13 +338,10 @@ onUnmounted(() => {
                    <circle :cx="100 * cosBeta" :cy="-100 * sinBeta" r="8" fill="#f43f5e" stroke="white" stroke-width="2" class="shadow-sm" />
                    <text :x="100 * cosBeta + 12" :y="-100 * sinBeta - 12" font-weight="bold" fill="#f43f5e">B</text>
                 </g>
-                
+
                 <!-- Highlight Visual Alignment if Correct -->
                 <g v-if="isCorrect" class="animate-fadeIn">
-                   <!-- Draw a thick connecting line to show the symmetry! -->
-                   <line v-if="currentInternalLevel === 0" :x1="100 * cosAlpha" :y1="-100 * sinAlpha" :x2="100 * cosBeta" :y2="-100 * sinBeta" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,6" />
-                   <line v-if="currentInternalLevel === 1" :x1="100 * cosAlpha" :y1="-100 * sinAlpha" :x2="100 * cosBeta" :y2="-100 * sinBeta" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,6" />
-                   <line v-if="currentInternalLevel === 2" :x1="100 * cosAlpha" :y1="-100 * sinAlpha" :x2="100 * cosBeta" :y2="-100 * sinBeta" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,6" />
+                   <line :x1="100 * cosAlpha" :y1="-100 * sinAlpha" :x2="100 * cosBeta" :y2="-100 * sinBeta" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,6" />
                 </g>
 
               </svg>

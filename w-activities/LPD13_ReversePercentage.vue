@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhPercent, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Procenten: Terugrekenen' },
-  instruction: { 
-    type: String, 
-    default: 'Terugrekenen is vaak moeilijk. We gebruiken het strokenmodel (Bar Model) om het visueel op te lossen.<br/><br/><strong>Opdracht:</strong> Los de som op door eerst de waarde van 1 blokje uit te rekenen, en daarna de originele 100% te berekenen.' 
+  instruction: {
+    type: String,
+    default: 'Terugrekenen is vaak moeilijk. We gebruiken het strokenmodel (Bar Model) om het visueel op te lossen.<br/><br/><strong>Opdracht:</strong> Los de som op door eerst de waarde van 1 blokje uit te rekenen, en daarna de originele 100% te berekenen.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,48 +23,80 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Kijk naar de strook. Hoeveel blokjes stellen de nieuwe prijs voor?' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Na 25% korting kost een jas nog €60. Wat was de beginprijs?',
-    discountPercent: 25,
-    newPrice: 60,
-    ansBlockExact: 20, // 60 / 3
-    ansTotalExact: 80, // 4 * 20
-    blocksRemaining: 3, // 75% -> 3 blocks of 25%
-    blocksTotal: 4, // 100% -> 4 blocks of 25%
-    hintBlock: 'Kijk goed naar de blauwe blokjes. Drie blokjes samen zijn €60. Hoeveel is één blokje dan? (60 ÷ 3)',
-    hintTotal: 'Je hebt correct berekend dat 1 blokje €20 is! De originele prijs (100%) bestaat uit 4 blokjes. Wat is 4 × 20?'
-  },
-  {
-    goalText: 'Na 20% korting kost een gsm nog €400. Wat was de beginprijs?',
-    discountPercent: 20,
-    newPrice: 400,
-    ansBlockExact: 100, // 400 / 4
-    ansTotalExact: 500, // 5 * 100
-    blocksRemaining: 4, // 80% -> 4 blocks of 20%
-    blocksTotal: 5, // 100% -> 5 blocks of 20%
-    hintBlock: 'Vier blauwe blokjes samen (80%) zijn €400. Hoeveel is één zo\'n blokje (20%) waard? (400 ÷ 4)',
-    hintTotal: '1 blokje is €100. Maar in totaal was de prijs 5 blokjes (100%). Wat is 5 × 100?'
-  },
-  {
-    goalText: 'Na 40% korting kost een broek nog €30. Wat was de beginprijs?',
-    discountPercent: 40,
-    newPrice: 30,
-    ansBlockExact: 10, // 30 / 3
-    ansTotalExact: 50, // 5 * 10
-    blocksRemaining: 3, // 60% -> 3 blocks of 20%
-    blocksTotal: 5, // 100% -> 5 blocks of 20%
-    hintBlock: 'De overgebleven 60% stellen we hier voor als 3 blauwe blokjes van 20%. Samen zijn ze €30. Hoeveel is 1 blokje (20%)?',
-    hintTotal: '1 blokje (20%) is €10. De originele 100% zijn 5 blokjes van 20%. Wat is 5 × 10?'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+  // Level 1: 25% discount (4 blocks of 25%, 3 remaining)
+  const blockPct1 = 25
+  const blocksTotal1 = 100 / blockPct1 // 4
+  const discountBlocks1 = 1
+  const blocksRemaining1 = blocksTotal1 - discountBlocks1
+  const pricePerBlock1 = [15, 20, 25, 30][Math.floor(Math.random() * 4)]
+  const newPrice1 = blocksRemaining1 * pricePerBlock1
+  const total1 = blocksTotal1 * pricePerBlock1
+  newLevels.push({
+    goalText: `Na ${discountBlocks1 * blockPct1}% korting kost een artikel nog €${newPrice1}. Wat was de beginprijs?`,
+    discountPercent: discountBlocks1 * blockPct1,
+    newPrice: newPrice1,
+    ansBlockExact: pricePerBlock1,
+    ansTotalExact: total1,
+    blocksRemaining: blocksRemaining1,
+    blocksTotal: blocksTotal1,
+    hintBlock: `Kijk naar de blauwe blokjes. ${blocksRemaining1} blokjes samen zijn €${newPrice1}. Hoeveel is 1 blokje dan? (${newPrice1} ÷ ${blocksRemaining1})`,
+    hintTotal: `1 blokje is €${pricePerBlock1}! De originele prijs (100%) bestaat uit ${blocksTotal1} blokjes. Wat is ${blocksTotal1} × ${pricePerBlock1}?`
+  })
+
+  // Level 2: 20% discount (5 blocks of 20%, 4 remaining)
+  const blockPct2 = 20
+  const blocksTotal2 = 100 / blockPct2 // 5
+  const discountBlocks2 = 1
+  const blocksRemaining2 = blocksTotal2 - discountBlocks2
+  const pricePerBlock2 = [40, 50, 75, 100][Math.floor(Math.random() * 4)]
+  const newPrice2 = blocksRemaining2 * pricePerBlock2
+  const total2 = blocksTotal2 * pricePerBlock2
+  newLevels.push({
+    goalText: `Na ${discountBlocks2 * blockPct2}% korting kost een artikel nog €${newPrice2}. Wat was de beginprijs?`,
+    discountPercent: discountBlocks2 * blockPct2,
+    newPrice: newPrice2,
+    ansBlockExact: pricePerBlock2,
+    ansTotalExact: total2,
+    blocksRemaining: blocksRemaining2,
+    blocksTotal: blocksTotal2,
+    hintBlock: `${blocksRemaining2} blauwe blokjes samen (${blocksRemaining2 * blockPct2}%) zijn €${newPrice2}. Hoeveel is 1 blokje (${blockPct2}%)? (${newPrice2} ÷ ${blocksRemaining2})`,
+    hintTotal: `1 blokje is €${pricePerBlock2}. De originele prijs is ${blocksTotal2} blokjes (100%). Wat is ${blocksTotal2} × ${pricePerBlock2}?`
+  })
+
+  // Level 3: 40% discount (5 blocks of 20%, 3 remaining)
+  const blockPct3 = 20
+  const blocksTotal3 = 100 / blockPct3 // 5
+  const discountBlocks3 = 2
+  const blocksRemaining3 = blocksTotal3 - discountBlocks3
+  const pricePerBlock3 = [8, 10, 12, 15][Math.floor(Math.random() * 4)]
+  const newPrice3 = blocksRemaining3 * pricePerBlock3
+  const total3 = blocksTotal3 * pricePerBlock3
+  newLevels.push({
+    goalText: `Na ${discountBlocks3 * blockPct3}% korting kost een artikel nog €${newPrice3}. Wat was de beginprijs?`,
+    discountPercent: discountBlocks3 * blockPct3,
+    newPrice: newPrice3,
+    ansBlockExact: pricePerBlock3,
+    ansTotalExact: total3,
+    blocksRemaining: blocksRemaining3,
+    blocksTotal: blocksTotal3,
+    hintBlock: `De overgebleven ${blocksRemaining3 * blockPct3}% stellen we voor als ${blocksRemaining3} blauwe blokjes van ${blockPct3}%. Samen zijn ze €${newPrice3}. Hoeveel is 1 blokje?`,
+    hintTotal: `1 blokje (${blockPct3}%) is €${pricePerBlock3}. De originele 100% is ${blocksTotal3} blokjes. Wat is ${blocksTotal3} × ${pricePerBlock3}?`
+  })
+
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const ansBlock = ref(null)
@@ -76,24 +108,39 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Kijk naar de strook. Hoeveel blokjes stellen de nieuwe prijs voor?' };
     ansBlock.value = null;
     ansTotal.value = null;
+    attemptCount.value = 0;
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  if (ansBlock.value === currentLevelData.value.ansBlockExact && ansTotal.value === currentLevelData.value.ansTotalExact) {
+  const data = currentLevelData.value;
+
+  if (ansBlock.value === data.ansBlockExact && ansTotal.value === data.ansTotalExact) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: `Briljant! ${currentLevelData.value.blocksRemaining} blokjes = €${currentLevelData.value.newPrice}. Dus 1 blokje = €${currentLevelData.value.ansBlockExact}. De totale 100% is dan ${currentLevelData.value.blocksTotal} × ${currentLevelData.value.ansBlockExact} = €${currentLevelData.value.ansTotalExact}.` 
+    feedback.value = {
+      type: 'success',
+      text: `Briljant! ${data.blocksRemaining} blokjes = €${data.newPrice}. Dus 1 blokje = €${data.ansBlockExact}. De totale 100% is dan ${data.blocksTotal} × ${data.ansBlockExact} = €${data.ansTotalExact}.`
     }
   } else {
-    isCorrect.value = false
-    
-    if (ansBlock.value !== currentLevelData.value.ansBlockExact) {
-        feedback.value = { type: 'error', text: currentLevelData.value.hintBlock }
-    } else if (ansTotal.value !== currentLevelData.value.ansTotalExact) {
-        feedback.value = { type: 'error', text: currentLevelData.value.hintTotal }
+    attemptCount.value++
+
+    if (ansBlock.value !== data.ansBlockExact) {
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: data.hintBlock }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `${data.blocksRemaining} blokjes = €${data.newPrice}. Deel €${data.newPrice} door ${data.blocksRemaining}.` }
+        } else {
+          feedback.value = { type: 'error', text: `1 blokje = €${data.ansBlockExact}. (€${data.newPrice} ÷ ${data.blocksRemaining} = ${data.ansBlockExact})` }
+        }
+    } else if (ansTotal.value !== data.ansTotalExact) {
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: data.hintTotal }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `1 blokje is €${data.ansBlockExact}. De totale prijs (100%) is ${data.blocksTotal} blokjes. Wat is ${data.blocksTotal} × ${data.ansBlockExact}?` }
+        } else {
+          feedback.value = { type: 'error', text: `Originele prijs = ${data.blocksTotal} × ${data.ansBlockExact} = €${data.ansTotalExact}.` }
+        }
     }
   }
 }
@@ -111,6 +158,7 @@ function handleNext() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    generateLevel();
     currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
@@ -137,7 +185,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -148,8 +196,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -165,9 +213,9 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner flex flex-col gap-4">
-               
+
                <p class="font-bold text-indigo-900">{{ currentLevelData.goalText }}</p>
 
                <div class="flex flex-col gap-2">
@@ -209,10 +257,10 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- The Bar Model -->
               <div class="w-full max-w-4xl relative">
-                  
+
                   <!-- Total Label -->
                   <div class="absolute -top-10 left-0 w-full flex flex-col items-center">
                       <div class="w-full h-4 border-t-2 border-x-2 border-slate-400 rounded-t-lg mb-1 relative">
@@ -224,7 +272,7 @@ onUnmounted(() => {
 
                   <!-- The Bar Blocks -->
                   <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-lg bg-white relative overflow-hidden">
-                      
+
                       <!-- Remaining Blocks (e.g. 3 blocks = 75%) -->
                       <div v-for="i in currentLevelData.blocksRemaining" :key="'b'+i" class="border-r-2 border-slate-700 bg-blue-500 relative flex items-center justify-center"
                            :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">

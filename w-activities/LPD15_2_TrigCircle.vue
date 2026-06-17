@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhCircleDashed,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -36,25 +36,54 @@ const feedback = ref({ type: 'info', text: '' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goal: "Draai de hoek zodat sin(α) = 1. Wat is de cosinus op dit punt?",
-    check: (angle) => angle === 90,
-    hint: "sin(α) is de projectie op de y-as (groen). Wanneer is deze y-projectie maximaal?"
-  },
-  {
-    goal: "Zoek een hoek in Kwadrant III waarbij sin(α) exact -0.5 is.",
-    check: (angle) => angle === 210, // 180 + 30
-    hint: "Kwadrant III ligt links onderaan. Daar zijn zowel x als y negatief. Zoek de hoek waarbij de y-waarde precies op de helft (-0.5) van de straal zit."
-  },
-  {
-    goal: "Zoek een hoek in Kwadrant II waarbij cos(α) kleiner (meer negatief) is dan -0.8.",
-    check: (angle) => angle >= 143 && angle <= 180, // cos(143) is roughly -0.798
-    hint: "Kwadrant II is linksboven. De cosinus (rode lijn) moet héél dicht bij de -1 komen. Trek de stip verder naar links."
-  }
-]
+const attemptCount = ref(0)
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  // Level 1: Simple angle targets (30, 45, 60, 90)
+  const angles1 = [30, 45, 60, 90]
+  const target1 = angles1[Math.floor(Math.random() * angles1.length)]
+
+  // Level 2: Quadrant III angle (210, 225, 240, 330)
+  const quad3Targets = [210, 225, 240, 330]
+  const target2 = quad3Targets[Math.floor(Math.random() * quad3Targets.length)]
+  const sin2 = Math.sin(target2 * Math.PI / 180).toFixed(3)
+
+  // Level 3: Range in Quadrant II
+  const start3 = 140 + Math.floor(Math.random() * 20) // 140-159
+
+  levels.value = [
+    {
+      goal: `Draai de hoek α naar precies ${target1}°.`,
+      check: (angle) => angle === target1,
+      hints: [
+        `De groene lijn is de sinus (y-as). Kijk goed naar de posities op de cirkel.`,
+        `${target1}° is een speciale hoek. Denk aan de verhoudingen in een rechthoekige driehoek.`,
+        `Zet de slider precies op ${target1}°.`
+      ]
+    },
+    {
+      goal: `Zoek een hoek in Kwadrant III waarbij sin(α) ≈ ${sin2}.`,
+      check: (angle) => angle === target2,
+      hints: [
+        'Kwadrant III ligt linksonder. Daar zijn x en y allebei negatief.',
+        `De sinus is de y-waarde (groen). Rond de ${Math.abs(parseFloat(sin2))} naar beneden.`,
+        `Probeer ${target2}°.`
+      ]
+    },
+    {
+      goal: `Zoek een hoek in Kwadrant II waarbij cos(α) kleiner (meer negatief) is dan -0.8. Elke hoek tussen ${start3}° en 180° is juist.`,
+      check: (angle) => angle >= start3 && angle <= 180,
+      hints: [
+        'Kwadrant II is linksboven. De cosinus (rode lijn) moet ver naar links wijzen.',
+        `Hoe dichter de rode lijn bij de linkerkant (-1), hoe negatiever de cosinus.`,
+        `Kies een hoek tussen ${start3}° en 180°.`
+      ]
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // State
 const angleDeg = ref(45)
@@ -65,26 +94,33 @@ const sinVal = computed(() => Math.sin(angleRad.value))
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
-  feedback.value = { type: 'info', text: 'Draai de slider of sleep de pijl (virtueel) naar de juiste hoek.' };
+  attemptCount.value = 0;
+  feedback.value = { type: 'info', text: 'Draai de slider naar de juiste hoek.' };
   angleDeg.value = 45;
+  generateLevel();
 }
 
-function checkAnswer() {
-  isChecked.value = true;
-  if (currentLevelData.value.check(angleDeg.value)) {
+// Auto-correct on slider change
+watch(angleDeg, (newAngle) => {
+  if (isCorrect.value || !currentLevelData.value) return;
+  if (currentLevelData.value.check(newAngle)) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Super! Je hebt het wiskundige doel visueel bereikt op de eenheidscirkel.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Super! Je hebt het wiskundige doel visueel bereikt op de eenheidscirkel.'
     }
-  } else {
-    isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: currentLevelData.value.hint
+  } else if (!isChecked.value) {
+    // Give gentle hints based on how many slider stops the user has tried
+    attemptCount.value++
+    if (attemptCount.value >= 5) {
+      const hintIdx = Math.min(attemptCount.value - 1, currentLevelData.value.hints.length - 1)
+      feedback.value = {
+        type: 'info',
+        text: currentLevelData.value.hints[hintIdx]
+      }
     }
   }
-}
+})
 
 function handleNext() {
   if (currentInternalLevel.value < totalInternalLevels - 1) {
@@ -145,9 +181,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
@@ -158,14 +194,14 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-pink-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -178,17 +214,17 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-pink-50 p-5 border border-pink-200 rounded-xl shadow-sm mb-6">
               <p class="font-bold text-pink-800">{{ currentLevelData.goal }}</p>
             </div>
-            
+
             <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">Hoek α: <span class="text-pink-600 font-mono text-lg">{{ angleDeg }}°</span></label>
                 <input type="range" v-model.number="angleDeg" min="0" max="360" step="1" class="w-full accent-pink-600">
               </div>
-              
+
               <div class="flex gap-4">
                 <div class="flex-1 bg-white p-3 rounded-lg border-2 border-rose-200 text-center shadow-sm">
                   <div class="text-xs text-rose-500 font-bold uppercase tracking-wide">cos(α)</div>
@@ -204,7 +240,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -219,12 +255,8 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">
-                Controleer
-              </button>
-              
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
+
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -234,12 +266,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- SVG Unit Circle -->
               <svg width="450" height="450" viewBox="-150 -150 300 300" class="overflow-visible bg-white rounded-full shadow-inner border-4 border-slate-200 z-10">
-                
+
                 <!-- Inner grid subtle -->
                 <g stroke="#f1f5f9" stroke-width="1">
                   <line v-for="i in 11" :key="'v'+i" :x1="(i-6)*20" y1="-100" :x2="(i-6)*20" y2="100" />
@@ -249,10 +281,10 @@ onUnmounted(() => {
                 <!-- Axes -->
                 <line x1="-130" y1="0" x2="130" y2="0" stroke="#94a3b8" stroke-width="2" />
                 <line x1="0" y1="-130" x2="0" y2="130" stroke="#94a3b8" stroke-width="2" />
-                
+
                 <!-- Circle R=100 -->
                 <circle cx="0" cy="0" r="100" fill="none" stroke="#64748b" stroke-width="2" />
-                
+
                 <!-- Quadrant Labels -->
                 <text x="60" y="-60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">I</text>
                 <text x="-60" y="-60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">II</text>
@@ -266,16 +298,16 @@ onUnmounted(() => {
 
                 <!-- Cosine component (x-axis) -->
                 <line x1="0" y1="0" :x2="100 * cosVal" y2="0" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" class="transition-all duration-100" />
-                
+
                 <!-- Sine component (y-axis) -->
                 <line :x1="100 * cosVal" y1="0" :x2="100 * cosVal" :y2="-100 * sinVal" stroke="#10b981" stroke-width="5" stroke-linecap="round" class="transition-all duration-100" />
-                
+
                 <!-- Radius line -->
                 <line x1="0" y1="0" :x2="100 * cosVal" :y2="-100 * sinVal" stroke="#1e293b" stroke-width="3" class="transition-all duration-100" />
-                
+
                 <!-- The Point -->
                 <circle :cx="100 * cosVal" :cy="-100 * sinVal" r="7" fill="#ec4899" stroke="white" stroke-width="2" class="transition-all duration-100 shadow-sm" />
-                
+
                 <!-- Labels -->
                 <text x="135" y="15" font-size="14" font-weight="bold" fill="#64748b">x</text>
                 <text x="-15" y="-135" font-size="14" font-weight="bold" fill="#64748b">y</text>

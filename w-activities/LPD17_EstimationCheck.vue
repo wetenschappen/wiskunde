@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCalculator, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Schatten: De Kapotte Rekenmachine' },
-  instruction: { 
-    type: String, 
-    default: 'Een rekenmachine kan kapot zijn, of je kan zélf per ongeluk een getal verkeerd intypen. Schatten helpt je om <strong>onzin-antwoorden</strong> eruit te filteren!<br/><br/><strong>Opdracht:</strong> Rond de getallen af naar makkelijke tientallen om snel te schatten. Beoordeel daarna of het antwoord van de rekenmachine klopt of pure onzin is.' 
+  instruction: {
+    type: String,
+    default: 'Een rekenmachine kan kapot zijn, of je kan zélf per ongeluk een getal verkeerd intypen. Schatten helpt je om <strong>onzin-antwoorden</strong> eruit te filteren!<br/><br/><strong>Opdracht:</strong> Rond de getallen af naar makkelijke tientallen om snel te schatten. Beoordeel daarna of het antwoord van de rekenmachine klopt of pure onzin is.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -28,34 +28,106 @@ const feedback = ref({ type: 'info', text: 'Rond eerst de getallen af en beslis 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Optellen',
-    num1: 48.2, num2: 21.9, op: '+', calcAns: 701.1, // Nonsense (missing decimal in typist's input: 48.2 + 219 = ...)
-    targetRound1: 50, targetRound2: 20, targetVerdict: 'nonsense',
-    hint1: 'Kijk naar 48.2. Welk "tiental" ligt het dichtstbij?',
-    hint2: 'Kijk naar 21.9. Rond dit ook af naar een makkelijk tiental.',
-    successMsg: 'Geweldig! 50 + 20 is ongeveer 70. Het antwoord 701.1 is dus zware ONZIN (waarschijnlijk een typfout). Schatten heeft je gered!'
-  },
-  {
-    goalText: 'Opdracht 2: Aftrekken',
-    num1: 102.5, num2: 48.8, op: '-', calcAns: 53.7, // Correct
-    targetRound1: 100, targetRound2: 50, targetVerdict: 'correct',
-    hint1: 'Rond 102.5 af naar het dichtstbijzijnde honderdtal.',
-    hint2: 'Rond 48.8 af naar een makkelijk tiental.',
-    successMsg: 'Goed zo! 100 - 50 = 50. Het antwoord 53.7 ligt heel dicht bij je schatting, dus de rekenmachine klopt.'
-  },
-  {
-    goalText: 'Opdracht 3: Vermenigvuldigen',
-    num1: 19.8, num2: 5.1, op: '×', calcAns: 1009.8, // Nonsense
-    targetRound1: 20, targetRound2: 5, targetVerdict: 'nonsense',
-    hint1: 'Rond 19.8 af naar een mooi tiental.',
-    hint2: 'Rond 5.1 af naar het dichtstbijzijnde gehele getal.',
-    successMsg: 'Perfect! 20 × 5 = 100. Het antwoord 1009.8 is veel te groot (komma vergeten in antwoord?). Onzin dus!'
-  }
-]
+const attemptCount = ref(0)
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  // Level 1: Addition — compute actual sum, decide if nonsense
+  const ops = ['+', '-', '×']
+  const op1 = ops[Math.floor(Math.random() * 3)]
+  const n1a = 20 + Math.floor(Math.random() * 60)   // 20-79
+  const n1b = 10 + Math.floor(Math.random() * 40)   // 10-49
+  const real1 = op1 === '+' ? n1a + n1b : op1 === '-' ? n1a - n1b : n1a * n1b
+  const wrong1 = op1 === '+' ? n1a * 10 + n1b : op1 === '-' ? n1a - n1b * 10 : n1a * n1b * 10
+  const isNonsense1 = Math.random() > 0.5
+  const calcAns1 = isNonsense1 ? wrong1 : real1
+
+  const round1a = Math.round(n1a / 10) * 10
+  const round1b = Math.round(n1b / 10) * 10
+
+  // Level 2: Subtraction
+  const n2a = 80 + Math.floor(Math.random() * 121)  // 80-200
+  const n2b = 20 + Math.floor(Math.random() * 60)   // 20-79
+  const op2 = '-'
+  const real2 = n2a - n2b
+  const wrong2 = n2a + n2b
+  const isNonsense2 = Math.random() > 0.5
+  const calcAns2 = isNonsense2 ? wrong2 : real2
+
+  const round2a = Math.round(n2a / 10) * 10
+  const round2b = Math.round(n2b / 10) * 10
+
+  // Level 3: Multiplication
+  const n3a = 10 + Math.floor(Math.random() * 20)   // 10-29
+  const n3b = 3 + Math.floor(Math.random() * 8)     // 3-10
+  const op3 = '×'
+  const real3 = n3a * n3b
+  const wrong3 = n3a * n3b * 10
+  const isNonsense3 = Math.random() > 0.5
+  const calcAns3 = isNonsense3 ? wrong3 : real3
+
+  const round3a = Math.round(n3a / 5) * 5 > 0 ? Math.round(n3a / 5) * 5 : n3a
+  const round3b = Math.round(n3b / 1) * 1 // round to nearest integer
+
+  levels.value = [
+    {
+      goalText: `Opdracht 1: ${op1 === '+' ? 'Optellen' : op1 === '-' ? 'Aftrekken' : 'Vermenigvuldigen'}`,
+      num1: n1a, num2: n1b,
+      op: op1 === '+' ? '+' : op1 === '-' ? '−' : '×',
+      calcAns: isNonsense1 ? wrong1 : real1,
+      targetRound1: round1a, targetRound2: round1b,
+      targetVerdict: isNonsense1 ? 'nonsense' : 'correct',
+      successMsg: isNonsense1
+        ? `Geweldig! ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} ≈ ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Het antwoord ${wrong1} is zware ONZIN!`
+        : `Goed zo! ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} ≈ ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Het antwoord ${real1} is correct.`,
+      hints: [
+        `Rond ${n1a} af naar een mooi tiental.`,
+        `Rond ${n1b} af naar een mooi tiental.`,
+        isNonsense1
+          ? `Je schatting is ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} = ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Is ${wrong1} realistisch?`
+          : `Je schatting is ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} = ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Ligt ${real1} in de buurt?`
+      ]
+    },
+    {
+      goalText: 'Opdracht 2: Aftrekken',
+      num1: n2a, num2: n2b,
+      op: '−',
+      calcAns: isNonsense2 ? wrong2 : real2,
+      targetRound1: round2a, targetRound2: round2b,
+      targetVerdict: isNonsense2 ? 'nonsense' : 'correct',
+      successMsg: isNonsense2
+        ? `Geweldig! ${round2a} − ${round2b} ≈ ${round2a - round2b}. Het antwoord ${wrong2} is ONZIN (veel te groot)!`
+        : `Goed zo! ${round2a} − ${round2b} ≈ ${round2a - round2b}. Het antwoord ${real2} is correct.`,
+      hints: [
+        `Rond ${n2a} af naar het dichtstbijzijnde tiental.`,
+        `Rond ${n2b} af naar een mooi tiental.`,
+        isNonsense2
+          ? `${round2a} − ${round2b} ≈ ${round2a - round2b}. Het rekenmachine-antwoord ${wrong2} is veel te groot!`
+          : `${round2a} − ${round2b} ≈ ${round2a - round2b}. Ligt ${real2} dicht bij je schatting?`
+      ]
+    },
+    {
+      goalText: 'Opdracht 3: Vermenigvuldigen',
+      num1: n3a, num2: n3b,
+      op: '×',
+      calcAns: isNonsense3 ? wrong3 : real3,
+      targetRound1: round3a, targetRound2: round3b,
+      targetVerdict: isNonsense3 ? 'nonsense' : 'correct',
+      successMsg: isNonsense3
+        ? `Perfect! ${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${wrong3} is veel te groot (kommafout?). ONZIN dus!`
+        : `Goed zo! ${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${real3} is correct.`,
+      hints: [
+        `Rond ${n3a} af naar een mooi rond getal.`,
+        `Rond ${n3b} af naar het dichtstbijzijnde gehele getal.`,
+        isNonsense3
+          ? `${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${wrong3} is véél te groot!`
+          : `${round3a} × ${round3b} ≈ ${round3a * round3b}. Ligt ${real3} in de buurt?`
+      ]
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const userRound1 = ref(null)
@@ -65,31 +137,37 @@ const userVerdict = ref('') // 'correct', 'nonsense'
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Rond eerst de getallen af en beslis dan of de rekenmachine de waarheid spreekt.' };
     userRound1.value = null;
     userRound2.value = null;
     userVerdict.value = '';
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+  attemptCount.value++;
+
   const data = currentLevelData.value;
-  
+
   if (userRound1.value === data.targetRound1 && userRound2.value === data.targetRound2 && userVerdict.value === data.targetVerdict) {
     isCorrect.value = true
     feedback.value = { type: 'success', text: data.successMsg }
   } else {
     isCorrect.value = false
-    
+
+    const hints = data.hints
+    const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
+
     if (userRound1.value !== data.targetRound1) {
-        feedback.value = { type: 'error', text: data.hint1 }
+        feedback.value = { type: 'error', text: hints[0] }
     } else if (userRound2.value !== data.targetRound2) {
-        feedback.value = { type: 'error', text: data.hint2 }
+        feedback.value = { type: 'error', text: hints[1] }
     } else if (userVerdict.value === '') {
-        feedback.value = { type: 'error', text: 'Vergeet niet je eindoordeel te geven over de rekenmachine (Klopt / Onzin).'}
+        feedback.value = { type: 'error', text: 'Vergeet niet je eindoordeel te geven over de rekenmachine (KLOPT / ONZIN).'}
     } else {
-        feedback.value = { type: 'error', text: `Je afrondingen kloppen (${data.targetRound1} en ${data.targetRound2}). Reken dit uit in je hoofd. Is ${data.calcAns} dan realistisch of niet?`}
+        feedback.value = { type: 'error', text: hints[hintIdx] }
     }
   }
 }
@@ -133,7 +211,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -144,8 +222,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -161,20 +239,20 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner flex flex-col gap-4">
-               
+
                <div class="flex flex-col gap-2">
                    <label class="text-sm font-bold text-orange-900">Stap 1: Schatting maken</label>
                    <div class="flex items-center gap-2">
-                       <input type="number" v-model.number="userRound1" :placeholder="currentLevelData.num1" :disabled="isCorrect"
+                       <input type="number" v-model.number="userRound1" :placeholder="`${currentLevelData.num1}`" :disabled="isCorrect"
                               class="w-full font-bold text-lg p-2 border border-orange-300 rounded focus:border-orange-500 focus:ring-orange-500 text-center" />
                        <span class="font-black text-slate-400">{{ currentLevelData.op }}</span>
-                       <input type="number" v-model.number="userRound2" :placeholder="currentLevelData.num2" :disabled="isCorrect"
+                       <input type="number" v-model.number="userRound2" :placeholder="`${currentLevelData.num2}`" :disabled="isCorrect"
                               class="w-full font-bold text-lg p-2 border border-orange-300 rounded focus:border-orange-500 focus:ring-orange-500 text-center" />
                    </div>
                </div>
@@ -216,14 +294,14 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- Calculator Visual -->
               <div class="w-72 bg-slate-800 rounded-3xl p-6 shadow-2xl border-b-8 border-slate-900 flex flex-col relative" :class="isCorrect && userVerdict === 'nonsense' ? 'animate-shake' : ''">
-                  
+
                   <div v-if="isCorrect && userVerdict === 'nonsense'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500 text-white font-black px-6 py-2 rounded-full shadow border-4 border-white rotate-12 z-20 whitespace-nowrap text-xl">
                       GEBUISD!
                   </div>
-                  
+
                   <div v-if="isCorrect && userVerdict === 'correct'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-black px-6 py-2 rounded-full shadow border-4 border-white -rotate-6 z-20 whitespace-nowrap text-xl">
                       GOEDGEKEURD!
                   </div>
@@ -247,12 +325,12 @@ onUnmounted(() => {
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-blue-500 rounded-lg shadow border-b-4 border-blue-600"></div>
-                      
+
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-blue-500 rounded-lg shadow border-b-4 border-blue-600"></div>
-                      
+
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>
                       <div class="w-full aspect-square bg-slate-300 rounded-lg shadow border-b-4 border-slate-400"></div>

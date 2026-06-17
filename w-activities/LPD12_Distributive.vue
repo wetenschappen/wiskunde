@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhScissors, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Handig Rekenen: Distributiviteit' },
-  instruction: { 
-    type: String, 
-    default: 'Grote vermenigvuldigingen uit je hoofd rekenen is lastig. Maar wat als je de wiskundige eigenschap "distributiviteit" gebruikt om de rechthoek door te snijden in twee makkelijke stukken?<br/><br/><strong>Opdracht:</strong> Sleep de rode snijlijn naar een handige plaats (bijv. bij de tientallen) om de berekening te splitsen.' 
+  instruction: {
+    type: String,
+    default: 'Grote vermenigvuldigingen uit je hoofd rekenen is lastig. Maar wat als je de wiskundige eigenschap "distributiviteit" gebruikt om de rechthoek door te snijden in twee makkelijke stukken?<br/><br/><strong>Opdracht:</strong> Sleep de rode snijlijn naar een handige plaats (bijv. bij de tientallen) om de berekening te splitsen.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,39 +23,47 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Beweeg de rode snijlijn over het rooster.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: 5 × 13 splitsen',
-    height: 5,
-    totalWidth: 13,
-    bestCut: 10,
-    exactAns: 65,
-    hint: 'Splits 13 in een TIENTAL en de rest. Waar leg je de lijn het best?'
-  },
-  {
-    goalText: 'Opdracht 2: 7 × 15 splitsen',
-    height: 7,
-    totalWidth: 15,
-    bestCut: 10,
-    exactAns: 105,
-    hint: 'Splits 15 op in makkelijke tafels. Waar is het tiental?'
-  },
-  {
-    goalText: 'Opdracht 3: 4 × 22 splitsen',
-    height: 4,
-    totalWidth: 22,
-    bestCut: 20,
-    exactAns: 88,
-    hint: 'Bij 22 is het logisch om de tientallen af te scheiden. Waar snij je dan?'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+  for (let lvl = 0; lvl < 3; lvl++) {
+    let height, totalWidth, bestCut, exactAns
+    if (lvl === 0) {
+      height = Math.floor(Math.random() * 3) + 3 // 3-5
+      totalWidth = Math.floor(Math.random() * 6) + 10 // 10-15
+    } else if (lvl === 1) {
+      height = Math.floor(Math.random() * 4) + 5 // 5-8
+      totalWidth = Math.floor(Math.random() * 8) + 14 // 14-21
+    } else {
+      height = Math.floor(Math.random() * 5) + 5 // 5-9
+      totalWidth = Math.floor(Math.random() * 10) + 18 // 18-27
+    }
+    // Best cut is the largest multiple of 10 less than totalWidth
+    bestCut = Math.floor(totalWidth / 10) * 10
+    if (bestCut === 0 || bestCut >= totalWidth) bestCut = Math.max(5, Math.floor(totalWidth / 5) * 5)
+    exactAns = height * totalWidth
+    newLevels.push({
+      goalText: `Opdracht ${lvl + 1}: ${height} × ${totalWidth} splitsen`,
+      height,
+      totalWidth,
+      bestCut,
+      exactAns,
+      hint: bestCut >= 10
+        ? `Splits ${totalWidth} in een TIENTAL (${bestCut}) en de rest. Waar leg je de lijn het best?`
+        : `Splits ${totalWidth} op in ${bestCut} en ${totalWidth - bestCut}.`
+    })
+  }
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const cutPosition = ref(0) // 0 to totalWidth
@@ -90,34 +98,55 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Beweeg de rode snijlijn over het rooster.' };
     cutPosition.value = 0;
     userAns.value = null;
+    attemptCount.value = 0;
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  if (userAns.value === currentLevelData.value.exactAns) {
-    if (cutPosition.value === currentLevelData.value.bestCut) {
+  const data = currentLevelData.value;
+
+  if (userAns.value === data.exactAns) {
+    if (cutPosition.value === data.bestCut) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Perfect! Door te snijden bij ${currentLevelData.value.bestCut} pas je distributiviteit toe en wordt het makkelijk hoofdrekenen!` 
+        feedback.value = {
+          type: 'success',
+          text: `Perfect! Door te snijden bij ${data.bestCut} pas je distributiviteit toe en wordt het makkelijk hoofdrekenen!`
         }
-    } else if (cutPosition.value > 0 && cutPosition.value < currentLevelData.value.totalWidth) {
+    } else if (cutPosition.value > 0 && cutPosition.value < data.totalWidth) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Juist! ${currentLevelData.value.exactAns}. Maar de meest "handige" snijlijn is eigenlijk bij ${currentLevelData.value.bestCut}. Probeer het de volgende keer!` 
+        feedback.value = {
+          type: 'success',
+          text: `Juist! ${data.exactAns}. Maar de meest "handige" snijlijn is eigenlijk bij ${data.bestCut}. Probeer het de volgende keer!`
         }
     } else {
-        isCorrect.value = false
-        feedback.value = { type: 'error', text: 'Het antwoord is juist, maar je hebt de snijlijn niet gebruikt om het jezelf makkelijk te maken! Verplaats de slider.'}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: 'Het antwoord is juist, maar je hebt de snijlijn niet gebruikt om het jezelf makkelijk te maken! Verplaats de slider.'}
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `Sleep de rode lijn naar een handige splitsing, bijvoorbeeld ${data.bestCut}.`}
+        } else {
+          feedback.value = { type: 'error', text: `Zet de snijlijn op ${data.bestCut} en kijk hoe de berekening wordt opgesplitst.`}
+        }
     }
   } else {
-    isCorrect.value = false
-    if (cutPosition.value > 0 && cutPosition.value < currentLevelData.value.totalWidth) {
-        feedback.value = { type: 'error', text: `Rekenfout. Kijk naar je eigen snijlijn. Wat is ${calculationResult.value.split('=')[0]}?`}
+    attemptCount.value++
+    if (cutPosition.value > 0 && cutPosition.value < data.totalWidth) {
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `Rekenfout. Kijk naar je eigen snijlijn. Wat is ${calculationResult.value.split('=')[0]}?`}
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `Tel de twee delen op: ${data.height * part1.value} + ${data.height * part2.value}.`}
+        } else {
+          feedback.value = { type: 'error', text: `Het juiste antwoord is ${data.exactAns}. (${data.height} × ${part1.value}) + (${data.height} × ${part2.value}) = ${data.height * part1.value} + ${data.height * part2.value} = ${data.exactAns}.`}
+        }
     } else {
-        feedback.value = { type: 'error', text: `Fout antwoord. Gebruik de schaar om de berekening te splitsen!` }
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `Fout antwoord. Gebruik de schaar om de berekening te splitsen!` }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `Sleep de snijlijn naar ${data.bestCut} om te splitsen, reken dan de twee delen op.` }
+        } else {
+          feedback.value = { type: 'error', text: `Zet de lijn op ${data.bestCut}. ${data.height} × ${data.bestCut} = ${data.height * data.bestCut} en ${data.height} × ${data.totalWidth - data.bestCut} = ${data.height * (data.totalWidth - data.bestCut)}. Tel op: ${data.exactAns}.` }
+        }
     }
   }
 }
@@ -135,6 +164,7 @@ function handleNext() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    generateLevel();
     currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
@@ -161,7 +191,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-orange-100">
@@ -172,8 +202,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-orange-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -189,11 +219,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-orange-50 p-4 border border-orange-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-orange-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-orange-900 mb-2">Totaal (Oppervlakte):</label>
                <div class="flex flex-col gap-2">
@@ -230,9 +260,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-3xl flex flex-col items-center relative">
-                  
+
                   <!-- The Slider (Cutting Laser) -->
                   <div class="w-full max-w-[520px] mb-4 z-20">
                       <input type="range" min="0" :max="currentLevelData.totalWidth" step="1" v-model.number="cutPosition" :disabled="isCorrect"
@@ -241,7 +271,7 @@ onUnmounted(() => {
 
                   <!-- The Grid -->
                   <div class="relative shadow-xl rounded-lg overflow-hidden border-4 border-slate-700 bg-white transition-all duration-300">
-                      
+
                       <!-- Labels outside -->
                       <div class="absolute -left-8 top-1/2 -translate-y-1/2 font-black text-xl text-slate-600">{{ currentLevelData.height }}</div>
                       <div v-if="cutPosition === 0 || cutPosition === currentLevelData.totalWidth" class="absolute -top-8 left-1/2 -translate-x-1/2 font-black text-xl text-slate-600">{{ currentLevelData.totalWidth }}</div>
@@ -256,7 +286,7 @@ onUnmounted(() => {
                               <line v-for="i in (currentLevelData.totalWidth-1)" :key="'vx'+i" :x1="i * unitWidth" y1="0" :x2="i * unitWidth" :y2="svgHeight" />
                               <line v-for="i in (currentLevelData.height-1)" :key="'hy'+i" x1="0" :y1="i * unitHeight" :x2="svgWidth" :y2="i * unitHeight" />
                           </g>
-                          
+
                           <!-- Background fills for split areas -->
                           <rect v-if="cutPosition > 0" x="0" y="0" :width="cutPosition * unitWidth" :height="svgHeight" fill="rgba(59, 130, 246, 0.2)" class="transition-all duration-300" />
                           <rect v-if="cutPosition < currentLevelData.totalWidth" :x="cutPosition * unitWidth" y="0" :width="(currentLevelData.totalWidth - cutPosition) * unitWidth" :height="svgHeight" fill="rgba(245, 158, 11, 0.2)" class="transition-all duration-300" />
@@ -270,8 +300,8 @@ onUnmounted(() => {
                           </text>
 
                           <!-- The Cut Line -->
-                          <line v-if="cutPosition > 0 && cutPosition < currentLevelData.totalWidth" 
-                                :x1="cutPosition * unitWidth" y1="0" :x2="cutPosition * unitWidth" :y2="svgHeight" 
+                          <line v-if="cutPosition > 0 && cutPosition < currentLevelData.totalWidth"
+                                :x1="cutPosition * unitWidth" y1="0" :x2="cutPosition * unitWidth" :y2="svgHeight"
                                 stroke="#ef4444" stroke-width="4" stroke-dasharray="8 4" class="transition-all duration-300" />
                       </svg>
                   </div>

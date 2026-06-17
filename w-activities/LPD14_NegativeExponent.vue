@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMathOperations, PhArrowClockwise, PhCaretUp, PhCaretDown
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Machten: Negatieve Exponenten' },
-  instruction: { 
-    type: String, 
-    default: 'Een macht vertelt je hoeveel keer je moet <strong>vermenigvuldigen</strong> met het grondtal (startend bij 1).<br/>Een NEGATIEVE macht betekent precies het omgekeerde: <strong>delen</strong>!<br/><br/><strong>Opdracht:</strong> Los de berekening op. Gebruik de machine om de exponent in te stellen en kijk wat er gebeurt. Vul daarna de breuk in.' 
+  instruction: {
+    type: String,
+    default: 'Een macht vertelt je hoeveel keer je moet <strong>vermenigvuldigen</strong> met het grondtal (startend bij 1).<br/>Een NEGATIEVE macht betekent precies het omgekeerde: <strong>delen</strong>!<br/><br/><strong>Opdracht:</strong> Los de berekening op. Gebruik de machine om de exponent in te stellen en kijk wat er gebeurt. Vul daarna de breuk in.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,39 +23,63 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Gebruik de pijltjes om de exponent (het kleine getal) in te stellen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: De basis',
-    base: 3,
-    targetExponent: -2,
-    targetNum: 1,
-    targetDen: 9,
-    hintError: 'Kijk naar de machine als je hem op 3⁻² zet. Je begint met 1, en deelt twee keer door 3. Vul dit in als breuk.'
-  },
-  {
-    goalText: 'Opdracht 2: Een ander grondtal',
-    base: 2,
-    targetExponent: -3,
-    targetNum: 1,
-    targetDen: 8,
-    hintError: 'Kijk naar de machine op 2⁻³. Je deelt Drie keer door 2. Dat is 1 gedeeld door (2×2×2).'
-  },
-  {
-    goalText: 'Opdracht 3: Exponent nul en negatief',
-    base: 5,
-    targetExponent: -2,
-    targetNum: 1,
-    targetDen: 25,
-    hintError: '5⁻² betekent: deel 1 twee keer door 5. Dus 1 gedeeld door 25.'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+
+  // Level 1: base 2-5, exponent -2 or -3
+  const bases1 = [2, 3, 4, 5]
+  const b1 = bases1[Math.floor(Math.random() * bases1.length)]
+  const exp1 = -2
+  const den1 = Math.pow(b1, Math.abs(exp1))
+  newLevels.push({
+    goalText: 'Opdracht 1: De basis',
+    base: b1,
+    targetExponent: exp1,
+    targetNum: 1,
+    targetDen: den1,
+    hintError: `Kijk naar de machine als je hem op ${b1}^(${exp1}) zet. Je begint met 1, en deelt ${Math.abs(exp1)} keer door ${b1}. Vul dit in als breuk.`
+  })
+
+  // Level 2: base 2-6, exponent -3
+  const bases2 = [2, 3, 5, 6]
+  const b2 = bases2[Math.floor(Math.random() * bases2.length)]
+  const exp2 = -3
+  const den2 = Math.pow(b2, Math.abs(exp2))
+  newLevels.push({
+    goalText: 'Opdracht 2: Een ander grondtal',
+    base: b2,
+    targetExponent: exp2,
+    targetNum: 1,
+    targetDen: den2,
+    hintError: `Kijk naar de machine op ${b2}^(${exp2}). Je deelt ${Math.abs(exp2)} keer door ${b2}. Dat is 1 gedeeld door (${b2}×${b2}×${b2}).`
+  })
+
+  // Level 3: base 4-10, exponent -2
+  const bases3 = [4, 5, 7, 8, 9, 10]
+  const b3 = bases3[Math.floor(Math.random() * bases3.length)]
+  const exp3 = -2
+  const den3 = Math.pow(b3, Math.abs(exp3))
+  newLevels.push({
+    goalText: 'Opdracht 3: Exponent negatief',
+    base: b3,
+    targetExponent: exp3,
+    targetNum: 1,
+    targetDen: den3,
+    hintError: `${b3}^(${exp3}) betekent: deel 1 twee keer door ${b3}. Dus 1 gedeeld door ${b3 * b3}.`
+  })
+
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const exponent = ref(0) // Start at 0
@@ -65,17 +89,19 @@ const userDen = ref(null)
 
 const operationList = computed(() => {
     let ops = []
+    const base = currentLevelData.value.base
     if (exponent.value > 0) {
-        for(let i=0; i<exponent.value; i++) ops.push(`× ${currentLevelData.value.base}`)
+        for(let i=0; i<exponent.value; i++) ops.push(`× ${base}`)
     } else if (exponent.value < 0) {
-        for(let i=0; i<Math.abs(exponent.value); i++) ops.push(`÷ ${currentLevelData.value.base}`)
+        for(let i=0; i<Math.abs(exponent.value); i++) ops.push(`÷ ${base}`)
     }
     return ops
 })
 
 const currentResultStr = computed(() => {
-    if (exponent.value >= 0) return Math.pow(currentLevelData.value.base, exponent.value).toString()
-    return `1 / ${Math.pow(currentLevelData.value.base, Math.abs(exponent.value))}`
+    const base = currentLevelData.value.base
+    if (exponent.value >= 0) return Math.pow(base, exponent.value).toString()
+    return `1 / ${Math.pow(base, Math.abs(exponent.value))}`
 })
 
 function increaseExponent() {
@@ -92,33 +118,48 @@ function resetActivityState() {
     exponent.value = 0;
     userNum.value = null;
     userDen.value = null;
+    attemptCount.value = 0;
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
   const data = currentLevelData.value;
 
   if (userNum.value === data.targetNum && userDen.value === data.targetDen) {
     if (exponent.value === data.targetExponent) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Perfect! Een negatieve exponent levert een breuk op, geen negatief getal. ${data.base} tot de macht ${data.targetExponent} is ${data.targetNum}/${data.targetDen}.` 
+        feedback.value = {
+          type: 'success',
+          text: `Perfect! Een negatieve exponent levert een breuk op, geen negatief getal. ${data.base} tot de macht ${data.targetExponent} is ${data.targetNum}/${data.targetDen}.`
         }
     } else {
-        isCorrect.value = false
-        feedback.value = { type: 'error', text: `Jouw breuk is wiskundig correct! Maar stel eerst de exponentiemachine in op de gevraagde macht (${data.targetExponent}) om de werking te zien.`}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `Jouw breuk is wiskundig correct! Maar stel eerst de exponentiemachine in op de gevraagde macht (${data.targetExponent}) om de werking te zien.`}
+        } else {
+          feedback.value = { type: 'error', text: `Zet de exponent op ${data.targetExponent} met de pijltjes.`}
+        }
     }
   } else {
-    isCorrect.value = false
-    
+    attemptCount.value++
+
     if (userNum.value === -(data.targetDen)) {
-        feedback.value = { type: 'error', text: 'Fout! Een negatieve exponent maakt het getal NIET negatief. Het betekent DELEN. Kijk naar de output van de machine.'}
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: 'Fout! Een negatieve exponent maakt het getal NIET negatief. Het betekent DELEN. Kijk naar de output van de machine.'}
+        } else {
+          feedback.value = { type: 'error', text: `Een negatieve exponent = 1 / (grondtal^|exponent|). Dus ${data.base}^(${data.targetExponent}) = 1 / ${data.base}^${Math.abs(data.targetExponent)} = 1/${data.targetDen}.`}
+        }
     } else if (userNum.value === data.base * data.targetExponent) {
         feedback.value = { type: 'error', text: 'Een macht is niet gewoon grondtal maal exponent. Een macht is herhaald vermenigvuldigen (of delen) met ZICHZELF.'}
     } else {
-        feedback.value = { type: 'error', text: data.hintError }
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: data.hintError }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `${data.base}^(${data.targetExponent}) = 1 / ${data.base}^${Math.abs(data.targetExponent)} = 1 / ${Math.pow(data.base, Math.abs(data.targetExponent))}` }
+        } else {
+          feedback.value = { type: 'error', text: `Het antwoord is 1/${data.targetDen}.` }
+        }
     }
   }
 }
@@ -136,6 +177,7 @@ function handleNext() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    generateLevel();
     currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
@@ -162,7 +204,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
@@ -173,8 +215,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-pink-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -190,21 +232,21 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-pink-50 p-4 border border-pink-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-pink-800">{{ currentLevelData.goalText }}</p>
             </div>
 
             <div class="p-4 mt-6 border border-pink-200 bg-pink-50 rounded-xl shadow-inner text-center">
                <label class="block text-sm font-bold text-pink-900 mb-4">Mijn Antwoord:</label>
-               
+
                <div class="flex items-center justify-center gap-4 text-3xl font-black text-slate-700 mb-2">
                    <div class="flex items-start">
                        <span>{{ currentLevelData.base }}</span>
                        <span class="text-xl -mt-1">{{ currentLevelData.targetExponent }}</span>
                    </div>
                    <span>=</span>
-                   
+
                    <div class="flex flex-col items-center gap-1 w-16">
                        <input type="number" v-model.number="userNum" placeholder="?" :disabled="isCorrect"
                               class="w-full font-bold text-xl p-2 border border-pink-300 rounded focus:border-pink-500 focus:ring-pink-500 text-center bg-white" />
@@ -234,15 +276,15 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- The Factory Machine -->
               <div class="w-full max-w-3xl bg-slate-800 p-8 rounded-3xl shadow-2xl border-b-8 border-slate-900 flex flex-col items-center relative overflow-hidden">
-                  
+
                   <h3 class="text-slate-400 font-bold tracking-widest text-sm mb-8 uppercase">De Exponenten Machine</h3>
 
                   <!-- Machine Pipeline -->
                   <div class="flex items-center w-full justify-between relative z-10 px-8">
-                      
+
                       <!-- Input (Always 1) -->
                       <div class="w-20 h-20 rounded-full bg-slate-700 border-4 border-slate-600 flex items-center justify-center shadow-inner shrink-0">
                           <span class="font-black text-3xl text-white">1</span>
@@ -264,12 +306,12 @@ onUnmounted(() => {
                           <div class="absolute inset-0 bg-blue-500 opacity-10"></div>
                           <span class="font-black text-2xl text-slate-800 transition-all duration-300" :key="currentResultStr">{{ currentResultStr }}</span>
                       </div>
-                      
+
                   </div>
 
                   <!-- Machine Control Panel -->
                   <div class="mt-12 bg-slate-200 p-6 rounded-2xl flex items-center gap-8 shadow-inner border-t border-white/50 w-full max-w-sm">
-                      
+
                       <div class="flex flex-col items-center">
                           <span class="text-xs font-bold text-slate-500 uppercase mb-2">Basis</span>
                           <div class="w-16 h-16 bg-white rounded-lg shadow-sm border border-slate-300 flex items-center justify-center">

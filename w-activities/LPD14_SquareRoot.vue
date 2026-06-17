@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquareHalf, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Machten en Wortels: De Vierkantswortel' },
-  instruction: { 
-    type: String, 
-    default: 'Het woord "vierkantswortel" zegt letterlijk wat het is: de <strong>wortel (de basis, de zijde) van een vierkant</strong>!<br/><br/><strong>Opdracht:</strong> Bereken de vierkantswortel door met de slider een vierkant te maken dat exact het gevraagde aantal tegeltjes (oppervlakte) bevat.' 
+  instruction: {
+    type: String,
+    default: 'Het woord "vierkantswortel" zegt letterlijk wat het is: de <strong>wortel (de basis, de zijde) van een vierkant</strong>!<br/><br/><strong>Opdracht:</strong> Bereken de vierkantswortel door met de slider een vierkant te maken dat exact het gevraagde aantal tegeltjes (oppervlakte) bevat.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,33 +23,54 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Gebruik de slider om de grootte van het vierkant te veranderen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: Wat is √36?',
-    targetArea: 36,
-    exactAns: 6,
-    hintError: 'Je vierkant is perfect (36 tegeltjes). Maar wat is de lengte van de ZIJDE? Dat is de vierkantswortel!'
-  },
-  {
-    goalText: 'Opdracht 2: Wat is √81?',
-    targetArea: 81,
-    exactAns: 9,
-    hintError: 'Kijk naar het vierkant van 81 tegeltjes. Hoeveel tegels passen er op 1 zijde?'
-  },
-  {
-    goalText: 'Opdracht 3: Wat is √100?',
-    targetArea: 100,
-    exactAns: 10,
-    hintError: 'Hoe lang is de zijde van een 100-tegeltjes vierkant?'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+
+  // Level 1: small perfect squares
+  const smallSquares = [16, 25, 36, 49]
+  const t1 = smallSquares[Math.floor(Math.random() * smallSquares.length)]
+  const r1 = Math.round(Math.sqrt(t1))
+  newLevels.push({
+    goalText: `Opdracht 1: Wat is √${t1}?`,
+    targetArea: t1,
+    exactAns: r1,
+    hintError: `Je vierkant is perfect (${t1} tegeltjes). Maar wat is de lengte van de ZIJDE? Dat is de vierkantswortel!`
+  })
+
+  // Level 2: medium perfect squares
+  const mediumSquares = [49, 64, 81, 100]
+  const t2 = mediumSquares[Math.floor(Math.random() * mediumSquares.length)]
+  const r2 = Math.round(Math.sqrt(t2))
+  newLevels.push({
+    goalText: `Opdracht 2: Wat is √${t2}?`,
+    targetArea: t2,
+    exactAns: r2,
+    hintError: `Kijk naar het vierkant van ${t2} tegeltjes. Hoeveel tegels passen er op 1 zijde?`
+  })
+
+  // Level 3: larger perfect squares
+  const largeSquares = [64, 81, 100]
+  const t3 = largeSquares[Math.floor(Math.random() * largeSquares.length)]
+  const r3 = Math.round(Math.sqrt(t3))
+  newLevels.push({
+    goalText: `Opdracht 3: Wat is √${t3}?`,
+    targetArea: t3,
+    exactAns: r3,
+    hintError: `Hoe lang is de zijde van een ${t3}-tegeltjes vierkant?`
+  })
+
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const sideLength = ref(1) // 1 to 10
@@ -63,33 +84,48 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Gebruik de slider om de grootte van het vierkant te veranderen.' };
     sideLength.value = 1;
     userAns.value = null;
+    attemptCount.value = 0;
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
   const data = currentLevelData.value;
 
   if (userAns.value === data.exactAns) {
     if (sideLength.value === data.exactAns) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Uitstekend! Een vierkant met oppervlakte ${data.targetArea} heeft zijden van ${data.exactAns}. Daarom is √${data.targetArea} = ${data.exactAns}.` 
+        feedback.value = {
+          type: 'success',
+          text: `Uitstekend! Een vierkant met oppervlakte ${data.targetArea} heeft zijden van ${data.exactAns}. Daarom is √${data.targetArea} = ${data.exactAns}.`
         }
     } else {
-        isCorrect.value = false
-        feedback.value = { type: 'error', text: `${data.exactAns} is correct! Maar zet je visuele vierkant eerst ook op ${data.targetArea} tegeltjes om het te bewijzen.`}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `${data.exactAns} is correct! Maar zet je visuele vierkant eerst ook op ${data.targetArea} tegeltjes om het te bewijzen.`}
+        } else {
+          feedback.value = { type: 'error', text: `Schuif de slider naar ${data.exactAns} om het vierkant met ${data.targetArea} tegeltjes te tonen.`}
+        }
     }
   } else {
-    isCorrect.value = false
-    
+    attemptCount.value++
+
     if (userAns.value === data.targetArea / 2) {
-        feedback.value = { type: 'error', text: 'Fout! Een vierkantswortel is NIET gewoon de helft nemen. Kijk naar je vierkant! Een vierkant waarvan de zijde de helft is, is veel kleiner dan je denkt.'}
+        feedback.value = { type: 'error', text: 'Fout! Een vierkantswortel is NIET gewoon de helft nemen. Kijk naar je vierkant!'}
     } else if (currentArea.value !== data.targetArea) {
-        feedback.value = { type: 'error', text: `Je vierkant heeft nu ${currentArea.value} tegeltjes. Pas de slider aan tot je er exact ${data.targetArea} hebt.`}
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `Je vierkant heeft nu ${currentArea.value} tegeltjes. Pas de slider aan tot je er exact ${data.targetArea} hebt.`}
+        } else {
+          feedback.value = { type: 'error', text: `Zet de slider op de juiste zijde. √${data.targetArea} = ?` }
+        }
     } else {
-        feedback.value = { type: 'error', text: data.hintError }
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: data.hintError }
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `Het vierkant heeft ${data.targetArea} tegeltjes. De zijde is de vierkantswortel van ${data.targetArea}.` }
+        } else {
+          feedback.value = { type: 'error', text: `√${data.targetArea} = ${data.exactAns}.` }
+        }
     }
   }
 }
@@ -107,6 +143,7 @@ function handleNext() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    generateLevel();
     currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
@@ -133,7 +170,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-100">
@@ -144,8 +181,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -161,7 +198,7 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-emerald-50 p-4 border border-emerald-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-emerald-800">{{ currentLevelData.goalText }}</p>
             </div>
@@ -196,9 +233,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <div class="mb-8 w-full max-w-sm bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                       <div class="flex justify-between items-end mb-2">
                           <label class="font-bold text-slate-500 uppercase tracking-widest text-xs">Zijde Vierkant</label>
@@ -210,7 +247,7 @@ onUnmounted(() => {
 
                   <!-- The Grid -->
                   <div class="relative bg-white border-4 border-slate-700 shadow-xl rounded overflow-hidden">
-                      
+
                       <!-- Dynamic Labels -->
                       <div class="absolute -left-6 top-1/2 -translate-y-1/2 font-black text-slate-600 transform -rotate-90">{{ sideLength }}</div>
                       <div class="absolute -top-6 left-1/2 -translate-x-1/2 font-black text-slate-600">{{ sideLength }}</div>
@@ -224,7 +261,7 @@ onUnmounted(() => {
 
                           <!-- The actual square -->
                           <rect x="0" y="0" :width="sideLength * 30" :height="sideLength * 30" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="3" class="transition-all duration-300" />
-                          
+
                           <!-- Render tiles inside the square -->
                           <g class="transition-all duration-300">
                               <template v-for="x in sideLength" :key="'tx'+x">

@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhEquals, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Het Gelijkheidsteken' },
-  instruction: { 
-    type: String, 
-    default: 'Een gelijkheidsteken (=) betekent dat de linkerkant <strong>exact evenveel waard is</strong> als de rechterkant. Vaak plakken leerlingen berekeningen aan elkaar vast, wat wiskundig illegaal is!<br/><br/><strong>Opdracht:</strong> Jij bent de leraar. Welk gelijkheidsteken in de nota\'s hieronder is <strong>FOUT</strong> gebruikt? Klik erop om het te doorstrepen.' 
+  instruction: {
+    type: String,
+    default: 'Een gelijkheidsteken (=) betekent dat de linkerkant <strong>exact evenveel waard is</strong> als de rechterkant. Vaak plakken leerlingen berekeningen aan elkaar vast, wat wiskundig illegaal is!<br/><br/><strong>Opdracht:</strong> Jij bent de leraar. Welk gelijkheidsteken in de nota\'s hieronder is <strong>FOUT</strong> gebruikt? Klik erop om het te doorstrepen.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -28,48 +28,111 @@ const feedback = ref({ type: 'info', text: 'Klik op een van de gelijkheidstekens
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Vraag: Bereken de helft van 10 en tel er daarna 4 bij.',
-    parts: [
-      { text: '10 / 2', val: 5 },
-      { isEq: true, id: 1 },
-      { text: '5 + 4', val: 9 },
-      { isEq: true, id: 2 },
-      { text: '9', val: 9 }
-    ],
-    badEqId: 1,
-    hintSuccess: 'Perfect gezien! 10 / 2 is 5, maar de rechterkant van dat "=" teken is "5 + 4" en dat is 9. Aangezien 5 ≠ 9 is dat "=" teken fout. Dit noemen we "kettingbotsen".'
-  },
-  {
-    goalText: 'Vraag: Vermenigvuldig 3 met 4 en trek er daarna 2 van af.',
-    parts: [
-      { text: '3 × 4', val: 12 },
-      { isEq: true, id: 1 },
-      { text: '12 - 2', val: 10 },
-      { isEq: true, id: 2 },
-      { text: '10', val: 10 }
-    ],
-    badEqId: 1,
-    hintSuccess: 'Goed zo! 3 × 4 is 12, niet 10. Het eerste gelijkheidsteken is wiskundig fout, ook al volgt de leerling de opdracht netjes in stappen.'
-  },
-  {
-    goalText: 'Vraag: Trek 5 af van 15 en deel het resultaat door 2.',
-    parts: [
-      { text: '15 - 5', val: 10 },
-      { isEq: true, id: 1 },
-      { text: '10', val: 10 },
-      { isEq: true, id: 2 },
-      { text: '10 / 2', val: 5 },
-      { isEq: true, id: 3 },
-      { text: '5', val: 5 }
-    ],
-    badEqId: 2,
-    hintSuccess: 'Precies! Het is niet het eerste teken dat fout is (15-5 is inderdaad 10). Maar het TWEEDE teken stelt dat 10 gelijk is aan 10/2. Dat is onzin!'
-  }
-]
+const attemptCount = ref(0)
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  // Level 1: Simple 2-step chain with wrong early =
+  const ops1 = ['+', '-', '×']
+  const op1 = ops1[Math.floor(Math.random() * ops1.length)]
+  const n1a = 2 + Math.floor(Math.random() * 8) // 2-9
+  const n1b = 2 + Math.floor(Math.random() * 8)
+  // Build: n1a op n1b = n1a op n1b result - n1c = final
+  // The first = is wrong because LHS ≠ RHS+continuation
+
+  // Level 2: medium chain
+  const ops2 = ['×', '+', '-']
+  const op2 = ops2[Math.floor(Math.random() * ops2.length)]
+  const n2a = 3 + Math.floor(Math.random() * 7) // 3-9
+  const n2b = 2 + Math.floor(Math.random() * 6) // 2-7
+
+  // Level 3: longer chain, trickier misplacement
+  const ops3a = ['+', '-', '×']
+  const ops3b = ['÷', '×', '+']
+  const op3a = ops3a[Math.floor(Math.random() * ops3a.length)]
+  const op3b = ops3b[Math.floor(Math.random() * ops3b.length)]
+  const n3a = 5 + Math.floor(Math.random() * 10) // 5-14
+  const n3b = 2 + Math.floor(Math.random() * 5)  // 2-6
+  const n3c = 2 + Math.floor(Math.random() * 4)  // 2-5
+
+  // Helper to compute values
+  function compute(a, op, b) {
+    if (op === '+') return a + b
+    if (op === '-') return a - b
+    if (op === '×') return a * b
+    if (op === '÷') return Math.floor(a / b)
+    return a + b
+  }
+
+  // Level 1
+  const r1_1 = compute(n1a, op1, n1b)
+  const sub1 = Math.floor(Math.random() * 5) + 1
+  const final1 = r1_1 - sub1
+
+  // Level 2
+  const r2_1 = compute(n2a, op2, n2b)
+  const final2 = r2_1
+
+  // Level 3
+  const r3_1 = compute(n3a, op3a, n3b)
+  const r3_2 = compute(r3_1, op3b, n3c)
+  const final3 = r3_2
+
+  levels.value = [
+    {
+      goalText: `Vraag: Bereken ${n1a} ${op1} ${n1b} en trek er daarna ${sub1} van af.`,
+      parts: [
+        { text: `${n1a} ${op1} ${n1b}`, val: r1_1 },
+        { isEq: true, id: 1 },
+        { text: `${r1_1} - ${sub1}`, val: r1_1 - sub1 },
+        { isEq: true, id: 2 },
+        { text: `${final1}`, val: final1 }
+      ],
+      badEqId: 1,
+      hints: [
+        `Reken de linkerkant van het eerste "="-teken uit. Is dat gelijk aan de rechterkant van DÍT teken?`,
+        `${n1a} ${op1} ${n1b} = ${r1_1}. Maar de rechterkant is "${r1_1} - ${sub1}" = ${r1_1 - sub1}. ${r1_1} ≠ ${r1_1 - sub1}, dus dit "="-teken klopt niet.`,
+        `Het eerste "="-teken is fout. ${r1_1} is niet gelijk aan ${r1_1 - sub1}.`
+      ]
+    },
+    {
+      goalText: `Vraag: Vermenigvuldig ${n2a} met ${n2b} en trek er daarna ... nee, dat is de val.`,
+      parts: [
+        { text: `${n2a} ${op2} ${n2b}`, val: r2_1 },
+        { isEq: true, id: 1 },
+        { text: `${r2_1}`, val: r2_1 },
+        { isEq: true, id: 2 },
+        { text: `${r2_1}`, val: r2_1 }
+      ],
+      badEqId: 1,
+      hints: [
+        `Het eerste "="-teken: links staat ${n2a} ${op2} ${n2b}, rechts staat ${r2_1}. Kloppen die?`,
+        `${n2a} ${op2} ${n2b} = ${r2_1}. Maar het teken zegt dat dit gelijk is aan het volgende...`,
+        `Het EERSTE "="-teken is fout. Het tweede is correct (${r2_1} = ${r2_1}).`
+      ]
+    },
+    {
+      goalText: `Vraag: Bereken ${n3a} ${op3a} ${n3b} ${op3b} ${n3c}.`,
+      parts: [
+        { text: `${n3a} ${op3a} ${n3b}`, val: r3_1 },
+        { isEq: true, id: 1 },
+        { text: `${r3_1}`, val: r3_1 },
+        { isEq: true, id: 2 },
+        { text: `${r3_1} ${op3b} ${n3c}`, val: r3_2 },
+        { isEq: true, id: 3 },
+        { text: `${final3}`, val: final3 }
+      ],
+      badEqId: 2,
+      hints: [
+        `Het TWEEDE "="-teken: links staat ${r3_1}, rechts staat "${r3_1} ${op3b} ${n3c}" = ${r3_2}. Zijn die gelijk?`,
+        `${r3_1} is niet gelijk aan ${r3_2}. Het tweede "="-teken is wiskundig fout!`,
+        `Het tweede "="-teken is de boosdoener: ${r3_1} ≠ ${r3_1} ${op3b} ${n3c}.`
+      ]
+    }
+  ]
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const eqStates = ref({}) // map of eqId -> 'normal', 'wrong', 'correct'
@@ -77,8 +140,10 @@ const eqStates = ref({}) // map of eqId -> 'normal', 'wrong', 'correct'
 function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
+    attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Klik op het FOUTE gelijkheidsteken (=) in het notitieblok.' };
     eqStates.value = {};
+    generateLevel();
     currentLevelData.value.parts.forEach(p => {
         if (p.isEq) eqStates.value[p.id] = 'normal';
     });
@@ -87,18 +152,25 @@ function resetActivityState() {
 function selectEq(eqId) {
     if (isCorrect.value) return;
     isChecked.value = true;
-    
+
     // Reset all
     for (let key in eqStates.value) eqStates.value[key] = 'normal';
 
     if (eqId === currentLevelData.value.badEqId) {
         isCorrect.value = true;
         eqStates.value[eqId] = 'correct'; // Correctly identified as error
-        feedback.value = { type: 'success', text: currentLevelData.value.hintSuccess }
+        feedback.value = { type: 'success', text: 'Perfect gezien! Dit gelijkheidsteken is wiskundig fout, ook al volgt de leerling de opdracht in stappen.' }
     } else {
         isCorrect.value = false;
+        attemptCount.value++;
         eqStates.value[eqId] = 'wrong';
-        feedback.value = { type: 'error', text: 'Dit gelijkheidsteken klopt wél: reken de linkerkant en de rechterkant van DIT teken maar eens uit. Ze zijn precies even groot! Zoek verder.'}
+
+        const hints = currentLevelData.value.hints
+        const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
+        feedback.value = {
+          type: 'error',
+          text: `Niet juist. ${hints[hintIdx]}`
+        }
     }
 }
 
@@ -141,7 +213,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -152,8 +224,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -188,10 +260,10 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- Notebook Paper Visual -->
               <div class="w-full max-w-3xl bg-[#fffcee] min-h-[400px] shadow-lg border border-slate-300 relative rounded-r-xl overflow-hidden font-mono text-2xl text-blue-900 tracking-wider">
-                  
+
                   <!-- Margin line -->
                   <div class="absolute top-0 bottom-0 left-12 w-0.5 bg-red-400"></div>
                   <!-- Notebook rings simulated -->
@@ -204,28 +276,28 @@ onUnmounted(() => {
                       <p class="text-lg font-sans font-bold text-slate-800 mb-8 border-b-2 border-dashed border-slate-300 pb-2">
                           {{ currentLevelData.goalText }}
                       </p>
-                      
+
                       <!-- The flawed equation -->
                       <div class="flex items-center gap-4 mt-8 flex-wrap leading-[3rem]">
-                          
+
                           <template v-for="(part, index) in currentLevelData.parts" :key="index">
-                              
+
                               <span v-if="!part.isEq" class="opacity-90 hover:opacity-100 transition-opacity" :class="index === currentLevelData.parts.length - 1 ? 'border-b-4 border-blue-900' : ''">
                                   {{ part.text }}
                               </span>
-                              
+
                               <div v-else class="relative inline-block">
                                   <button @click="selectEq(part.id)" :disabled="isCorrect"
                                           class="px-2 rounded border-2 border-transparent transition-all hover:border-blue-300 active:scale-95 bg-white/50 cursor-pointer"
                                           :class="eqStates[part.id] === 'correct' ? '!border-red-500 !bg-red-100' : (eqStates[part.id] === 'wrong' ? '!border-red-500 !bg-red-100 animate-shake' : '')">
                                       =
                                   </button>
-                                  
+
                                   <!-- Strike through if chosen correctly -->
                                   <div v-if="eqStates[part.id] === 'correct'" class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                       <div class="w-full h-1.5 bg-red-600 transform rotate-[-20deg] rounded-full scale-125 animate-fadeIn"></div>
                                   </div>
-                                  
+
                                   <!-- X mark if chosen wrong -->
                                   <div v-if="eqStates[part.id] === 'wrong'" class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                       <PhX weight="bold" class="w-8 h-8 text-red-600 absolute -top-1 animate-fadeIn" />

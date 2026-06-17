@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhPercent, PhArrowClockwise, PhScissors
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Procenten: De Korting' },
-  instruction: { 
-    type: String, 
-    default: 'Met het strokenmodel (Bar Model) zie je procenten heel duidelijk voor je.<br/><br/><strong>Opdracht:</strong> Gebruik het model om de korting te visualiseren. Verwijder de juiste blokjes korting door op de schaar te klikken. Bereken daarna de nieuwe prijs.' 
+  instruction: {
+    type: String,
+    default: 'Met het strokenmodel (Bar Model) zie je procenten heel duidelijk voor je.<br/><br/><strong>Opdracht:</strong> Gebruik het model om de korting te visualiseren. Verwijder de juiste blokjes korting door op de schaar te klikken. Bereken daarna de nieuwe prijs.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
@@ -23,39 +23,46 @@ const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de knop om de korting af te knippen.' })
+const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 
-const levels = [
-  {
-    goalText: 'Opdracht 1: 20% korting op €80',
-    originalPrice: 80,
-    discountPercent: 20,
-    exactAns: 64,
-    hintCut: 'Klik op de knop om 20% (2 blokjes van 10%) af te knippen.',
-    hintCalc: '100% is €80. Eén blokje (10%) is dus €8. Je hebt 8 blauwe blokjes over. 8 × 8 = ...'
-  },
-  {
-    goalText: 'Opdracht 2: 30% korting op €150',
-    originalPrice: 150,
-    discountPercent: 30,
-    exactAns: 105,
-    hintCut: 'Klik op de schaar om 30% af te knippen.',
-    hintCalc: '100% is €150. Eén blokje is €15. Je houdt 7 blokjes over (70%). 7 × 15 = ...'
-  },
-  {
-    goalText: 'Opdracht 3: 40% korting op €50',
-    originalPrice: 50,
-    discountPercent: 40,
-    exactAns: 30,
-    hintCut: 'Snijd 40% van de strook af.',
-    hintCalc: '100% is €50. Eén blokje is €5. Hoeveel is 60% dan?'
-  }
-]
+const levels = ref([])
 
-const currentLevelData = computed(() => levels[currentInternalLevel.value])
+function generateLevel() {
+  const newLevels = []
+  for (let lvl = 0; lvl < 3; lvl++) {
+    let originalPrice, discountPercent, exactAns, pricePerBlock, discountBlocks, remainingBlocks
+    const blocksTotal = 10 // each block = 10%
+    if (lvl === 0) {
+      discountPercent = [10, 20, 30][Math.floor(Math.random() * 3)]
+      originalPrice = [40, 50, 60, 80, 90, 100][Math.floor(Math.random() * 6)]
+    } else if (lvl === 1) {
+      discountPercent = [20, 30, 40][Math.floor(Math.random() * 3)]
+      originalPrice = [80, 100, 120, 150, 180, 200][Math.floor(Math.random() * 6)]
+    } else {
+      discountPercent = [30, 40, 50][Math.floor(Math.random() * 3)]
+      originalPrice = [50, 80, 100, 120, 150, 250][Math.floor(Math.random() * 6)]
+    }
+    discountBlocks = discountPercent / 10
+    remainingBlocks = blocksTotal - discountBlocks
+    pricePerBlock = originalPrice / blocksTotal
+    exactAns = remainingBlocks * pricePerBlock
+    newLevels.push({
+      goalText: `Opdracht ${lvl + 1}: ${discountPercent}% korting op €${originalPrice}`,
+      originalPrice,
+      discountPercent,
+      exactAns,
+      hintCut: `Klik op de knop om ${discountPercent}% (${discountBlocks} blokjes van 10%) af te knippen.`,
+      hintCalc: `100% is €${originalPrice}. 1 blokje (10%) is €${pricePerBlock}. Je hebt ${remainingBlocks} blauwe blokjes over. ${remainingBlocks} × ${pricePerBlock} = ...`
+    })
+  }
+  levels.value = newLevels
+}
+
+const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
 const blocksTotal = 10 // Each block is 10%
@@ -77,33 +84,49 @@ function resetActivityState() {
     feedback.value = { type: 'info', text: 'Klik op de knop om de korting af te knippen.' };
     discountApplied.value = false;
     userAns.value = null;
+    attemptCount.value = 0;
+    generateLevel();
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  if (userAns.value === currentLevelData.value.exactAns) {
+  const data = currentLevelData.value;
+
+  if (userAns.value === data.exactAns) {
     if (discountApplied.value) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: `Super! 100% was €${currentLevelData.value.originalPrice}. Eén blokje (10%) is €${pricePerBlock.value}. Je betaalt nog ${remainingBlocks.value * 10}% (${remainingBlocks.value} blokjes), dus ${remainingBlocks.value} × ${pricePerBlock.value} = €${currentLevelData.value.exactAns}.` 
+        feedback.value = {
+          type: 'success',
+          text: `Super! 100% was €${data.originalPrice}. Eén blokje (10%) is €${pricePerBlock.value}. Je betaalt nog ${remainingBlocks.value * 10}% (${remainingBlocks.value} blokjes), dus ${remainingBlocks.value} × ${pricePerBlock.value} = €${data.exactAns}.`
         }
     } else {
-        isCorrect.value = false
-        feedback.value = { type: 'error', text: `${currentLevelData.value.exactAns} is correct, maar knip eerst de korting af in het visuele model!`}
+        attemptCount.value++
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `${data.exactAns} is correct, maar knip eerst de korting af in het visuele model!`}
+        } else {
+          feedback.value = { type: 'error', text: `Klik eerst op de schaar om ${data.discountPercent}% af te knippen. Daarna zie je het antwoord in het model.`}
+        }
     }
   } else {
-    isCorrect.value = false
-    
+    attemptCount.value++
     const discountAmount = pricePerBlock.value * discountBlocks.value;
-    
+
     if (userAns.value === discountAmount) {
-        feedback.value = { type: 'error', text: `€${discountAmount} is de KORTING (${discountBlocks.value} blokjes). Maar wat is de NIEUWE PRIJS die je moet betalen (de overgebleven blauwe blokjes)?`}
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `€${discountAmount} is de KORTING (${discountBlocks.value} blokjes). Maar wat is de NIEUWE PRIJS die je moet betalen (de overgebleven blauwe blokjes)?`}
+        } else {
+          feedback.value = { type: 'error', text: `€${discountAmount} is de korting. Je moet de overgebleven ${remainingBlocks.value} blokjes betalen: ${remainingBlocks.value} × €${pricePerBlock.value}.`}
+        }
     } else if (userAns.value === pricePerBlock.value) {
         feedback.value = { type: 'error', text: `€${pricePerBlock.value} is de waarde van slechts 1 blokje (10%). Je moet de resterende ${remainingBlocks.value * 10}% betalen.`}
     } else {
-        feedback.value = { type: 'error', text: `Reken het nog eens na. Tel hoeveel blauwe blokjes er nog over zijn. Elk blokje is €${pricePerBlock.value} waard. ${currentLevelData.value.hintCalc}`}
+        if (attemptCount.value === 1) {
+          feedback.value = { type: 'error', text: `Reken het nog eens na. Tel hoeveel blauwe blokjes er nog over zijn. Elk blokje is €${pricePerBlock.value} waard. ${data.hintCalc}`}
+        } else if (attemptCount.value === 2) {
+          feedback.value = { type: 'error', text: `${remainingBlocks.value} blokjes × €${pricePerBlock.value} per blokje = ?`}
+        } else {
+          feedback.value = { type: 'error', text: `De nieuwe prijs is €${data.exactAns}. (${remainingBlocks.value} × ${pricePerBlock.value})`}
+        }
     }
   }
 }
@@ -121,6 +144,7 @@ function handleNext() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    generateLevel();
     currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
@@ -147,7 +171,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -158,8 +182,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
               <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i" 
-                     class="w-2 h-2 rounded-full" 
+                <div v-for="i in totalInternalLevels" :key="i"
+                     class="w-2 h-2 rounded-full"
                      :class="i <= currentInternalLevel + 1 ? 'bg-indigo-500' : 'bg-slate-200'"></div>
               </div>
             </div>
@@ -175,11 +199,11 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="text-center bg-indigo-50 p-4 border border-indigo-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-indigo-800">{{ currentLevelData.goalText }}</p>
             </div>
-            
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
                <label class="block text-sm font-bold text-indigo-900 mb-2">Nieuwe Prijs:</label>
                <div class="flex items-center gap-2">
@@ -208,10 +232,10 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <!-- The Bar Model -->
               <div class="w-full max-w-4xl relative">
-                  
+
                   <!-- Total Label -->
                   <div class="absolute -top-10 left-0 w-full flex flex-col items-center">
                       <div class="w-full h-4 border-t-2 border-x-2 border-slate-400 rounded-t-lg mb-1 relative">
@@ -223,7 +247,7 @@ onUnmounted(() => {
                   <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-lg bg-white relative overflow-hidden">
                       <div v-for="i in blocksTotal" :key="'block'+i" class="flex-1 border-r-2 border-slate-300 last:border-r-0 relative transition-all duration-700"
                            :class="i > remainingBlocks && discountApplied ? 'bg-red-100 translate-y-full opacity-0' : 'bg-blue-500'">
-                          
+
                           <!-- Inner block label -->
                           <div class="absolute inset-0 flex flex-col items-center justify-center">
                               <span class="font-bold text-white/80 text-sm">10%</span>
@@ -248,14 +272,14 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Scissors Button -->
-                  <button v-if="!discountApplied" @click="applyDiscount" 
+                  <button v-if="!discountApplied" @click="applyDiscount"
                           class="absolute -bottom-16 bg-white border-2 border-red-500 text-red-600 font-bold px-4 py-2 rounded-full shadow-md flex items-center gap-2 hover:bg-red-50 hover:scale-105 active:scale-95 transition-all"
                           :style="{ right: `0`, transform: `translateX(calc(-${(discountBlocks/2)*10}vw + 50%))` }">
                       <PhScissors weight="fill" class="w-6 h-6" /> Knip {{ currentLevelData.discountPercent }}% af
                   </button>
 
                   <!-- The cut line -->
-                  <div v-if="!discountApplied" class="absolute top-0 bottom-0 w-1 bg-red-500 border-x border-white/50 border-dashed pointer-events-none" 
+                  <div v-if="!discountApplied" class="absolute top-0 bottom-0 w-1 bg-red-500 border-x border-white/50 border-dashed pointer-events-none"
                        :style="{ right: `${discountBlocks * 10}%` }"></div>
 
               </div>
