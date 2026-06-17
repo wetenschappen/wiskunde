@@ -1,117 +1,88 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTable, PhArrowClockwise, PhPlus
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Patronen: De Groeiende Tafels' },
-  instruction: { 
-    type: String, 
-    default: 'Een restaurant schuift vierkante tafels tegen elkaar om lange rijen te maken.<br/><br/><strong>Opdracht:</strong> Voeg tafels toe. Tel hoeveel stoelen er telkens rond de tafelrij passen. Probeer daarna de algemene formule op te stellen voor het aantal stoelen (S) bij "t" tafels.' 
-  },
+  instruction: { type: String, default: 'Een restaurant schuift tafels tegen elkaar. Ontdek het patroon!<br/><br/><strong>Opdracht:</strong> Voeg tafels toe en stel de formule op.' },
   currentStep: { type: Number, default: 1 },
-  totalSteps: { type: Number, default: 2 },
+  totalSteps: { type: Number, default: 1 },
   fullscreen: { type: Boolean, default: true },
   icon: { type: Object, default: () => PhTable }
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
-
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op "Voeg Tafel Toe" om het patroon te ontdekken.' })
 
-// Domain Logic
-const tables = ref(1) // 1 to 4
-const maxTables = 4
+// Levels — different seating configurations
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
 
-const multValue = ref(null) // Should be 2
-const addValue = ref(null) // Should be 2
+const levels = [
+  { name: 'Tafels in een rij', multTarget: 2, addTarget: 2, chairsFn: (t) => 2 * t + 2, maxT: 5, desc: 'S = ?t + ?' },
+  { name: 'Tafels met banken', multTarget: 3, addTarget: 1, chairsFn: (t) => 3 * t + 1, maxT: 5, desc: 'S = ?t + ?' },
+  { name: 'Zitplaatsen vierkant', multTarget: 4, addTarget: 0, chairsFn: (t) => 4 * t, maxT: 5, desc: 'S = ?t + ?' },
+]
 
-const chairs = computed(() => {
-    // 1 table: 4. 2 tables: 6. 3 tables: 8.
-    return (tables.value * 2) + 2
-})
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+const tables = ref(1)
+const multValue = ref(null)
+const addValue = ref(null)
 
-function addTable() {
-    if (tables.value < maxTables && !isCorrect.value) {
-        tables.value++
-    }
-}
+const chairs = computed(() => currentLevel.value.chairsFn(tables.value))
+
+function addTable() { if (tables.value < currentLevel.value.maxT && !isCorrect.value) tables.value++ }
 
 function resetActivityState() {
-    isCorrect.value = false;
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Klik op "Voeg Tafel Toe" om het patroon te ontdekken.' };
-    tables.value = 1;
-    multValue.value = null;
-    addValue.value = null;
+  isCorrect.value = false; isChecked.value = false
+  feedback.value = { type: 'info', text: 'Klik op "Voeg Tafel Toe" om het patroon te ontdekken.' }
+  tables.value = 1; multValue.value = null; addValue.value = null
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) { currentInternalLevel.value++; resetActivityState() }
+  else { emit('complete') }
 }
 
 function checkAnswer() {
-  isChecked.value = true;
-  
-  if (multValue.value === 2 && addValue.value === 2) {
+  isChecked.value = true
+  const lvl = currentLevel.value
+  if (multValue.value === lvl.multTarget && addValue.value === lvl.addTarget) {
     if (tables.value > 1) {
-        isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: 'Perfect! Elke extra tafel brengt 2 nieuwe stoelen mee (de zijkanten). En de 2 "hoofden" van de tafel zitten er altijd aan het begin en einde (+ 2). De formule is S = 2t + 2.' 
-        }
+      isCorrect.value = true
+      feedback.value = { type: 'success', text: `Perfect! ${lvl.name}: S = ${lvl.multTarget}t + ${lvl.addTarget === 0 ? '' : lvl.addTarget}. Dat is ${lvl.chairsFn(1)} stoel${lvl.chairsFn(1)>1?'en':''} bij 1 tafel, ${lvl.chairsFn(2)} bij 2, etc.` }
     } else {
-        isCorrect.value = false
-        feedback.value = { type: 'error', text: 'Je formule is correct! Maar voeg eerst tafels toe in de animatie om het met je eigen ogen te zien gebeuren.'}
+      feedback.value = { type: 'error', text: 'Formule klopt! Maar voeg eerst tafels toe om het patroon te zien.' }
     }
   } else {
     isCorrect.value = false
-    
-    if (multValue.value === 4) {
-        feedback.value = { type: 'error', text: 'Je koos 4t. 1 tafel heeft inderdaad 4 stoelen. Maar hebben 2 tafels samen 8 stoelen? Kijk goed, ze verliezen stoelen waar ze tegen elkaar staan!'}
-    } else if (multValue.value === 2 && addValue.value !== 2) {
-        feedback.value = { type: 'error', text: 'Je ziet goed dat er telkens 2 stoelen (boven en onder) bijkomen per tafel! Maar wat mis je dan nog? (Kijk naar de zijkanten helemaal links en rechts).'}
-    } else {
-        feedback.value = { type: 'error', text: 'Kijk naar de toename. Als je van 1 naar 2 tafels gaat, hoeveel stoelen komen er dan ECHT bij? Dat getal hoort voor de t.'}
-    }
+    feedback.value = { type: 'error', text: `Kijk naar de toename: ${lvl.chairsFn(1)} → ${lvl.chairsFn(2)} → ${lvl.chairsFn(3)}... Hoeveel komen er bij per tafel?` }
   }
 }
 
-function goToNextStep() {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
-}
+function goToNextStep() { if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1); else emit('complete') }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
-  if (val) {
-    resetActivityState();
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
+  if (val) { currentInternalLevel.value = 0; resetActivityState(); window.addEventListener('keydown', handleKeydown)
+    if (props.fullscreen) nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}) })
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
+  } else { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); window.removeEventListener('keydown', handleKeydown); shouldPulse.value = false }
 }, { immediate: true })
-
 function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
 const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
 onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-})
+onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); document.removeEventListener('fullscreenchange', handleFullscreenChange); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}) })
 </script>
-
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -119,113 +90,80 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+            <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }} — {{ currentLevel.name }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }"><PhX class="w-6 h-6" /></button>
       </header>
-
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="props.instruction"></div>
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-teal-900 mb-2">Formule voor aantal Stoelen (S):</label>
-               
-               <div class="flex items-center justify-center gap-2 text-2xl font-black text-slate-700 mb-2">
-                   <span>S = </span>
-                   <input type="number" v-model.number="multValue" placeholder="?" :disabled="isCorrect"
-                          class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 focus:ring-teal-500 text-center bg-white" />
-                   <span>· t + </span>
-                   <input type="number" v-model.number="addValue" placeholder="?" :disabled="isCorrect"
-                          class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 focus:ring-teal-500 text-center bg-white" />
-               </div>
-               <p class="text-xs text-teal-700 text-center mt-2 italic">(waarbij t = aantal tafels)</p>
+              <label class="block text-sm font-bold text-teal-900 mb-2">Formule (S = ?·t + ?):</label>
+              <div class="flex items-center justify-center gap-2 text-2xl font-black text-slate-700 mb-2">
+                <span>S = </span>
+                <input type="number" v-model.number="multValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
+                <span>· t + </span>
+                <input type="number" v-model.number="addValue" placeholder="?" :disabled="isCorrect" class="w-16 font-bold text-xl p-2 border-2 border-teal-400 rounded focus:border-teal-500 text-center bg-white" />
+              </div>
+              <p class="text-xs text-teal-700 text-center mt-2 italic">(t = aantal tafels)</p>
             </div>
           </div>
-
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn" :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
+              :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error'}">
+              <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+              <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (multValue === null || addValue === null)" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Formule</button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
+              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]" :disabled="multValue === null || addValue === null">Controleer</button>
+              <button v-if="isCorrect && currentInternalLevel < totalInternalLevels - 1" @click="nextLevel" class="flex-1 py-3 font-bold text-white rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500">Volgend Level</button>
+              <button v-if="isCorrect && currentInternalLevel >= totalInternalLevels - 1" @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white rounded-lg shadow-md bg-amber-600 hover:bg-amber-500">
+                <span>Afronden</span><PhArrowRight weight="bold" />
               </button>
             </div>
           </div>
         </div>
-
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
-              <div class="w-full max-w-4xl flex flex-col items-center">
-                  
-                  <div class="mb-12">
-                      <button @click="addTable" :disabled="isCorrect || tables >= maxTables" 
-                              class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
-                          <PhPlus weight="bold" class="w-6 h-6" /> Voeg Tafel Toe
-                      </button>
-                  </div>
-
-                  <!-- Visualisation Area -->
-                  <!-- Top down view. Table = brown square. Chair = small grey circle/oval. -->
-                  <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-12 min-h-[300px] flex items-center justify-center w-full max-w-3xl transition-all">
-                      
-                      <!-- Container for the tables to keep them centered -->
-                      <div class="flex relative items-center justify-center transition-all duration-500" :style="{ width: `${tables * 100}px` }">
-                          
-                          <!-- Left Head Chair -->
-                          <div class="w-6 h-12 bg-slate-300 border-2 border-slate-400 rounded-l-full absolute -left-8 transition-all duration-500 shadow-sm"></div>
-
-                          <!-- Tables and Top/Bottom Chairs -->
-                          <div v-for="t in tables" :key="'t'+t" class="relative w-[100px] h-[100px] bg-amber-700 border-x border-amber-900 flex shrink-0 animate-fadeIn" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
-                              
-                              <!-- Top Chair -->
-                              <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-t-full absolute -top-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
-                              
-                              <!-- Bottom Chair -->
-                              <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-b-full absolute -bottom-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
-                              
-                          </div>
-
-                          <!-- Right Head Chair -->
-                          <div class="w-6 h-12 bg-slate-300 border-2 border-slate-400 rounded-r-full absolute -right-8 transition-all duration-500 shadow-sm"></div>
-
-                      </div>
-
-                  </div>
-
-                  <!-- Real-time data table to help them -->
-                  <div class="mt-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-8">
-                      <div class="flex flex-col items-center">
-                          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tafels (t)</span>
-                          <span class="font-black text-2xl text-amber-700">{{ tables }}</span>
-                      </div>
-                      <div class="w-px bg-slate-200"></div>
-                      <div class="flex flex-col items-center">
-                          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stoelen (S)</span>
-                          <span class="font-black text-2xl text-blue-600 animate-pulse" :key="chairs">{{ chairs }}</span>
-                      </div>
-                  </div>
-
+            <div class="w-full max-w-4xl flex flex-col items-center">
+              <div class="mb-6">
+                <button @click="addTable" :disabled="isCorrect || tables >= currentLevel.maxT"
+                  class="px-6 py-3 font-bold bg-slate-800 text-white rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
+                  <PhPlus weight="bold" class="w-6 h-6" /> Voeg Tafel Toe
+                </button>
               </div>
-
+              <div class="relative bg-white shadow-xl rounded-2xl overflow-hidden border-2 border-slate-200 p-12 min-h-[280px] flex items-center justify-center w-full max-w-3xl transition-all">
+                <div class="flex relative items-center justify-center transition-all duration-500" :style="{ width: `${tables * 100}px` }">
+                  <div v-if="currentLevel.addTarget === 0" class="w-6 h-12 bg-slate-300 border-2 border-slate-400 rounded-l-full absolute -left-8 transition-all shadow-sm"></div>
+                  <div v-for="t in tables" :key="'t'+t" class="relative w-[100px] h-[100px] bg-amber-700 border-x border-amber-900 flex shrink-0 animate-fadeIn shadow-inner">
+                    <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-t-full absolute -top-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
+                    <div class="w-12 h-6 bg-blue-300 border-2 border-blue-500 rounded-b-full absolute -bottom-8 left-1/2 -translate-x-1/2 shadow-sm"></div>
+                  </div>
+                  <div v-if="currentLevel.addTarget === 0" class="w-6 h-12 bg-slate-300 border-2 border-slate-400 rounded-r-full absolute -right-8 transition-all shadow-sm"></div>
+                </div>
+              </div>
+              <div class="mt-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-8">
+                <div class="flex flex-col items-center">
+                  <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tafels (t)</span>
+                  <span class="font-black text-2xl text-amber-700">{{ tables }}</span>
+                </div>
+                <div class="w-px bg-slate-200"></div>
+                <div class="flex flex-col items-center">
+                  <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stoelen (S)</span>
+                  <span class="font-black text-2xl text-blue-600" :key="chairs">{{ chairs }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
     </div>
   </div>
 </template>
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }

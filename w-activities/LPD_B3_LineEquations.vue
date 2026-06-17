@@ -1,12 +1,12 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhMathOperations,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,16 +32,47 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// Pairs
-const pairs = [
-  { id: 1, expr: '2x + 3y - 6 = 0', ans: '(3, -2)' },
-  { id: 2, expr: '-x + 4y + 2 = 0', ans: '(4, 1)' },
-  { id: 3, expr: '5x - y = 0', ans: '(-1, -5)' },
-  { id: 4, expr: 'y = 3', ans: '(1, 0)' }
+// Levels
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    name: 'Basis',
+    description: 'Eenvoudige koppelingen.',
+    pairs: [
+      { id: 1, expr: '2x + 3y - 6 = 0', ans: '(3, -2)' },
+      { id: 2, expr: 'y = 3', ans: '(1, 0)' }
+    ]
+  },
+  {
+    name: 'Toepassing',
+    description: 'Verschillende coëfficiënten.',
+    pairs: [
+      { id: 1, expr: '2x + 3y - 6 = 0', ans: '(3, -2)' },
+      { id: 2, expr: '-x + 4y + 2 = 0', ans: '(4, 1)' },
+      { id: 3, expr: '5x - y = 0', ans: '(-1, -5)' },
+      { id: 4, expr: 'y = 3', ans: '(1, 0)' }
+    ]
+  },
+  {
+    name: 'Uitdaging',
+    description: 'Complexe vergelijkingen en speciale gevallen.',
+    pairs: [
+      { id: 1, expr: '2x + 3y - 6 = 0', ans: '(3, -2)' },
+      { id: 2, expr: '-x + 4y + 2 = 0', ans: '(4, 1)' },
+      { id: 3, expr: '5x - y = 0', ans: '(-1, -5)' },
+      { id: 4, expr: 'y = 3', ans: '(1, 0)' },
+      { id: 5, expr: '3x + 2y = 0', ans: '(2, -3)' },
+      { id: 6, expr: 'x = -2', ans: '(0, 1)' }
+    ]
+  }
 ]
 
-const expressions = ref([...pairs].sort(() => Math.random() - 0.5))
-const answers = ref([...pairs].sort(() => Math.random() - 0.5))
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+
+const expressions = ref([])
+const answers = ref([])
 
 const selectedExpr = ref(null)
 const selectedAns = ref(null)
@@ -50,7 +81,7 @@ const matchedPairs = ref([])
 function selectExpr(item) {
   if (matchedPairs.value.includes(item.id)) return;
   if (selectedExpr.value === item.id) {
-    selectedExpr.value = null; 
+    selectedExpr.value = null;
   } else {
     selectedExpr.value = item.id;
     checkMatch();
@@ -60,7 +91,7 @@ function selectExpr(item) {
 function selectAns(item) {
   if (matchedPairs.value.includes(item.id)) return;
   if (selectedAns.value === item.id) {
-    selectedAns.value = null; 
+    selectedAns.value = null;
   } else {
     selectedAns.value = item.id;
     checkMatch();
@@ -73,8 +104,8 @@ function checkMatch() {
       matchedPairs.value.push(selectedExpr.value);
       selectedExpr.value = null;
       selectedAns.value = null;
-      
-      if (matchedPairs.value.length === pairs.length) {
+
+      if (matchedPairs.value.length === currentLevel.value.pairs.length) {
         checkAnswer();
       }
     } else {
@@ -93,23 +124,36 @@ function resetActivityState() {
   matchedPairs.value = [];
   selectedExpr.value = null;
   selectedAns.value = null;
-  expressions.value = [...pairs].sort(() => Math.random() - 0.5)
-  answers.value = [...pairs].sort(() => Math.random() - 0.5)
+  expressions.value = [...currentLevel.value.pairs].sort(() => Math.random() - 0.5)
+  answers.value = [...currentLevel.value.pairs].sort(() => Math.random() - 0.5)
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  if (matchedPairs.value.length === pairs.length) {
+  if (matchedPairs.value.length === currentLevel.value.pairs.length) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Uitstekend! Je kan de richtingsvector aflezen uit een cartesische vergelijking.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Uitstekend! Je kan de richtingsvector aflezen uit een cartesische vergelijking.'
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
+    feedback.value = {
+      type: 'error',
       text: 'Er ontbreken nog enkele koppelingen.'
+    }
+  }
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    if (props.currentStep < props.totalSteps) {
+      emit('update:currentStep', props.currentStep + 1)
+    } else {
+      emit('complete')
     }
   }
 }
@@ -124,6 +168,7 @@ function goToNextStep() {
 
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -167,9 +212,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-100">
@@ -179,8 +224,16 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
+          <!-- Level indicator -->
+          <div class="flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-200">
+            <div v-for="(level, i) in levels" :key="i"
+                 class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                 :class="i === currentInternalLevel ? 'bg-emerald-500 ring-2 ring-emerald-200 scale-125' : i < currentInternalLevel ? 'bg-emerald-300' : 'bg-slate-300'">
+            </div>
+            <span class="text-xs font-bold text-emerald-700 ml-1.5 uppercase">{{ currentLevel.name }}</span>
+          </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -192,11 +245,12 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+            <p class="mb-2 text-xs font-semibold text-emerald-600">Level {{ currentInternalLevel + 1 }} — {{ currentLevel.name }}</p>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -211,13 +265,13 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-50 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -226,11 +280,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid">
-              
+
               <div class="flex w-full max-w-4xl gap-12 justify-center">
-                
+
                 <!-- Expressions -->
                 <div class="flex flex-col gap-4 w-1/2 max-w-xs">
                   <h4 class="text-center font-bold text-slate-500 mb-2">Cartesische Verg.</h4>

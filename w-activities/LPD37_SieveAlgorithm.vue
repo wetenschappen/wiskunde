@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhGridFour, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Computationeel Denken: Het Priem-Algoritme' },
-  instruction: { 
-    type: String, 
-    default: 'Een computer gebruikt algoritmes (stappenplannen) om patronen te vinden, zoals de "Zeef van Eratosthenes" om priemgetallen te filteren.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit op de getallen 1 t/m 20.<br/>Stap 1: Streep 1 door (geen priemgetal).<br/>Stap 2: Omcirkel 2 (priemgetal). Streep AL zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep AL zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.' 
+  instruction: {
+    type: String,
+    default: 'Een computer gebruikt algoritmes (stappenplannen) om patronen te vinden, zoals de "Zeef van Eratosthenes" om priemgetallen te filteren.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit op de getallen 1 t/m 20.<br/>Stap 1: Streep 1 door (geen priemgetal).<br/>Stap 2: Omcirkel 2 (priemgetal). Streep AL zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep AL zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.'
   },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
@@ -24,14 +24,41 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op getallen om ze te doorstrepen (1 klik) of te omcirkelen als priemgetal (2 klikken).' })
 
+// --- Level System ---
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    maxNum: 10,
+    primes: [2, 3, 5, 7],
+    instruction: 'Level 1: Laten we klein beginnen met de getallen 1 t/m 10.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door (geen priemgetal).<br/>Stap 2: Omcirkel 2. Streep al zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep al zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.',
+    successFeedback: 'Uitstekend! Je hebt alle priemgetallen tot 10 gevonden. Klaar voor level 2?'
+  },
+  {
+    maxNum: 20,
+    primes: [2, 3, 5, 7, 11, 13, 17, 19],
+    instruction: 'Level 2: De getallen 1 t/m 20 — uitbreiding van hetzelfde algoritme.<br/><br/><strong>Opdracht:</strong> Voer het algoritme handmatig uit.<br/>Stap 1: Streep 1 door.<br/>Stap 2: Omcirkel 2. Streep zijn veelvouden door.<br/>Stap 3: Omcirkel 3. Streep zijn veelvouden door.<br/>Stap 4: Herhaal tot je klaar bent.',
+    successFeedback: 'Magistraal! Je hebt exact als een computer gewerkt (patroonherkenning en decompositie) en alle priemgetallen onder de 20 gevonden.'
+  },
+  {
+    maxNum: 30,
+    primes: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29],
+    instruction: 'Level 3: De echte uitdaging met getallen 1 t/m 30.<br/><br/><strong>Opdracht:</strong> Voer het algoritme zelfstandig uit.<br/>Let op: er zijn 10 priemgetallen om te vinden!',
+    successFeedback: 'Fenomenaal! Je beheerst de Zeef van Eratosthenes volledig. Alle priemgetallen tot 30 gevonden!'
+  }
+]
+
+const currentLevelData = computed(() => levels[currentInternalLevel.value])
+
 // Domain Logic
-const maxNum = 20
+const maxNum = computed(() => currentLevelData.value.maxNum)
 
 // State: 'normal', 'crossed', 'circled'
-const numStates = ref(Array(maxNum).fill('normal'))
+const numStates = ref(Array(maxNum.value).fill('normal'))
 
-// Actual primes up to 20: 2, 3, 5, 7, 11, 13, 17, 19
-const primes = [2, 3, 5, 7, 11, 13, 17, 19]
+// Actual primes for current level
+const primes = computed(() => currentLevelData.value.primes)
 
 function cycleState(index) {
     if (isCorrect.value) return;
@@ -45,26 +72,39 @@ function resetActivityState() {
     isCorrect.value = false;
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op getallen om ze te doorstrepen (1 klik) of te omcirkelen als priemgetal (2 klikken).' };
-    numStates.value = Array(maxNum).fill('normal');
+    numStates.value = Array(maxNum.value).fill('normal');
+}
+
+function nextLevel() {
+    currentInternalLevel.value++
+    resetActivityState()
+}
+
+function handleLevelComplete() {
+    if (currentInternalLevel.value < totalInternalLevels - 1) {
+        nextLevel()
+    } else {
+        goToNextStep()
+    }
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   let allCorrect = true;
   let specificError = ''
 
-  for (let i = 0; i < maxNum; i++) {
+  for (let i = 0; i < maxNum.value; i++) {
       const num = i + 1;
       const state = numStates.value[i];
-      const isPrime = primes.includes(num);
+      const isPrime = primes.value.includes(num);
 
       if (num === 1 && state !== 'crossed') {
           allCorrect = false;
           specificError = 'Stap 1: Het getal 1 is per definitie geen priemgetal. Streep het door!';
           break;
       }
-      
+
       if (isPrime && state !== 'circled') {
           allCorrect = false;
           specificError = `Het getal ${num} is een priemgetal (het heeft geen delers buiten 1 en zichzelf). Je moest dit omcirkelen!`;
@@ -80,9 +120,9 @@ function checkAnswer() {
 
   if (allCorrect) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Magistraal! Je hebt exact als een computer gewerkt (patroonherkenning en decompositie) en alle priemgetallen onder de 20 gevonden.' 
+    feedback.value = {
+      type: 'success',
+      text: currentLevelData.value.successFeedback
     }
   } else {
     isCorrect.value = false
@@ -98,6 +138,7 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -123,7 +164,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-500/20">
@@ -131,7 +172,18 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
-            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
+            <div class="flex items-center gap-3 mt-0.5">
+              <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
+              <div class="flex items-center gap-2 text-xs text-slate-500">
+                <span class="font-medium">Level {{ currentInternalLevel + 1 }}/{{ totalInternalLevels }}</span>
+                <div class="flex items-center gap-1">
+                  <span v-for="lvl in totalInternalLevels" :key="lvl"
+                        class="w-2 h-2 rounded-full transition-all duration-300"
+                        :class="lvl - 1 <= currentInternalLevel ? 'bg-indigo-400' : 'bg-slate-600'">
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }">
@@ -143,11 +195,11 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="currentLevelData.instruction"></div>
+
             <div class="p-4 mt-6 border border-slate-600 bg-slate-700/50 rounded-xl shadow-inner">
                <h4 class="font-bold text-slate-300 mb-4 uppercase tracking-widest text-xs">Legende:</h4>
-               
+
                <div class="flex flex-col gap-4 font-mono text-sm">
                    <div class="flex items-center gap-3">
                        <div class="w-8 h-8 rounded border-2 border-slate-500 bg-slate-700 flex items-center justify-center text-slate-400 font-bold">1</div>
@@ -178,8 +230,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
               <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg bg-indigo-500 border-indigo-700 text-white hover:bg-indigo-400">Algoritme Uitgevoerd</button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -188,11 +240,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-900">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative bg-circuit-pattern">
-              
+
               <div class="w-full max-w-3xl flex flex-col items-center">
-                  
+
                   <div class="grid grid-cols-5 gap-4 md:gap-6 bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-700">
-                      
+
                       <button v-for="(state, idx) in numStates" :key="idx"
                               @click="cycleState(idx)" :disabled="isCorrect"
                               class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center font-black text-2xl md:text-3xl transition-all shadow-sm select-none relative focus:outline-none"
@@ -201,9 +253,9 @@ onUnmounted(() => {
                                   'bg-red-900/20 border-2 border-red-500/50 text-slate-600 rounded-xl': state === 'crossed',
                                   'bg-emerald-900/30 border-4 border-emerald-500 text-emerald-400 rounded-full scale-110 shadow-[0_0_15px_rgba(16,185,129,0.4)]': state === 'circled'
                               }">
-                          
+
                           <span :class="state === 'crossed' ? 'opacity-30' : ''">{{ idx + 1 }}</span>
-                          
+
                           <!-- Red X overlay for crossed -->
                           <div v-if="state === 'crossed'" class="absolute inset-0 flex items-center justify-center pointer-events-none animate-fadeIn">
                               <PhX weight="bold" class="w-10 h-10 md:w-14 md:h-14 text-red-500" />

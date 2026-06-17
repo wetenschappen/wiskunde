@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhTable, PhArrowClockwise, PhChartBar
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Statistiek: Van Ruwe Data naar Grafiek' },
-  instruction: { 
-    type: String, 
-    default: 'Een tabel met <strong>absolute frequenties</strong> is gewoon een chique woord voor "hoeveel keer komt het voor?". Dit is de eerste stap naar een staafdiagram.<br/><br/><strong>Opdracht:</strong> Tel de huisdieren in de lijst en vul de tabel (absolute frequentie) correct in. Teken daarna de grafiek.' 
+  instruction: {
+    type: String,
+    default: 'Een tabel met <strong>absolute frequenties</strong> is gewoon een chique woord voor "hoeveel keer komt het voor?". Dit is de eerste stap naar een staafdiagram.<br/><br/><strong>Opdracht:</strong> Tel de huisdieren in de lijst en vul de tabel (absolute frequentie) correct in. Teken daarna de grafiek.'
   },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
@@ -24,10 +24,43 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Tel de huisdieren en vul de frequentietabel in.' })
 
-// Domain Logic
-const rawData = ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Kat', 'Kat', 'Vis']
-// Counts: Hond:3, Kat:4, Vis:2, Vogel:1
+// Internal level system
+const currentInternalLevel = ref(0)
+const totalInternalLevels = ref(3)
 
+const levels = [
+  {
+    name: 'Niveau 1',
+    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Kat', 'Kat', 'Vis'],
+    dogCount: 3, catCount: 4, fishCount: 2, birdCount: 1,
+    instruction: 'Een tabel met <strong>absolute frequenties</strong> is gewoon een chique woord voor "hoeveel keer komt het voor?". Dit is de eerste stap naar een staafdiagram.<br/><br/><strong>Opdracht:</strong> Tel de huisdieren in de lijst en vul de tabel (absolute frequentie) correct in. Teken daarna de grafiek.',
+    successFeedback: 'Uitstekend geteld! De tabel met absolute frequenties is klaar, en het staafdiagram wordt nu automatisch perfect voor jou getekend.'
+  },
+  {
+    name: 'Niveau 2',
+    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Vis', 'Vogel', 'Hond', 'Kat', 'Vogel', 'Vogel', 'Vis'],
+    dogCount: 5, catCount: 3, fishCount: 3, birdCount: 4,
+    instruction: 'Er zijn meer huisdieren in deze lijst!<br/><br/><strong>Opdracht:</strong> Tel opnieuw de absolute frequenties. Gebruik een streepjes-telling om het overzichtelijk te houden.',
+    successFeedback: 'Prima! Met een grotere dataset wordt tellen lastiger, maar je hebt het helemaal correct. Een frequentietabel helpt om grote hoeveelheden data te ordenen.'
+  },
+  {
+    name: 'Niveau 3',
+    rawData: ['Hond', 'Kat', 'Hond', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Kat', 'Vis', 'Hond', 'Kat', 'Vogel', 'Hond', 'Kat', 'Vis', 'Vogel', 'Hond', 'Kat', 'Vis'],
+    dogCount: 7, catCount: 6, fishCount: 4, birdCount: 3,
+    instruction: 'Nu een nog grotere enquete!<br/><br/><strong>Opdracht:</strong> Tel alle huisdieren. Maak een turftabel op papier als dat helpt. De absolute frequenties worden groter!',
+    successFeedback: 'Geweldig! Zelfs met 20 huisdieren heb je de frequenties correct geteld. Absolute frequenties zijn de bouwstenen van alle statistiek!'
+  }
+]
+
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+
+const rawData = computed(() => currentLevel.value.rawData)
+
+const yMax = computed(() => {
+    return Math.max(currentLevel.value.dogCount, currentLevel.value.catCount, currentLevel.value.fishCount, currentLevel.value.birdCount) + 1
+})
+
+// Domain Logic
 const freqDog = ref(null)
 const freqCat = ref(null)
 const freqFish = ref(null)
@@ -37,20 +70,21 @@ const showGraph = ref(false)
 
 function drawGraph() {
     isChecked.value = true;
-    
-    if (freqDog.value === 3 && freqCat.value === 4 && freqFish.value === 2 && freqBird.value === 1) {
+
+    const lv = currentLevel.value
+    if (freqDog.value === lv.dogCount && freqCat.value === lv.catCount && freqFish.value === lv.fishCount && freqBird.value === lv.birdCount) {
         isCorrect.value = true
         showGraph.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: 'Uitstekend geteld! De tabel met absolute frequenties is klaar, en het staafdiagram wordt nu automatisch perfect voor jou getekend.' 
+        feedback.value = {
+          type: 'success',
+          text: lv.successFeedback
         }
     } else {
         isCorrect.value = false
-        if (freqDog.value !== 3) feedback.value = { type: 'error', text: 'Tel de Honden nog eens. Streep ze af in je hoofd.'}
-        else if (freqCat.value !== 4) feedback.value = { type: 'error', text: 'Tel de Katten nog eens. Het zijn er meer dan je denkt.'}
-        else if (freqFish.value !== 2) feedback.value = { type: 'error', text: 'Tel de Vissen nog eens.'}
-        else if (freqBird.value !== 1) feedback.value = { type: 'error', text: 'Tel de Vogels nog eens.'}
+        if (freqDog.value !== lv.dogCount) feedback.value = { type: 'error', text: 'Tel de Honden nog eens. Streep ze af in je hoofd.'}
+        else if (freqCat.value !== lv.catCount) feedback.value = { type: 'error', text: 'Tel de Katten nog eens. Het zijn er meer dan je denkt.'}
+        else if (freqFish.value !== lv.fishCount) feedback.value = { type: 'error', text: 'Tel de Vissen nog eens.'}
+        else if (freqBird.value !== lv.birdCount) feedback.value = { type: 'error', text: 'Tel de Vogels nog eens.'}
         else feedback.value = { type: 'error', text: 'Vul alle vakjes in de tabel in.'}
     }
 }
@@ -66,6 +100,15 @@ function resetActivityState() {
     showGraph.value = false;
 }
 
+function nextLevel() {
+    if (currentInternalLevel.value < totalInternalLevels.value - 1) {
+        currentInternalLevel.value++
+        resetActivityState()
+    } else {
+        emit('complete')
+    }
+}
+
 function goToNextStep() {
     if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
     else emit('complete');
@@ -74,6 +117,7 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -99,7 +143,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -110,36 +154,41 @@ onUnmounted(() => {
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
+            {{ currentLevel.name }} ({{ currentInternalLevel + 1 }}/{{ totalInternalLevels }})
+          </span>
+          <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+            <PhX class="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="currentLevel.instruction"></div>
+
             <div class="p-4 mt-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
                <h4 class="font-bold text-indigo-900 mb-4">Tabel (Absolute Freq.):</h4>
-               
+
                <div class="flex flex-col gap-3">
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-700 w-20">Hond</span>
-                       <input type="number" v-model.number="freqDog" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqDog === 3 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
+                       <input type="number" v-model.number="freqDog" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqDog === currentLevel.dogCount && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
                    </div>
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-700 w-20">Kat</span>
-                       <input type="number" v-model.number="freqCat" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqCat === 4 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
+                       <input type="number" v-model.number="freqCat" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqCat === currentLevel.catCount && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
                    </div>
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-700 w-20">Vis</span>
-                       <input type="number" v-model.number="freqFish" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqFish === 2 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
+                       <input type="number" v-model.number="freqFish" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqFish === currentLevel.fishCount && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
                    </div>
                    <div class="flex items-center justify-between">
                        <span class="font-bold text-slate-700 w-20">Vogel</span>
-                       <input type="number" v-model.number="freqBird" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqBird === 1 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
+                       <input type="number" v-model.number="freqBird" :disabled="isCorrect" class="w-20 p-2 border-2 rounded focus:border-indigo-500 outline-none text-center font-bold" :class="freqBird === currentLevel.birdCount && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-indigo-300'" />
                    </div>
                </div>
             </div>
@@ -155,8 +204,8 @@ onUnmounted(() => {
               <button v-if="!isCorrect" @click="drawGraph" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] flex items-center justify-center gap-2">
                   <PhChartBar weight="bold" /> Teken Grafiek
               </button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -165,12 +214,12 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex items-start justify-center gap-12">
-                  
+
                   <!-- Left: Raw Data Box -->
                   <div class="w-64 bg-white p-6 rounded-2xl shadow-md border-2 border-slate-200 shrink-0">
-                      <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Ruwe Data (Enquête)</h4>
+                      <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Ruwe Data (Enquete)</h4>
                       <div class="flex flex-wrap gap-2">
                           <span v-for="(item, idx) in rawData" :key="idx" class="bg-slate-100 px-3 py-1 rounded font-mono text-sm font-bold text-slate-600 border border-slate-300">{{ item }}</span>
                       </div>
@@ -179,7 +228,7 @@ onUnmounted(() => {
                   <!-- Right: Dynamic Bar Chart -->
                   <div class="flex-1 bg-white p-8 rounded-3xl shadow-xl border-4 border-slate-200 min-h-[400px] relative flex flex-col justify-end"
                        :class="!showGraph ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'">
-                      
+
                       <div v-if="!showGraph" class="absolute inset-0 flex items-center justify-center z-20">
                           <span class="bg-white/80 backdrop-blur px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-300">Grafiek wordt gegenereerd...</span>
                       </div>
@@ -188,42 +237,45 @@ onUnmounted(() => {
 
                       <!-- Chart Area -->
                       <div class="w-full h-64 border-b-4 border-l-4 border-slate-600 relative flex items-end justify-around px-4 pb-0">
-                          
-                          <!-- Y-axis Ticks (0 to 5) -->
-                          <div class="absolute left-[-20px] top-0 bottom-0 w-4 flex flex-col justify-between items-end font-bold text-xs text-slate-400">
-                              <span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span>
-                          </div>
-                          
-                          <!-- Grid Lines -->
-                          <div class="absolute inset-0 flex flex-col justify-between pointer-events-none z-0">
-                              <div v-for="i in 5" :key="i" class="w-full h-0 border-t border-slate-200"></div>
-                              <div class="w-full h-0"></div> <!-- Bottom 0 line covered by axis -->
+
+                          <!-- Y-axis Ticks -->
+                          <div class="absolute left-[-24px] top-0 bottom-0 w-6 flex flex-col justify-between items-end font-bold text-xs text-slate-400">
+                              <template v-for="i in yMax" :key="'tick'+i">
+                                  <span>{{ yMax - i + 1 }}</span>
+                              </template>
+                              <span>0</span>
                           </div>
 
-                          <!-- Bars (Height is max 5, so each unit is 20% height) -->
+                          <!-- Grid Lines -->
+                          <div class="absolute inset-0 flex flex-col justify-between pointer-events-none z-0">
+                              <div v-for="i in yMax" :key="i" class="w-full h-0 border-t border-slate-200"></div>
+                              <div class="w-full h-0"></div>
+                          </div>
+
+                          <!-- Bars -->
                           <div class="w-16 bg-blue-500 rounded-t-sm shadow-md border-x-2 border-t-2 border-blue-600 relative z-10 transition-all duration-1000 ease-out flex justify-center items-end pb-2"
-                               :style="{ height: showGraph ? `${(freqDog / 5) * 100}%` : '0%' }">
+                               :style="{ height: showGraph ? `${(freqDog / yMax) * 100}%` : '0%' }">
                                <span v-if="showGraph" class="text-white font-black drop-shadow-md">{{ freqDog }}</span>
                                <span class="absolute -bottom-8 font-bold text-slate-600 text-sm">Hond</span>
                           </div>
 
                           <div class="w-16 bg-fuchsia-500 rounded-t-sm shadow-md border-x-2 border-t-2 border-fuchsia-600 relative z-10 transition-all duration-1000 ease-out flex justify-center items-end pb-2"
                                style="transition-delay: 0.2s"
-                               :style="{ height: showGraph ? `${(freqCat / 5) * 100}%` : '0%' }">
+                               :style="{ height: showGraph ? `${(freqCat / yMax) * 100}%` : '0%' }">
                                <span v-if="showGraph" class="text-white font-black drop-shadow-md">{{ freqCat }}</span>
                                <span class="absolute -bottom-8 font-bold text-slate-600 text-sm">Kat</span>
                           </div>
 
                           <div class="w-16 bg-teal-500 rounded-t-sm shadow-md border-x-2 border-t-2 border-teal-600 relative z-10 transition-all duration-1000 ease-out flex justify-center items-end pb-2"
                                style="transition-delay: 0.4s"
-                               :style="{ height: showGraph ? `${(freqFish / 5) * 100}%` : '0%' }">
+                               :style="{ height: showGraph ? `${(freqFish / yMax) * 100}%` : '0%' }">
                                <span v-if="showGraph" class="text-white font-black drop-shadow-md">{{ freqFish }}</span>
                                <span class="absolute -bottom-8 font-bold text-slate-600 text-sm">Vis</span>
                           </div>
 
                           <div class="w-16 bg-amber-500 rounded-t-sm shadow-md border-x-2 border-t-2 border-amber-600 relative z-10 transition-all duration-1000 ease-out flex justify-center items-end pb-2"
                                style="transition-delay: 0.6s"
-                               :style="{ height: showGraph ? `${(freqBird / 5) * 100}%` : '0%' }">
+                               :style="{ height: showGraph ? `${(freqBird / yMax) * 100}%` : '0%' }">
                                <span v-if="showGraph" class="text-white font-black drop-shadow-md">{{ freqBird }}</span>
                                <span class="absolute -bottom-8 font-bold text-slate-600 text-sm">Vogel</span>
                           </div>

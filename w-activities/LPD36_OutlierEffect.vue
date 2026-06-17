@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhChartBar, PhArrowClockwise, PhMoney
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Statistiek: De Uitschieter' },
-  instruction: { 
-    type: String, 
-    default: 'We vergelijken het <strong>Gemiddelde</strong> (alles optellen en delen door aantal) met de <strong>Mediaan</strong> (het exacte midden van de geordende rij).<br/><br/><strong>Opdracht:</strong> Kijk naar het normale zakgeld van 5 leerlingen. Voeg dan ineens een "Uitschieter" toe (iemand die belachelijk veel krijgt). Welke centrummaat wordt het meest beïnvloed?' 
+  instruction: {
+    type: String,
+    default: 'We vergelijken het <strong>Gemiddelde</strong> (alles optellen en delen door aantal) met de <strong>Mediaan</strong> (het exacte midden van de geordende rij).<br/><br/><strong>Opdracht:</strong> Kijk naar het normale zakgeld van 5 leerlingen. Voeg dan ineens een "Uitschieter" toe (iemand die belachelijk veel krijgt). Welke centrummaat wordt het meest beïnvloed?'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -24,15 +24,47 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de knop om de uitschieter toe te voegen.' })
 
-// Domain Logic
-const normalData = [10, 10, 15, 20, 20]
-const outlier = 200
+// Internal level system
+const currentInternalLevel = ref(0)
+const totalInternalLevels = ref(3)
 
+const levels = [
+  {
+    name: 'Niveau 1',
+    normalData: [10, 10, 15, 20, 20],
+    outlier: 200,
+    scaleMax: 220,
+    instruction: 'We vergelijken het <strong>Gemiddelde</strong> (alles optellen en delen door aantal) met de <strong>Mediaan</strong> (het exacte midden van de geordende rij).<br/><br/><strong>Opdracht:</strong> Kijk naar het normale zakgeld van 5 leerlingen. Voeg dan ineens een "Uitschieter" toe (200 euro). Welke centrummaat wordt het meest beïnvloed?',
+    feedbackAfter: 'Wow! De uitschieter (&euro;200) is toegevoegd. Kijk wat er met het gemiddelde en de mediaan is gebeurd. Geef je conclusie.'
+  },
+  {
+    name: 'Niveau 2',
+    normalData: [5, 5, 10, 15, 15],
+    outlier: 80,
+    scaleMax: 100,
+    instruction: 'Vijf vrienden vergelijken hun spaargeld: &euro;5, &euro;5, &euro;10, &euro;15, &euro;15.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;80</strong>. Vergelijk hoe het gemiddelde en de mediaan reageren.',
+    feedbackAfter: 'Kijk! De uitschieter (&euro;80) trekt het gemiddelde omhoog, maar de mediaan verandert maar weinig. Welke maat is het bestand tegen uitschieters?'
+  },
+  {
+    name: 'Niveau 3',
+    normalData: [30, 35, 40, 45, 50],
+    outlier: 200,
+    scaleMax: 250,
+    instruction: 'Een groep verdient per week: &euro;30, &euro;35, &euro;40, &euro;45, &euro;50.<br/><br/><strong>Opdracht:</strong> Voeg een uitschieter toe van <strong>&euro;200</strong> (iemand die veel meer verdient). Observeer wat er met het gemiddelde en de mediaan gebeurt.',
+    feedbackAfter: 'Ongelooflijk! De uitschieter (&euro;200) laat het gemiddelde exploderen, maar de mediaan verandert amper. De mediaan is de "robuste" maat!'
+  }
+]
+
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+
+// Domain Logic
 const hasOutlier = ref(false)
 const userAns = ref('')
 
 const currentData = computed(() => {
-    return hasOutlier.value ? [...normalData, outlier].sort((a,b) => a-b) : [...normalData]
+    return hasOutlier.value
+        ? [...currentLevel.value.normalData, currentLevel.value.outlier].sort((a,b) => a-b)
+        : [...currentLevel.value.normalData]
 })
 
 const mean = computed(() => {
@@ -52,7 +84,7 @@ const median = computed(() => {
 function addOutlier() {
     if (isCorrect.value) return;
     hasOutlier.value = true
-    feedback.value = { type: 'success', text: 'Wow! De uitschieter (200) is toegevoegd. Kijk wat er met het gemiddelde en de mediaan is gebeurd. Geef je conclusie.' }
+    feedback.value = { type: 'success', text: currentLevel.value.feedbackAfter }
 }
 
 function resetActivityState() {
@@ -65,13 +97,13 @@ function resetActivityState() {
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   if (userAns.value === 'mean') {
     if (hasOutlier.value) {
         isCorrect.value = true
-        feedback.value = { 
-          type: 'success', 
-          text: 'Uitstekend! Het gemiddelde schiet omhoog van 15 naar 46 door één uitschieter! De mediaan stijgt amper (van 15 naar 17.5). De mediaan is veel "robuuster".' 
+        feedback.value = {
+          type: 'success',
+          text: 'Uitstekend! Het gemiddelde wordt veel meer beïnvloed door een uitschieter dan de mediaan. De mediaan is veel "robuuster". Dit geldt voor alle datasets!'
         }
     } else {
         isCorrect.value = false
@@ -79,12 +111,21 @@ function checkAnswer() {
     }
   } else {
     isCorrect.value = false
-    
+
     if (userAns.value === 'median') {
-        feedback.value = { type: 'error', text: 'Kijk naar de getallen in het blauw. De mediaan veranderde van 15 naar 17.5. Het gemiddelde vloog van 15 naar 46! Welke is het meest beïnvloed?'}
+        feedback.value = { type: 'error', text: 'Kijk naar de getallen in het blauw. De mediaan verandert veel minder dan het gemiddelde. Welke is het meest beïnvloed?'}
     } else {
         feedback.value = { type: 'error', text: 'Kies een conclusie uit de lijst.'}
     }
+  }
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels.value - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    emit('complete')
   }
 }
 
@@ -96,6 +137,7 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -121,7 +163,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-teal-100">
@@ -132,17 +174,22 @@ onUnmounted(() => {
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
+            {{ currentLevel.name }} ({{ currentInternalLevel + 1 }}/{{ totalInternalLevels }})
+          </span>
+          <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+            <PhX class="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="currentLevel.instruction"></div>
+
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
                <label class="block text-sm font-bold text-teal-900 mb-2">Conclusie:</label>
                <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
@@ -162,8 +209,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userAns === ''" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">Controleer Conclusie</button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -172,13 +219,13 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-4xl flex flex-col items-center">
-                  
+
                   <div class="mb-12">
-                      <button @click="addOutlier" :disabled="isCorrect || hasOutlier" 
+                      <button @click="addOutlier" :disabled="isCorrect || hasOutlier"
                               class="px-6 py-3 font-bold bg-white text-orange-600 border-2 border-orange-500 rounded-xl shadow-lg flex items-center gap-2 hover:bg-orange-50 active:scale-95 transition-all disabled:opacity-50">
-                          <PhMoney weight="bold" class="w-6 h-6" /> Voeg Uitschieter Toe (€200)
+                          <PhMoney weight="bold" class="w-6 h-6" /> Voeg Uitschieter Toe (&euro;{{ currentLevel.outlier }})
                       </button>
                   </div>
 
@@ -186,9 +233,9 @@ onUnmounted(() => {
                       <!-- Left Panel: Data and Stats -->
                       <div class="flex-1 bg-white p-6 rounded-2xl shadow-md border-2 border-slate-200 flex flex-col items-center justify-center">
                           <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Centrummaten</h4>
-                          
+
                           <div class="flex items-center gap-2 mb-8 flex-wrap justify-center font-mono font-bold text-slate-600">
-                              <span v-for="(val, idx) in currentData" :key="idx" class="bg-slate-100 px-3 py-1 rounded border border-slate-300 shadow-sm animate-fadeIn" :class="val > 100 ? 'bg-orange-100 border-orange-300 text-orange-700' : ''">
+                              <span v-for="(val, idx) in currentData" :key="idx" class="bg-slate-100 px-3 py-1 rounded border border-slate-300 shadow-sm animate-fadeIn" :class="val > currentLevel.normalData[4] ? 'bg-orange-100 border-orange-300 text-orange-700' : ''">
                                   {{ val }}
                               </span>
                           </div>
@@ -198,7 +245,7 @@ onUnmounted(() => {
                                   <span class="font-bold text-blue-800">Mediaan (Middelste)</span>
                                   <span class="font-black text-2xl text-blue-600" :key="median">{{ median }}</span>
                               </div>
-                              
+
                               <div class="flex items-center justify-between p-3 rounded-lg border-2 border-fuchsia-200 bg-fuchsia-50 transition-all duration-500" :class="hasOutlier ? 'border-red-400 bg-red-100 ring-2 ring-red-200' : ''">
                                   <span class="font-bold" :class="hasOutlier ? 'text-red-800' : 'text-fuchsia-800'">Gemiddelde (Som / Aantal)</span>
                                   <span class="font-black text-2xl" :class="hasOutlier ? 'text-red-600 animate-pulse' : 'text-fuchsia-600'" :key="mean">{{ mean }}</span>
@@ -206,23 +253,22 @@ onUnmounted(() => {
                           </div>
                       </div>
 
-                      <!-- Right Panel: Visual Scale / Balance -->
-                      <!-- A simple number line showing the values as dots, and mean/median as vertical lines -->
+                      <!-- Right Panel: Visual Number Line -->
                       <div class="flex-1 bg-slate-800 p-6 rounded-2xl shadow-xl border-4 border-slate-900 flex items-center justify-center relative min-h-[300px] overflow-hidden">
-                          
-                          <!-- Number Line from 0 to 220 -->
-                          <div class="absolute left-10 right-10 bottom-20 h-2 bg-slate-600 rounded-full"></div>
-                          
-                          <!-- 0 and 200 ticks -->
-                          <div class="absolute left-10 bottom-14 font-mono text-slate-400 text-xs font-bold">0</div>
-                          <div class="absolute left-[calc(10px+200*1.5px)] bottom-14 font-mono text-slate-400 text-xs font-bold">200</div>
 
+                          <!-- Number Line -->
+                          <div class="absolute left-10 right-10 bottom-20 h-2 bg-slate-600 rounded-full"></div>
+
+                          <!-- Scale ticks: 0 and scaleMax -->
+                          <div class="absolute left-10 bottom-14 font-mono text-slate-400 text-xs font-bold">0</div>
+                          <div class="absolute left-[calc(10px+200*1.5px)] bottom-14 font-mono text-slate-400 text-xs font-bold">{{ currentLevel.scaleMax }}</div>
+
+                          <!-- Scale: 1 unit = (300px / scaleMax) approximately. Let's use 1.5 px per unit * scaleMax/200 adjustment factor. -->
+                          <!-- For simplicity we keep 1 unit = 1.5px and let the scaleMax label track it -->
                           <!-- Dots for data -->
-                          <!-- Scale: 200 units = 300px approx. Let's do 1 unit = 1.5px -->
-                          <!-- Left offset 10px + val * 1.5 -->
-                          <div v-for="(val, idx) in currentData" :key="'d'+idx" 
+                          <div v-for="(val, idx) in currentData" :key="'d'+idx"
                                class="absolute w-4 h-4 rounded-full border-2 border-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transform -translate-x-1/2 -translate-y-1/2 animate-fadeIn"
-                               :class="val > 100 ? 'bg-orange-500' : 'bg-slate-300'"
+                               :class="val > currentLevel.normalData[4] ? 'bg-orange-500' : 'bg-slate-300'"
                                :style="{ left: `calc(10px + ${val * 1.5}px)`, bottom: 'calc(5rem - 2px)' }">
                           </div>
 

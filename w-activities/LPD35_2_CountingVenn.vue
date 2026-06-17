@@ -1,12 +1,12 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhCirclesThree,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,24 +32,49 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// Rules:
-// Total = 30
-// V = 15
-// T = 10
-// V AND T (center) = 4
-// V only (left) = 15 - 4 = 11
-// T only (right) = 10 - 4 = 6
-// Neither (outside) = 30 - (11 + 4 + 6) = 30 - 21 = 9
+// --- 3-level structure ---
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
 
-const correctMap = {
-  left: 11,
-  center: 4,
-  right: 6,
-  outside: 9
-}
+const levels = [
+  {
+    label: 'Voetbal & Tennis',
+    instruction: 'Er zijn 30 leerlingen in een klas. 15 spelen voetbal, 10 spelen tennis, en 4 spelen beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
+    total: 30,
+    leftLabel: 'Voetbal',
+    rightLabel: 'Tennis',
+    leftTotal: 15,
+    rightTotal: 10,
+    correctMap: { left: 11, center: 4, right: 6, outside: 9 },
+    numbers: [4, 6, 9, 11]
+  },
+  {
+    label: 'Wiskunde & Engels',
+    instruction: 'In een studiezaal zijn 100 studenten. 60 studeren wiskunde, 50 studeren Engels, en 20 studeren beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
+    total: 100,
+    leftLabel: 'Wiskunde',
+    rightLabel: 'Engels',
+    leftTotal: 60,
+    rightTotal: 50,
+    correctMap: { left: 40, center: 20, right: 30, outside: 10 },
+    numbers: [10, 20, 30, 40]
+  },
+  {
+    label: 'Fictie & Non-fictie',
+    instruction: 'In een bibliotheek zijn 50 boeken. 30 zijn fictie, 25 zijn non-fictie, en 12 zijn beide. Sleep de juiste aantallen naar de gebieden in het venndiagram.',
+    total: 50,
+    leftLabel: 'Fictie',
+    rightLabel: 'Non-fictie',
+    leftTotal: 30,
+    rightTotal: 25,
+    correctMap: { left: 18, center: 12, right: 13, outside: 7 },
+    numbers: [7, 12, 13, 18]
+  }
+]
 
-const numbers = [4, 6, 9, 11]
-const availableNumbers = ref([...numbers])
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+
+const availableNumbers = ref([])
 const slots = ref({ left: null, center: null, right: null, outside: null })
 
 let draggedItem = null
@@ -72,7 +97,6 @@ function returnToAvailable(zone) {
   if (item !== null) {
     slots.value[zone] = null
     availableNumbers.value.push(item)
-    // sort ascending for neatness
     availableNumbers.value.sort((a, b) => a - b)
     isChecked.value = false
   }
@@ -82,30 +106,31 @@ function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
-  availableNumbers.value = [...numbers];
+  availableNumbers.value = [...currentLevel.value.numbers];
   slots.value = { left: null, center: null, right: null, outside: null };
 }
 
 function checkAnswer() {
   isChecked.value = true;
-  
+
   if (slots.value.left === null || slots.value.center === null || slots.value.right === null || slots.value.outside === null) {
     isCorrect.value = false
     feedback.value = { type: 'error', text: 'Vul alle 4 de gebieden in voordat je controleert.' }
     return
   }
 
-  if (slots.value.left === correctMap.left && slots.value.center === correctMap.center && 
-      slots.value.right === correctMap.right && slots.value.outside === correctMap.outside) {
+  const cm = currentLevel.value.correctMap
+  if (slots.value.left === cm.left && slots.value.center === cm.center &&
+      slots.value.right === cm.right && slots.value.outside === cm.outside) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect opgelost! Je hebt rekening gehouden met de doorsnede.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Perfect opgelost! Je hebt rekening gehouden met de doorsnede.'
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
+    feedback.value = {
+      type: 'error',
       text: 'Er zitten fouten in. Tip: Begin altijd met de doorsnede (midden) en trek dit aantal af van de totalen.'
     }
   }
@@ -119,9 +144,19 @@ function goToNextStep() {
     }
 }
 
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    emit('complete')
+  }
+}
+
 watch(() => props.isOpen, (val) => {
   if (val) {
     resetActivityState();
+    currentInternalLevel.value = 0;
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
       nextTick(() => {
@@ -164,9 +199,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-100">
@@ -176,8 +211,16 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
+          <!-- Level indicator -->
+          <div class="flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
+            <span v-for="i in totalInternalLevels" :key="i"
+                  class="w-2.5 h-2.5 rounded-full border"
+                  :class="i <= currentInternalLevel + 1 ? 'bg-emerald-500 border-emerald-600' : 'bg-slate-200 border-slate-300'">
+            </span>
+            <span class="ml-1.5">Level {{ currentInternalLevel + 1 }}</span>
+          </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -189,8 +232,8 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="currentLevel.instruction"></div>
+
             <div class="p-4 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl">
               <p class="font-bold text-slate-800 mb-4">Beschikbare getallen:</p>
               <div class="flex flex-wrap gap-3">
@@ -208,7 +251,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -223,13 +266,13 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || availableNumbers.length > 0" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -238,13 +281,13 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <div class="relative w-[500px] h-[350px] border-4 border-slate-300 rounded-lg bg-white shadow-sm flex items-center justify-center">
                 <!-- Universum Label (U) -->
-                <div class="absolute top-2 left-2 font-bold text-slate-400">Totaal: 30</div>
-                
+                <div class="absolute top-2 left-2 font-bold text-slate-400">Totaal: {{ currentLevel.total }}</div>
+
                 <!-- Outside zone drop area -->
                 <div class="absolute top-4 right-4 w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center z-10 transition-colors"
                      @dragover.prevent @drop.stop="onDrop('outside')"
@@ -254,20 +297,20 @@ onUnmounted(() => {
                 </div>
 
                 <div class="relative flex w-full justify-center">
-                  
+
                   <!-- Left Circle (Voetbal) -->
                   <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-blue-400 bg-blue-100/30 top-1/2 -translate-y-1/2 left-[50px]">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-600 bg-white px-2 rounded">Voetbal (15)</div>
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-600 bg-white px-2 rounded">{{ currentLevel.leftLabel }} ({{ currentLevel.leftTotal }})</div>
                   </div>
 
                   <!-- Right Circle (Tennis) -->
                   <div class="absolute w-[240px] h-[240px] rounded-full border-[6px] border-rose-400 bg-rose-100/30 top-1/2 -translate-y-1/2 right-[50px]">
-                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-600 bg-white px-2 rounded">Tennis (10)</div>
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-600 bg-white px-2 rounded">{{ currentLevel.rightLabel }} ({{ currentLevel.rightTotal }})</div>
                   </div>
 
                   <!-- Drop Zones -->
                   <div class="relative flex w-full h-[240px] justify-center items-center z-10 pointer-events-none">
-                    
+
                     <!-- Left Drop (Enkel Voetbal) -->
                     <div class="absolute left-[100px] pointer-events-auto">
                       <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-white/80 backdrop-blur-sm"

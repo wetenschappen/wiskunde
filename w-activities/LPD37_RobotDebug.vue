@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhRobot, PhArrowClockwise, PhCaretUp, PhCaretRight, PhCaretDown, PhCaretLeft, PhBackspace
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Computationeel Denken: De Robot Debuggen' },
-  instruction: { 
-    type: String, 
-    default: 'Een algoritme is een stappenplan. Als er een fout in zit (een "bug"), crasht het programma!<br/><br/><strong>Opdracht:</strong> Schrijf een algoritme (een reeks pijltjes) om de robot naar het groene doel te sturen zonder de rode muren te raken. Klik op "Voer uit" om je code te testen.' 
+  instruction: {
+    type: String,
+    default: 'Een algoritme is een stappenplan. Als er een fout in zit (een "bug"), crasht het programma!<br/><br/><strong>Opdracht:</strong> Schrijf een algoritme (een reeks pijltjes) om de robot naar het groene doel te sturen zonder de rode muren te raken. Klik op "Voer uit" om je code te testen.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -24,24 +24,45 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' })
 
+// Level System
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    name: 'Level 1: Beginner',
+    startX: 0, startY: 0,
+    goalX: 3, goalY: 3,
+    walls: [{x: 1, y: 0}, {x: 1, y: 1}, {x: 3, y: 1}, {x: 2, y: 3}]
+  },
+  {
+    name: 'Level 2: Gemiddeld',
+    startX: 0, startY: 0,
+    goalX: 3, goalY: 3,
+    walls: [{x: 1, y: 1}, {x: 2, y: 2}, {x: 3, y: 2}]
+  },
+  {
+    name: 'Level 3: Expert',
+    startX: 0, startY: 0,
+    goalX: 3, goalY: 3,
+    walls: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 2}]
+  }
+]
+
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+const startX = computed(() => currentLevel.value.startX)
+const startY = computed(() => currentLevel.value.startY)
+const goalX = computed(() => currentLevel.value.goalX)
+const goalY = computed(() => currentLevel.value.goalY)
+const walls = computed(() => currentLevel.value.walls)
+
 // Domain Logic
 // Grid 4x4. (0,0) is bottom left. (3,3) is top right.
 // SVG coordinates: Top-left is (0,0). So (x,y) -> (x, 3-y).
 const gridSize = 4
 
-const startX = 0
-const startY = 0
-
-const goalX = 3
-const goalY = 3
-
-// Walls at (1,0), (1,1), (3,1), (2,3)
-const walls = [
-    {x: 1, y: 0}, {x: 1, y: 1}, {x: 3, y: 1}, {x: 2, y: 3}
-]
-
-const robotX = ref(startX)
-const robotY = ref(startY)
+const robotX = ref(startX.value)
+const robotY = ref(startY.value)
 
 const algorithm = ref([]) // array of 'up', 'down', 'left', 'right'
 const isRunning = ref(false)
@@ -60,7 +81,7 @@ function removeLast() {
 }
 
 function hasWall(x, y) {
-    return walls.some(w => w.x === x && w.y === y)
+    return walls.value.some(w => w.x === x && w.y === y)
 }
 
 function runAlgorithm() {
@@ -72,13 +93,13 @@ function runAlgorithm() {
     isRunning.value = true
     isChecked.value = true
     crashStatus.value = false
-    robotX.value = startX
-    robotY.value = startY
-    
+    robotX.value = startX.value
+    robotY.value = startY.value
+
     feedback.value = { type: 'info', text: 'Programma wordt uitgevoerd...' }
 
     let step = 0;
-    
+
     const interval = setInterval(() => {
         if (step >= algorithm.value.length) {
             clearInterval(interval)
@@ -121,11 +142,11 @@ function runAlgorithm() {
 
 function finishRun(crashed = false) {
     isRunning.value = false
-    
+
     if (crashed) {
         isCorrect.value = false
         feedback.value = { type: 'error', text: 'BAM! Je robot is gecrasht. Er zit een "bug" in je code. Druk op de reset-knop, pas je code aan en probeer opnieuw.'}
-    } else if (robotX.value === goalX && robotY.value === goalY) {
+    } else if (robotX.value === goalX.value && robotY.value === goalY.value) {
         isCorrect.value = true
         feedback.value = { type: 'success', text: 'Programma succesvol afgerond! Je algoritme is bug-vrij en heeft het doel bereikt.'}
     } else {
@@ -139,10 +160,19 @@ function resetActivityState() {
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Bouw je algoritme met de pijltjesknoppen.' };
     algorithm.value = [];
-    robotX.value = startX;
-    robotY.value = startY;
+    robotX.value = startX.value;
+    robotY.value = startY.value;
     isRunning.value = false;
     crashStatus.value = false;
+}
+
+function nextLevel() {
+    if (currentInternalLevel.value < totalInternalLevels - 1) {
+        currentInternalLevel.value++
+        resetActivityState()
+    } else {
+        goToNextStep()
+    }
 }
 
 function goToNextStep() {
@@ -153,6 +183,7 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -178,7 +209,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
     <div class="absolute inset-0 bg-slate-900/50" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-slate-800">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-500/20">
@@ -187,6 +218,13 @@ onUnmounted(() => {
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-400">Stap {{ currentStep }} van {{ totalSteps }}</p>
+          </div>
+          <div class="flex items-center gap-1.5 ml-3 pl-3 border-l border-slate-600">
+            <span v-for="i in totalInternalLevels" :key="i"
+                  class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 leading-none"
+                  :class="i - 1 === currentInternalLevel ? 'bg-emerald-500 text-slate-900 scale-110' : i - 1 < currentInternalLevel ? 'bg-emerald-400/50 text-slate-300' : 'bg-slate-700 text-slate-500'">
+              {{ i }}
+            </span>
           </div>
         </div>
         <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white" :class="{ 'ring-pulse-amber': shouldPulse }">
@@ -199,16 +237,16 @@ onUnmounted(() => {
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
             <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="instruction"></div>
-            
+
             <div class="p-4 mt-6 border border-slate-600 bg-slate-700/50 rounded-xl shadow-inner flex flex-col gap-4">
-               
+
                <label class="block text-sm font-bold text-slate-300">Bouw je Algoritme:</label>
-               
+
                <div class="grid grid-cols-3 gap-2 w-32 mx-auto">
                    <div></div>
                    <button @click="addCommand('up')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretUp weight="bold" class="w-6 h-6 text-white" /></button>
                    <div></div>
-                   
+
                    <button @click="addCommand('left')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretLeft weight="bold" class="w-6 h-6 text-white" /></button>
                    <button @click="addCommand('down')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretDown weight="bold" class="w-6 h-6 text-white" /></button>
                    <button @click="addCommand('right')" :disabled="isRunning || isCorrect" class="p-2 bg-slate-600 hover:bg-slate-500 active:bg-slate-400 rounded-lg flex items-center justify-center border-b-4 border-slate-700 active:border-b-0 active:translate-y-1 transition-all"><PhCaretRight weight="bold" class="w-6 h-6 text-white" /></button>
@@ -216,7 +254,7 @@ onUnmounted(() => {
 
                <div class="min-h-[60px] bg-slate-900 border-2 border-slate-600 rounded-xl p-3 flex flex-wrap gap-2 items-center">
                    <span v-if="algorithm.length === 0" class="text-slate-500 text-sm italic">Code is leeg...</span>
-                   
+
                    <div v-for="(cmd, idx) in algorithm" :key="idx" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold shadow-sm animate-fadeIn">
                        <PhCaretUp v-if="cmd==='up'" weight="bold" />
                        <PhCaretDown v-if="cmd==='down'" weight="bold" />
@@ -224,7 +262,7 @@ onUnmounted(() => {
                        <PhCaretRight v-if="cmd==='right'" weight="bold" />
                    </div>
                </div>
-               
+
                <button @click="removeLast" :disabled="isRunning || isCorrect || algorithm.length === 0" class="self-end flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors">
                    <PhBackspace weight="fill" /> Wis laatste
                </button>
@@ -240,10 +278,10 @@ onUnmounted(() => {
             <div class="flex items-center gap-3">
               <!-- Custom reset that just resets position but keeps code so they can debug -->
               <button @click="() => { robotX = startX; robotY = startY; isChecked = false; crashStatus = false; feedback = {type:'info', text:'Pas je code aan en probeer opnieuw.'} }" :disabled="isRunning" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm"><PhArrowClockwise /></button>
-              
+
               <button v-if="!isCorrect" @click="runAlgorithm" :disabled="isRunning || isCorrect || algorithm.length === 0" class="flex-1 py-3 font-bold tracking-widest uppercase transition-all shadow-lg border-b-4 active:border-b-0 active:translate-y-1 rounded-lg" :class="(isRunning || isCorrect || algorithm.length === 0) ? 'bg-slate-600 border-slate-700 text-slate-400' : 'bg-orange-500 border-orange-700 text-white hover:bg-orange-400'">Voer Uit</button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -252,11 +290,11 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-900">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative bg-circuit-pattern">
-              
+
               <div class="w-full max-w-2xl flex flex-col items-center">
-                  
+
                   <div class="relative bg-slate-800 shadow-2xl rounded-xl overflow-hidden border-8 border-slate-700 p-2" style="width: 400px; height: 400px;">
-                      
+
                       <!-- Grid Layout -->
                       <div class="absolute inset-2 grid grid-cols-4 grid-rows-4 gap-1 z-0">
                           <template v-for="y in 4" :key="'ry'+y">
@@ -264,12 +302,12 @@ onUnmounted(() => {
                                   <!-- SVG coordinates logic: y=1 is top, y=4 is bottom -->
                                   <!-- Mathematical logic: y=0 is bottom, y=3 is top -->
                                   <!-- So r_y = 3 - math_y. Which means math_y = 3 - (ry - 1) = 4 - ry -->
-                                  
+
                                   <div class="bg-slate-900/50 rounded-sm relative flex items-center justify-center">
-                                      
+
                                       <!-- Goal highlight -->
                                       <div v-if="x-1 === goalX && 4-y === goalY" class="absolute inset-1 bg-emerald-500/30 rounded border-2 border-emerald-500 animate-pulse"></div>
-                                      
+
                                       <!-- Wall block -->
                                       <div v-if="hasWall(x-1, 4-y)" class="absolute inset-0 bg-red-500/80 border-4 border-red-700 rounded-sm shadow-inner flex items-center justify-center">
                                           <PhX weight="bold" class="w-8 h-8 text-red-900/50" />
@@ -286,7 +324,7 @@ onUnmounted(() => {
                       <div class="absolute w-[25%] h-[25%] transition-all duration-500 ease-in-out flex items-center justify-center z-10"
                            :class="crashStatus ? 'animate-shake' : ''"
                            :style="{ left: `${robotX * 25}%`, bottom: `${robotY * 25}%` }">
-                           
+
                            <div class="w-16 h-16 bg-blue-500 border-4 border-white rounded-full shadow-lg flex items-center justify-center relative"
                                 :class="crashStatus ? 'bg-red-500' : ''">
                                <PhRobot weight="fill" class="w-10 h-10 text-white" />

@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhCircleDashed,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,16 +32,45 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// Scenarios
-const scenarios = [
-  { central: 80, inscribed: 40, unknown: 'inscribed' },
-  { central: 120, inscribed: 60, unknown: 'central' },
-  { central: 90, inscribed: 45, unknown: 'inscribed' },
-  { central: 150, inscribed: 75, unknown: 'central' }
+// --- 3-Level structure ---
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    name: 'Omtrekshoek',
+    instruction: '<strong>Omtrekshoek berekenen</strong><br>De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.',
+    scenarios: [
+      { central: 80, inscribed: 40, unknown: 'inscribed' },
+      { central: 90, inscribed: 45, unknown: 'inscribed' },
+      { central: 100, inscribed: 50, unknown: 'inscribed' }
+    ]
+  },
+  {
+    name: 'Middelpuntshoek',
+    instruction: '<strong>Middelpuntshoek berekenen</strong><br>De middelpuntshoek is steeds het dubbel van de omtrekshoek op dezelfde boog.',
+    scenarios: [
+      { central: 120, inscribed: 60, unknown: 'central' },
+      { central: 150, inscribed: 75, unknown: 'central' },
+      { central: 100, inscribed: 50, unknown: 'central' }
+    ]
+  },
+  {
+    name: 'Gemengd',
+    instruction: '<strong>Omtrekshoek of middelpuntshoek?</strong><br>Bepaal telkens welke hoek ontbreekt en pas de regel toe.',
+    scenarios: [
+      { central: 130, inscribed: 65, unknown: 'inscribed' },
+      { central: 140, inscribed: 70, unknown: 'central' },
+      { central: 160, inscribed: 80, unknown: 'inscribed' }
+    ]
+  }
 ]
 
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+const currentInstruction = computed(() => currentLevel.value.instruction || props.instruction)
+
 const currentScenarioIndex = ref(0)
-const currentScenario = computed(() => scenarios[currentScenarioIndex.value])
+const currentScenario = computed(() => currentLevel.value.scenarios[currentScenarioIndex.value])
 const userAnswer = ref('')
 
 function resetActivityState() {
@@ -49,23 +78,32 @@ function resetActivityState() {
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
   userAnswer.value = '';
-  currentScenarioIndex.value = Math.floor(Math.random() * scenarios.length);
+  currentScenarioIndex.value = Math.floor(Math.random() * currentLevel.value.scenarios.length);
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    goToNextStep()
+  }
 }
 
 function checkAnswer() {
   isChecked.value = true;
   const correctVal = currentScenario.value.unknown === 'inscribed' ? currentScenario.value.inscribed : currentScenario.value.central;
-  
+
   if (parseInt(userAnswer.value) === correctVal) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Helemaal juist! De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.' 
+    feedback.value = {
+      type: 'success',
+      text: 'Helemaal juist! De omtrekshoek is altijd de helft van de middelpuntshoek die op dezelfde boog staat.'
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
+    feedback.value = {
+      type: 'error',
       text: 'Niet juist. Onthoud: Middelpuntshoek = 2 × Omtrekshoek.'
     }
   }
@@ -81,6 +119,7 @@ function goToNextStep() {
 
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -124,9 +163,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-pink-100">
@@ -134,10 +173,14 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+              <p v-if="totalSteps > 1" class="text-xs text-slate-300">|</p>
+              <p class="text-xs font-medium text-indigo-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }} &mdash; {{ currentLevel.name }}</p>
+            </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -149,20 +192,20 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="currentInstruction"></div>
+
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
               <p class="font-bold text-slate-800 text-lg mb-2">
                 Gegeven: <br>
                 <span v-if="currentScenario.unknown === 'inscribed'" class="text-pink-600">Middelpuntshoek = {{ currentScenario.central }}°</span>
                 <span v-else class="text-sky-600">Omtrekshoek = {{ currentScenario.inscribed }}°</span>
               </p>
-              
+
               <label class="block mb-2 text-sm font-bold text-slate-700">
-                Wat is de grootte van de 
+                Wat is de grootte van de
                 {{ currentScenario.unknown === 'inscribed' ? 'omtrekshoek' : 'middelpuntshoek' }}?
               </label>
-              <input type="number" v-model="userAnswer" 
+              <input type="number" v-model="userAnswer"
                      @keyup.enter="checkAnswer"
                      class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-pink-500 transition-colors"
                      placeholder="Bv. 45">
@@ -170,7 +213,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -185,13 +228,13 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -200,25 +243,25 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <!-- Circle SVG -->
               <svg width="300" height="300" viewBox="-150 -150 300 300" class="overflow-visible bg-white rounded-full shadow-md border border-slate-200">
                 <circle cx="0" cy="0" r="100" fill="none" stroke="#64748b" stroke-width="4" />
                 <circle cx="0" cy="0" r="4" fill="#334155" /> <!-- Middelpunt -->
-                
+
                 <!-- Fixed Points on arc -->
                 <circle cx="-70.7" cy="70.7" r="5" fill="#334155" /> <!-- Point A (bottom left) -->
                 <circle cx="70.7" cy="70.7" r="5" fill="#334155" /> <!-- Point B (bottom right) -->
-                
+
                 <!-- Inscribed point (top) -->
                 <circle cx="0" cy="-100" r="5" fill="#0ea5e9" /> <!-- Point C -->
 
                 <!-- Lines for central angle -->
                 <line x1="0" y1="0" x2="-70.7" y2="70.7" stroke="#db2777" stroke-width="3" />
                 <line x1="0" y1="0" x2="70.7" y2="70.7" stroke="#db2777" stroke-width="3" />
-                
+
                 <!-- Lines for inscribed angle -->
                 <line x1="0" y1="-100" x2="-70.7" y2="70.7" stroke="#0ea5e9" stroke-width="3" />
                 <line x1="0" y1="-100" x2="70.7" y2="70.7" stroke="#0ea5e9" stroke-width="3" />
@@ -227,7 +270,7 @@ onUnmounted(() => {
                 <text x="-15" y="30" font-weight="bold" fill="#db2777">
                   {{ currentScenario.unknown === 'central' ? '?' : currentScenario.central + '°' }}
                 </text>
-                
+
                 <text x="-10" y="-70" font-weight="bold" fill="#0ea5e9">
                   {{ currentScenario.unknown === 'inscribed' ? '?' : currentScenario.inscribed + '°' }}
                 </text>

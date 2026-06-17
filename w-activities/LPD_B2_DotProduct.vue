@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhArrowsOutLine,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,34 +32,86 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// Activity State
-const vecA = { x: 4, y: 2 }
-const vecB_x = -2
-const vecB_y = ref(1) // Slider controls this
+// --- Level System ---
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    // Level 1: Simpler vectors
+    vecA: { x: 2, y: 1 },
+    vecB_x: -2,
+    defaultB_y: 0,
+    sliderMin: -3,
+    sliderMax: 5,
+    instruction: 'Level 1: Start met een eenvoudig voorbeeld.<br/><br/>Vector a = (2, 1) en vector b = (-2, ?). Pas de y-coördinaat van b aan zodat a en b loodrecht op elkaar staan.',
+    successFeedback: 'Perfect! Het inproduct is 0, de vectoren staan loodrecht. Klaar voor level 2?'
+  },
+  {
+    // Level 2: Current activity
+    vecA: { x: 4, y: 2 },
+    vecB_x: -2,
+    defaultB_y: 1,
+    sliderMin: -5,
+    sliderMax: 8,
+    instruction: 'Level 2: Pas de y-coördinaat van vector b aan met de slider zodat vector a en vector b loodrecht op elkaar staan. Tip: Twee vectoren staan loodrecht als hun inproduct gelijk is aan 0.',
+    successFeedback: 'Perfect! Het inproduct is 0, de vectoren staan loodrecht.'
+  },
+  {
+    // Level 3: Harder vectors
+    vecA: { x: 6, y: 3 },
+    vecB_x: -3,
+    defaultB_y: 0,
+    sliderMin: -5,
+    sliderMax: 10,
+    instruction: 'Level 3: Grotere getallen, zelfde principe.<br/><br/>Vector a = (6, 3) en vector b = (-3, ?). Vind de juiste y-coördinaat zodat het inproduct 0 wordt.',
+    successFeedback: 'Uitstekend! Je begrijpt het inproduct van vectoren volledig.'
+  }
+]
+
+const currentLevelData = computed(() => levels[currentInternalLevel.value])
+
+// Activity State — derived from current level
+const vecA = computed(() => currentLevelData.value.vecA)
+const vecB_x = computed(() => currentLevelData.value.vecB_x)
+const vecB_y = ref(levels[0].defaultB_y)
 
 const dotProduct = computed(() => {
-  return vecA.x * vecB_x + vecA.y * vecB_y.value
+  return vecA.value.x * vecB_x.value + vecA.value.y * vecB_y.value
 })
 
 function resetActivityState() {
   isCorrect.value = false;
   isChecked.value = false;
   feedback.value = { type: 'info', text: '' };
-  vecB_y.value = 1;
+  vecB_y.value = currentLevelData.value.defaultB_y;
+}
+
+function nextLevel() {
+    currentInternalLevel.value++
+    resetActivityState()
+}
+
+function handleLevelComplete() {
+    if (currentInternalLevel.value < totalInternalLevels - 1) {
+        nextLevel()
+    } else {
+        goToNextStep()
+    }
 }
 
 function checkAnswer() {
   isChecked.value = true;
   if (dotProduct.value === 0) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect! Het inproduct is 0, de vectoren staan loodrecht.' 
+    feedback.value = {
+      type: 'success',
+      text: currentLevelData.value.successFeedback
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
+    feedback.value = {
+      type: 'error',
       text: `Niet helemaal. Het inproduct is nu ${dotProduct.value}. Het moet 0 zijn.`
     }
   }
@@ -75,6 +127,7 @@ function goToNextStep() {
 
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -118,9 +171,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -128,10 +181,21 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+            <div class="flex items-center gap-3 mt-0.5">
+              <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+              <div class="flex items-center gap-2 text-xs text-slate-400">
+                <span class="font-medium">Level {{ currentInternalLevel + 1 }}/{{ totalInternalLevels }}</span>
+                <div class="flex items-center gap-1">
+                  <span v-for="lvl in totalInternalLevels" :key="lvl"
+                        class="w-2 h-2 rounded-full transition-all duration-300"
+                        :class="lvl - 1 <= currentInternalLevel ? 'bg-indigo-400' : 'bg-slate-300'">
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -143,10 +207,10 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="currentLevelData.instruction"></div>
+
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
-              
+
               <div class="font-mono text-sm space-y-2">
                 <p><span class="text-blue-600 font-bold">a</span> = ({{ vecA.x }}, {{ vecA.y }})</p>
                 <p><span class="text-emerald-600 font-bold">b</span> = ({{ vecB_x }}, {{ vecB_y }})</p>
@@ -154,9 +218,9 @@ onUnmounted(() => {
 
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">Pas y-coördinaat van b aan:</label>
-                <input type="range" v-model.number="vecB_y" min="-5" max="8" step="1" class="w-full accent-emerald-600">
+                <input type="range" v-model.number="vecB_y" :min="currentLevelData.sliderMin" :max="currentLevelData.sliderMax" step="1" class="w-full accent-emerald-600">
                 <div class="flex justify-between mt-1 text-xs text-slate-400">
-                  <span>-5</span><span>8</span>
+                  <span>{{ currentLevelData.sliderMin }}</span><span>{{ currentLevelData.sliderMax }}</span>
                 </div>
               </div>
 
@@ -170,7 +234,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -185,13 +249,13 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -200,9 +264,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-              
+
               <div class="relative w-80 h-80 flex items-center justify-center">
                 <!-- SVG Vector Grid -->
                 <svg width="320" height="320" viewBox="-160 -160 320 320" class="overflow-visible bg-white/50 rounded shadow-sm border border-slate-300">
@@ -218,11 +282,11 @@ onUnmounted(() => {
                   <!-- Axes -->
                   <line x1="-160" y1="0" x2="160" y2="0" stroke="#cbd5e1" stroke-width="2" />
                   <line x1="0" y1="-160" x2="0" y2="160" stroke="#cbd5e1" stroke-width="2" />
-                  
+
                   <!-- Vector A -->
                   <line x1="0" y1="0" :x2="vecA.x * 20" :y2="-vecA.y * 20" stroke="#2563eb" stroke-width="3" marker-end="url(#head-a)" />
                   <text :x="(vecA.x * 20) + 10" :y="(-vecA.y * 20) + 5" fill="#2563eb" font-weight="bold">a</text>
-                  
+
                   <!-- Vector B -->
                   <line x1="0" y1="0" :x2="vecB_x * 20" :y2="-vecB_y * 20" stroke="#059669" stroke-width="3" marker-end="url(#head-b)" />
                   <text :x="(vecB_x * 20) - 20" :y="(-vecB_y * 20) - 5" fill="#059669" font-weight="bold">b</text>

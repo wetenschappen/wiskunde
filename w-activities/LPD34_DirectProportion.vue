@@ -1,15 +1,15 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { 
+import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCarProfile, PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Evenredigheden: Recht Evenredig' },
-  instruction: { 
-    type: String, 
-    default: 'Een auto rijdt met een constante snelheid van <strong>50 km/uur</strong>. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan. Kijk wat er met de grafiek gebeurt!' 
+  instruction: {
+    type: String,
+    default: 'Een auto rijdt met een constante snelheid van <strong>50 km/uur</strong>. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan. Kijk wat er met de grafiek gebeurt!'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 2 },
@@ -24,16 +24,61 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Vul de lege vakjes in de tabel in.' })
 
+// Levels
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    label: '50 km/uur',
+    speed: 50,
+    answers: { ans2: 100, ans4: 200, ans5: 250 },
+    instruction: 'Een auto rijdt met een constante snelheid van <strong>50 km/uur</strong>. Als je 2 keer zo lang rijdt, leg je 2 keer zoveel afstand af. Dit noemen we <strong>recht evenredig</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel aan. Kijk wat er met de grafiek gebeurt!',
+    successFeedback: 'Perfect! Als je de punten op de grafiek verbindt, krijg je een rechte lijn die vertrekt vanuit de oorsprong (0,0). Dit is hét kenmerk van recht evenredigheid!',
+    errorHints: {
+      ans2: 'Fout bij 2 uur. Als je in 1 uur 50 km rijdt, hoeveel dan in 2 uur? (Vermenigvuldig met 2)',
+      ans4: 'Fout bij 4 uur. Als je in 2 uur 100 km rijdt, hoeveel dan in 4 uur? (Verdubbel de afstand)',
+      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 50.'
+    }
+  },
+  {
+    label: '60 km/uur',
+    speed: 60,
+    answers: { ans2: 120, ans4: 240, ans5: 300 },
+    instruction: 'Een vrachtwagen rijdt met een constante snelheid van <strong>60 km/uur</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel. Wat verandert er aan de grafiek vergeleken met de auto van 50 km/uur?',
+    successFeedback: 'Knap! De lijn is steiler dan bij 50 km/uur. Hoe hoger de snelheid, hoe steiler de rechte lijn. Het blijft een rechte door de oorsprong!',
+    errorHints: {
+      ans2: 'Fout bij 2 uur. Als je in 1 uur 60 km rijdt, hoeveel dan in 2 uur?',
+      ans4: 'Fout bij 4 uur. Als je in 2 uur 120 km rijdt, hoeveel dan in 4 uur?',
+      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 60.'
+    }
+  },
+  {
+    label: '40 km/uur',
+    speed: 40,
+    answers: { ans2: 80, ans4: 160, ans5: 200 },
+    instruction: 'Een fietser rijdt met een constante snelheid van <strong>40 km/uur</strong>.<br/><br/><strong>Opdracht:</strong> Vul de ontbrekende afstanden in de tabel. Vergelijk de helling van de lijn met de vorige twee grafieken.',
+    successFeedback: 'Uitstekend! De lijn is minder steil dan bij 50 km/uur. Elke snelheid geeft een andere helling, maar alle lijnen zijn recht en gaan door de oorsprong. Dat is recht evenredigheid!',
+    errorHints: {
+      ans2: 'Fout bij 2 uur. Als je in 1 uur 40 km rijdt, hoeveel dan in 2 uur?',
+      ans4: 'Fout bij 4 uur. Als je in 2 uur 80 km rijdt, hoeveel dan in 4 uur?',
+      ans5: 'Fout bij 5 uur. De formule is Afstand = Tijd × 40.'
+    }
+  }
+]
+
+const currentLevel = computed(() => levels[currentInternalLevel.value])
+const displayInstruction = computed(() => currentLevel.value.instruction)
+
 // Domain Logic
 const ans2 = ref(null)
 const ans4 = ref(null)
 const ans5 = ref(null)
 
-const speed = 50 // km/h
-
 const points = computed(() => {
+    const spd = currentLevel.value.speed
     return [
-        { x: 1, y: 50, visible: true },
+        { x: 1, y: spd, visible: true },
         { x: 2, y: ans2.value || 0, visible: ans2.value !== null },
         { x: 4, y: ans4.value || 0, visible: ans4.value !== null },
         { x: 5, y: ans5.value || 0, visible: ans5.value !== null }
@@ -51,25 +96,36 @@ function resetActivityState() {
 
 function checkAnswer() {
   isChecked.value = true;
-  
-  if (ans2.value === 100 && ans4.value === 200 && ans5.value === 250) {
+  const lv = currentLevel.value
+
+  if (ans2.value === lv.answers.ans2 && ans4.value === lv.answers.ans4 && ans5.value === lv.answers.ans5) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Perfect! Als je de punten op de grafiek verbindt, krijg je een rechte lijn die vertrekt vanuit de oorsprong (0,0). Dit is hét kenmerk van recht evenredigheid!' 
+    feedback.value = {
+      type: 'success',
+      text: lv.successFeedback
     }
   } else {
     isCorrect.value = false
-    
-    if (ans2.value !== 100) {
-        feedback.value = { type: 'error', text: 'Fout bij 2 uur. Als je in 1 uur 50 km rijdt, hoeveel dan in 2 uur? (Vermenigvuldig met 2)'}
-    } else if (ans4.value !== 200) {
-        feedback.value = { type: 'error', text: 'Fout bij 4 uur. Als je in 2 uur 100 km rijdt, hoeveel dan in 4 uur? (Verdubbel de afstand)'}
-    } else if (ans5.value !== 250) {
-        feedback.value = { type: 'error', text: 'Fout bij 5 uur. De formule is Afstand = Tijd × 50.'}
+    const s = lv.speed
+
+    if (ans2.value !== lv.answers.ans2) {
+        feedback.value = { type: 'error', text: lv.errorHints.ans2 }
+    } else if (ans4.value !== lv.answers.ans4) {
+        feedback.value = { type: 'error', text: lv.errorHints.ans4 }
+    } else if (ans5.value !== lv.answers.ans5) {
+        feedback.value = { type: 'error', text: lv.errorHints.ans5 }
     } else {
         feedback.value = { type: 'error', text: 'Vul alle vakjes in de tabel in.'}
     }
+  }
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    emit('complete')
   }
 }
 
@@ -81,6 +137,7 @@ function goToNextStep() {
 // Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0;
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
@@ -106,7 +163,7 @@ onUnmounted(() => {
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-blue-100">
@@ -114,23 +171,31 @@ onUnmounted(() => {
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
+            <p class="text-xs font-medium text-slate-500">
+              Level {{ currentInternalLevel + 1 }} / {{ totalInternalLevels }}
+              <span v-if="totalSteps > 1" class="ml-1">| Stap {{ currentStep }} van {{ totalSteps }}</span>
+            </p>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
+            {{ currentLevel.label }}
+          </span>
+          <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100" :class="{ 'ring-pulse-amber': shouldPulse }">
+            <PhX class="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       <main class="flex flex-1 overflow-hidden">
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+            <div class="mb-6 prose prose-sm text-slate-600" v-html="displayInstruction"></div>
+
             <div class="p-4 mt-6 border border-blue-200 bg-blue-50 rounded-xl shadow-inner">
                <h4 class="font-bold text-blue-900 mb-4">Tabel:</h4>
-               
+
                <table class="w-full text-center border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
                    <thead>
                        <tr class="bg-blue-100 text-blue-800">
@@ -141,24 +206,24 @@ onUnmounted(() => {
                    <tbody>
                        <tr>
                            <td class="p-2 border border-slate-200 font-bold text-slate-700">1</td>
-                           <td class="p-2 border border-slate-200 font-bold text-slate-700">50</td>
+                           <td class="p-2 border border-slate-200 font-bold text-slate-700">{{ currentLevel.speed }}</td>
                        </tr>
                        <tr>
                            <td class="p-2 border border-slate-200 font-bold text-slate-700">2</td>
                            <td class="p-1 border border-slate-200">
-                               <input type="number" v-model.number="ans2" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans2 === 100 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
+                               <input type="number" v-model.number="ans2" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans2 === currentLevel.answers.ans2 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
                            </td>
                        </tr>
                        <tr>
                            <td class="p-2 border border-slate-200 font-bold text-slate-700">4</td>
                            <td class="p-1 border border-slate-200">
-                               <input type="number" v-model.number="ans4" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans4 === 200 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
+                               <input type="number" v-model.number="ans4" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans4 === currentLevel.answers.ans4 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
                            </td>
                        </tr>
                        <tr>
                            <td class="p-2 border border-slate-200 font-bold text-slate-700">5</td>
                            <td class="p-1 border border-slate-200">
-                               <input type="number" v-model.number="ans5" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans5 === 250 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
+                               <input type="number" v-model.number="ans5" :disabled="isCorrect" class="w-full p-1 text-center font-bold border-b-2 focus:border-blue-500 outline-none" :class="ans5 === currentLevel.answers.ans5 && isChecked ? 'border-emerald-500 text-emerald-600' : 'border-slate-300'" />
                            </td>
                        </tr>
                    </tbody>
@@ -174,8 +239,8 @@ onUnmounted(() => {
             <div class="flex items-center gap-3">
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"><PhArrowClockwise /></button>
               <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98]">Controleer Tabel</button>
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -184,28 +249,28 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
-              
+
               <div class="w-full max-w-2xl bg-white shadow-xl rounded-3xl border-4 border-slate-300 p-8 flex flex-col items-center">
-                  
+
                   <h4 class="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Grafiek: Afstand i.f.v. Tijd</h4>
 
                   <!-- SVG Graph -->
                   <div class="relative">
                       <svg width="450" height="350" viewBox="0 0 450 350" class="block">
                           <!-- Origin (50, 300) -->
-                          
+
                           <!-- Grid lines -->
                           <g stroke="#e2e8f0" stroke-width="1">
-                              <!-- Vertical (x-axis: 0 to 6, step 1) -> 50px per unit. Origin 50, so 50 to 350. -->
+                              <!-- Vertical (x-axis: 0 to 6, step 1) -> 60px per unit -->
                               <line v-for="i in 7" :key="'vg'+i" :x1="50 + (i-1)*60" y1="50" :x2="50 + (i-1)*60" y2="300" />
-                              <!-- Horizontal (y-axis: 0 to 300, step 50) -> 40px per 50 units. Origin 300, so 300 to 60. -->
+                              <!-- Horizontal (y-axis: 0 to 300, step 50) -> 40px per 50 units -->
                               <line v-for="i in 7" :key="'hg'+i" x1="50" :y1="300 - (i-1)*40" x2="410" :y2="300 - (i-1)*40" />
                           </g>
 
                           <!-- Axes -->
                           <line x1="50" y1="300" x2="420" y2="300" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
                           <line x1="50" y1="300" x2="50" y2="30" stroke="#475569" stroke-width="3" marker-end="url(#arrow)" />
-                          
+
                           <defs>
                               <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
                                   <polygon points="0 0, 10 5, 0 10" fill="#475569" />
@@ -236,14 +301,14 @@ onUnmounted(() => {
                               <text x="40" y="64">300</text>
                           </g>
 
-                          <!-- Connecting Line (only when correct) -->
-                          <line v-if="isCorrect" x1="50" y1="300" :x2="50 + 5*60" :y2="300 - (250/50)*40" stroke="#0ea5e9" stroke-width="3" class="animate-slash origin-bottom-left" />
+                          <!-- Connecting Line (only when correct): dynamic for each level's speed -->
+                          <line v-if="isCorrect" x1="50" y1="300" :x2="50 + 5*60" :y2="300 - (currentLevel.speed * 5 / 50) * 40" stroke="#0ea5e9" stroke-width="3" class="animate-slash origin-bottom-left" />
 
                           <!-- Data Points -->
                           <g v-for="pt in points" :key="pt.x">
-                              <circle v-if="pt.visible" 
-                                      :cx="50 + pt.x * 60" 
-                                      :cy="300 - (pt.y / 50) * 40" 
+                              <circle v-if="pt.visible"
+                                      :cx="50 + pt.x * 60"
+                                      :cy="300 - (pt.y / 50) * 40"
                                       r="6" fill="#0284c7" stroke="white" stroke-width="2" class="animate-fadeIn shadow-sm" />
                           </g>
 

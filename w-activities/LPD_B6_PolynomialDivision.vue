@@ -1,12 +1,12 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { 
-  PhX, 
-  PhCheckCircle, 
-  PhWarningCircle, 
-  PhArrowRight, 
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import {
+  PhX,
+  PhCheckCircle,
+  PhWarningCircle,
+  PhArrowRight,
   PhMathOperations,
-  PhArrowClockwise 
+  PhArrowClockwise
 } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -32,14 +32,41 @@ const isCorrect = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 
-// P(x) = x³ - 2x² + x + 4
-// d(x) = x - 2
-// a = 2
-// Rest = P(2) = 8 - 8 + 2 + 4 = 6
-const p_expr = 'x³ - 2x² + x + 4'
-const d_expr = 'x - 2'
-const correctA = 2
-const correctRest = 6
+// Levels
+const currentInternalLevel = ref(0)
+const totalInternalLevels = 3
+
+const levels = [
+  {
+    name: 'Basis',
+    description: 'Eenvoudige lineaire deler.',
+    p_expr: 'x² + 2x + 1',
+    d_expr: 'x + 1',
+    correctA: -1,
+    correctRest: 0,
+    displayFormula: '({a})² + 2({a}) + 1'
+  },
+  {
+    name: 'Toepassing',
+    description: 'Derdegraads veelterm met positieve a.',
+    p_expr: 'x³ - 2x² + x + 4',
+    d_expr: 'x - 2',
+    correctA: 2,
+    correctRest: 6,
+    displayFormula: '({a})³ - 2({a})² + ({a}) + 4'
+  },
+  {
+    name: 'Uitdaging',
+    description: 'Complexe deler met negatieve coëfficiënten.',
+    p_expr: '2x³ - 5x² + 3x - 7',
+    d_expr: 'x - 3',
+    correctA: 3,
+    correctRest: 11,
+    displayFormula: '2({a})³ - 5({a})² + 3({a}) - 7'
+  }
+]
+
+const currentLevel = computed(() => levels[currentInternalLevel.value])
 
 const userA = ref('')
 const userRest = ref('')
@@ -56,24 +83,37 @@ function checkAnswer() {
   isChecked.value = true;
   const a = parseInt(userA.value)
   const rest = parseInt(userRest.value)
-  
-  if (a === correctA && rest === correctRest) {
+
+  if (a === currentLevel.value.correctA && rest === currentLevel.value.correctRest) {
     isCorrect.value = true
-    feedback.value = { 
-      type: 'success', 
-      text: 'Helemaal juist! Omdat je deelt door (x - 2), is de rest gelijk aan P(2) = 6.' 
+    feedback.value = {
+      type: 'success',
+      text: `Helemaal juist! Omdat je deelt door (${currentLevel.value.d_expr}), is de rest gelijk aan P(${currentLevel.value.correctA}) = ${currentLevel.value.correctRest}.`
     }
-  } else if (a !== correctA) {
+  } else if (a !== currentLevel.value.correctA) {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: 'De waarde van a klopt niet. Als d(x) = x - a en je hebt x - 2, wat is dan a?'
+    feedback.value = {
+      type: 'error',
+      text: `De waarde van a klopt niet. Als d(x) = x - a en je hebt ${currentLevel.value.d_expr}, wat is dan a?`
     }
   } else {
     isCorrect.value = false
-    feedback.value = { 
-      type: 'error', 
-      text: 'Je hebt a correct, maar de rest klopt niet. Bereken P(2) door 2 in te vullen in de veelterm P(x).'
+    feedback.value = {
+      type: 'error',
+      text: 'Je hebt a correct, maar de rest klopt niet. Bereken P(a) door a in te vullen in de veelterm P(x).'
+    }
+  }
+}
+
+function nextLevel() {
+  if (currentInternalLevel.value < totalInternalLevels - 1) {
+    currentInternalLevel.value++
+    resetActivityState()
+  } else {
+    if (props.currentStep < props.totalSteps) {
+      emit('update:currentStep', props.currentStep + 1)
+    } else {
+      emit('complete')
     }
   }
 }
@@ -88,6 +128,7 @@ function goToNextStep() {
 
 watch(() => props.isOpen, (val) => {
   if (val) {
+    currentInternalLevel.value = 0
     resetActivityState();
     window.addEventListener('keydown', handleKeydown)
     if (props.fullscreen) {
@@ -131,9 +172,9 @@ onUnmounted(() => {
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
     <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
-    
+
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-2xl bg-white">
-      
+
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-2 rounded-lg bg-indigo-100">
@@ -143,8 +184,16 @@ onUnmounted(() => {
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
             <p v-if="totalSteps > 1" class="text-xs font-medium text-slate-500">Stap {{ currentStep }} van {{ totalSteps }}</p>
           </div>
+          <!-- Level indicator -->
+          <div class="flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-200">
+            <div v-for="(level, i) in levels" :key="i"
+                 class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                 :class="i === currentInternalLevel ? 'bg-indigo-500 ring-2 ring-indigo-200 scale-125' : i < currentInternalLevel ? 'bg-indigo-300' : 'bg-slate-300'">
+            </div>
+            <span class="text-xs font-bold text-indigo-700 ml-1.5 uppercase">{{ currentLevel.name }}</span>
+          </div>
         </div>
-        <button @click="emit('close')" 
+        <button @click="emit('close')"
                 class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
@@ -156,25 +205,26 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+            <p class="mb-2 text-xs font-semibold text-indigo-600">Level {{ currentInternalLevel + 1 }} — {{ currentLevel.name }}</p>
             <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
-            
+
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
-              
+
               <div class="bg-white p-4 border border-slate-200 rounded font-mono text-lg shadow-sm space-y-2">
-                <p class="text-indigo-600 font-bold">P(x) = {{ p_expr }}</p>
-                <p class="text-slate-600 font-bold">d(x) = {{ d_expr }}</p>
+                <p class="text-indigo-600 font-bold">P(x) = {{ currentLevel.p_expr }}</p>
+                <p class="text-slate-600 font-bold">d(x) = {{ currentLevel.d_expr }}</p>
               </div>
 
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">1. Wat is a?</label>
-                <input type="number" v-model="userA" 
+                <input type="number" v-model="userA"
                        class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-indigo-500 transition-colors"
                        placeholder="a = ?">
               </div>
-              
+
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">2. Wat is de rest (R)?</label>
-                <input type="number" v-model="userRest" 
+                <input type="number" v-model="userRest"
                        @keyup.enter="checkAnswer"
                        class="w-full p-3 text-lg font-bold text-slate-800 bg-white border-2 border-slate-300 rounded-lg outline-none focus:border-indigo-500 transition-colors"
                        placeholder="R = ?">
@@ -184,7 +234,7 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" 
+            <div v-if="feedback.text"
                  class="flex items-center gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  :class="{
                    'bg-emerald-100 text-emerald-800': feedback.type === 'success',
@@ -199,13 +249,13 @@ onUnmounted(() => {
               <button @click="resetActivityState" class="p-3 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm">
                  <PhArrowClockwise />
               </button>
-              
+
               <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userA || !userRest" class="flex-1 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98]">
                 Controleer
               </button>
-              
-              <button v-else @click="goToNextStep" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
-                <span>{{ currentStep < totalSteps ? 'Volgende' : 'Afronden' }}</span>
+
+              <button v-else @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-3 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98]">
+                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
             </div>
@@ -214,9 +264,9 @@ onUnmounted(() => {
 
         <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
           <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-            
+
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-2xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
-              
+
               <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-indigo-200 flex items-center justify-center gap-6 w-full max-w-2xl transform scale-110">
                 <div class="font-mono text-3xl font-black text-indigo-700">P(x)</div>
                 <div class="text-4xl font-light text-slate-300">/</div>
@@ -229,10 +279,8 @@ onUnmounted(() => {
               <div v-if="userA" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 text-center animate-fadeIn w-full max-w-lg">
                 <p class="font-bold text-slate-500 mb-2">Berekening:</p>
                 <p class="font-mono text-xl text-slate-800">
-                  P(<span class="text-indigo-600 font-bold">{{ userA }}</span>) = 
-                  (<span class="text-indigo-600 font-bold">{{ userA }}</span>)³ - 
-                  2(<span class="text-indigo-600 font-bold">{{ userA }}</span>)² + 
-                  (<span class="text-indigo-600 font-bold">{{ userA }}</span>) + 4
+                  P(<span class="text-indigo-600 font-bold">{{ userA }}</span>) =
+                  {{ currentLevel.displayFormula.split('{a}').join(userA) }}
                 </p>
               </div>
 
