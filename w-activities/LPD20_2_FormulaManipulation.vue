@@ -10,6 +10,7 @@ import {
   PhX as PhMultiply,
   PhDivide
 } from '@phosphor-icons/vue'
+import MathText from './MathText.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -303,7 +304,7 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="instruction"></div>
+            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
             <div class="text-center bg-blue-50 p-4 border border-blue-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
               <p class="font-bold text-blue-800">{{ currentLevelData.goalText }}</p>
@@ -407,7 +408,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }
 
 .shadow-inner-light { box-shadow: inset -5px 0 15px -10px rgba(0,0,0,0.1); }

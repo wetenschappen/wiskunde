@@ -3,6 +3,7 @@ import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhGridFour, PhArrowClockwise
 } from '@phosphor-icons/vue'
+import MathText from './MathText.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -214,7 +215,7 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-slate-800 border-r border-slate-700 shadow-inner md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-400 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm prose-invert text-slate-300" v-html="currentLevelData.instruction"></div>
+            <MathText :content="currentLevelData.instruction" class="mb-6 prose prose-sm prose-invert text-slate-300" />
 
             <div class="p-4 mt-6 border border-slate-600 bg-slate-700/50 rounded-xl shadow-inner">
                <h4 class="font-bold text-slate-300 mb-4 uppercase tracking-widest text-xs">Legende:</h4>
@@ -296,7 +297,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }
 
 .bg-circuit-pattern {

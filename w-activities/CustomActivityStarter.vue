@@ -253,7 +253,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }
 
 .shadow-top {

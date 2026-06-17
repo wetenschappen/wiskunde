@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhMapPin, PhArrowClockwise
 } from '@phosphor-icons/vue'
+import MathText from './MathText.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -164,7 +165,7 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="props.instruction"></div>
+            <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
             <div class="p-4 mt-6 border border-orange-200 bg-orange-50 rounded-xl shadow-inner text-center">
               <label class="block text-sm font-bold text-orange-900 mb-2">Jouw klik:</label>
               <div class="flex items-center justify-center gap-2 text-3xl font-black text-slate-700">
@@ -239,7 +240,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }
 .pattern-map { background-color: #f8fafc; background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 0 0 L 100 100 M 100 0 L 0 100" stroke="rgba(0,0,0,0.03)" stroke-width="1"/></svg>'); }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }

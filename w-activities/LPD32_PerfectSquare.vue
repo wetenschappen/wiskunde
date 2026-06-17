@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquaresFour, PhArrowClockwise, PhHandGrabbing } from '@phosphor-icons/vue'
+import MathText from './MathText.vue'
 
 const props = defineProps({
   isOpen: Boolean, title: { type: String, default: 'Merkwaardige Producten: (a+b)\u00b2' },
@@ -116,7 +117,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <div class="mb-6 prose prose-sm text-slate-600" v-html="props.instruction"></div>
+            <MathText :content="props.instruction" class="mb-6 prose prose-sm text-slate-600" />
             <div class="p-4 mt-6 border border-teal-200 bg-teal-50 rounded-xl shadow-inner text-center">
               <label class="block text-sm font-bold text-teal-900 mb-2">Conclusie: (a + b)\u00b2 = ...</label>
               <select v-model="userAns" :disabled="isCorrect" class="w-full p-3 border-2 border-teal-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 font-bold text-slate-700 bg-white">
@@ -174,7 +175,6 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
   </div>
 </template>
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 :root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
 .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
