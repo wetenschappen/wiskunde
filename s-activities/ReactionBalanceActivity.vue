@@ -203,7 +203,7 @@ watch(userCoefficients, () => {
           </Transition>
 
           <!-- Work Area -->
-          <div v-else class="space-y-6">
+          <div v-if="!allDone" class="space-y-6">
             <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200/80">
               
               <!-- Reaction Display -->

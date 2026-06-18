@@ -29,6 +29,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const mainArea = ref(null)
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
@@ -36,7 +38,6 @@ const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
-const showHint = ref(false)
 
 // Levels Definition — now generated randomly
 const currentInternalLevel = ref(0)
@@ -199,11 +200,10 @@ function resetActivityState() {
   levels.value = newLevels
 
   isCorrect.value = false
-celebrationDone.value = false
+  celebrationDone.value = false
   isChecked.value = false
   feedback.value = { type: 'info', text: 'Sleep de getallen naar de lege vakken.' }
   attemptCount.value = 0
-  showHint.value = false
 
   const d = currentLevelData.value
   slotA.value = d.areaA_given
@@ -211,7 +211,7 @@ celebrationDone.value = false
   slotC.value = d.areaC_given
 }
 
-function showHint() {
+function triggerHint() {
   attemptCount.value++
 }
 
@@ -276,7 +276,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -354,7 +354,7 @@ onUnmounted(() => {
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="!isCorrect" @click="showHint" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button v-if="!isCorrect" @click="triggerHint" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
                 Geef me een hint
               </button>
 
@@ -398,7 +398,7 @@ onUnmounted(() => {
                            @drop.prevent.stop="onDrop('A')"
                            class="w-16 h-16 border-4 border-dashed rounded-xl flex items-center justify-center bg-white shadow-sm transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
                            :class="slotA ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-blue-500 text-blue-600') : 'border-blue-300'"
-                           @click="removeSlot('A')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot(" @keydown.space.prevent="removeSlot(" aria-label="Sleep element">
+                           @click="removeSlot('A')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot('A')" @keydown.space.prevent="removeSlot('A')" aria-label="Sleep element">
                            <span v-if="slotA" class="font-mono text-xl font-black">{{ slotA }}</span>
                       </div>
                   </div>
@@ -412,7 +412,7 @@ onUnmounted(() => {
                            @drop.prevent.stop="onDrop('B')"
                            class="w-16 h-16 border-4 border-dashed rounded-xl flex items-center justify-center bg-white shadow-sm transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
                            :class="slotB ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-math-blue text-math-blue') : 'border-surface-200'"
-                           @click="removeSlot('B')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot(" @keydown.space.prevent="removeSlot(" aria-label="Sleep element">
+                           @click="removeSlot('B')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot('B')" @keydown.space.prevent="removeSlot('B')" aria-label="Sleep element">
                            <span v-if="slotB" class="font-mono text-xl font-black">{{ slotB }}</span>
                       </div>
                   </div>
@@ -428,7 +428,7 @@ onUnmounted(() => {
                                @drop.prevent.stop="onDrop('C')"
                                class="w-20 h-20 border-4 border-dashed rounded-xl flex items-center justify-center bg-white shadow-sm transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
                                :class="slotC ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-emerald-500 text-emerald-600') : 'border-emerald-300'"
-                               @click="removeSlot('C')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot(" @keydown.space.prevent="removeSlot(" aria-label="Sleep element">
+                               @click="removeSlot('C')" role="button" tabindex="0" @keydown.enter.prevent="removeSlot('C')" @keydown.space.prevent="removeSlot('C')" aria-label="Sleep element">
                                <span v-if="slotC" class="font-mono text-2xl font-black">{{ slotC }}</span>
                           </div>
                       </div>

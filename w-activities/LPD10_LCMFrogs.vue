@@ -21,6 +21,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
+const mainArea = ref(null)
+
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
@@ -190,7 +192,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -267,11 +269,11 @@ onUnmounted(() => {
 
                   <!-- Controls -->
                   <div class="flex justify-center gap-6 mb-12">
-                      <button @click="jump(frog1, currentLevelData.jump1)" :disabled="isCorrect || frog1.pos + currentLevelData.jump1 class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"> currentLevelData.maxPos"
+                      <button @click="jump(frog1, currentLevelData.jump1)" :disabled="isCorrect || frog1.pos + currentLevelData.jump1 > currentLevelData.maxPos"
                               class="flex items-center gap-2 px-6 py-4 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-blue-300 text-white font-black rounded-xl shadow-md transition-all active:scale-95">
                           Blauwe Kikker (+{{ currentLevelData.jump1 }}) <PhCaretDoubleRight weight="bold" />
                       </button>
-                      <button @click="jump(frog2, currentLevelData.jump2)" :disabled="isCorrect || frog2.pos + currentLevelData.jump2 class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"> currentLevelData.maxPos"
+                      <button @click="jump(frog2, currentLevelData.jump2)" :disabled="isCorrect || frog2.pos + currentLevelData.jump2 > currentLevelData.maxPos"
                               class="flex items-center gap-2 px-6 py-4 bg-math-blue hover:bg-math-blue active:bg-math-blue disabled:bg-math-blue-light text-white font-black rounded-xl shadow-md transition-all active:scale-95">
                           Oranje Kikker (+{{ currentLevelData.jump2 }}) <PhCaretDoubleRight weight="bold" />
                       </button>

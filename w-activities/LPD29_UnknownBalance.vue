@@ -20,6 +20,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const mainArea = ref(null)
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
@@ -165,7 +167,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -197,7 +199,7 @@ onUnmounted(() => {
                   <span class="text-xs font-bold text-slate-400 uppercase">Doos x</span>
                   <span class="text-3xl font-black text-math-blue w-12">{{ xValue }}</span>
                 </div>
-                <button @click="increaseX" :disabled="isCorrect || xValue class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">= 15" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">+</button>
+                <button @click="increaseX" :disabled="isCorrect || xValue >= 15" class="w-10 h-10 bg-white border-2 border-slate-300 rounded-full font-black text-xl text-slate-600 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30">+</button>
               </div>
             </div>
           </div>

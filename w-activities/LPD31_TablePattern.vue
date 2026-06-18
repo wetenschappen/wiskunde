@@ -17,6 +17,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const mainArea = ref(null)
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
@@ -155,7 +157,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
 </script>
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -205,7 +207,7 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); docume
           <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
             <div class="w-full max-w-4xl flex flex-col items-center">
               <div class="mb-6">
-                <button @click="addTable" :disabled="isCorrect || tables class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">= currentLevel.maxT"
+                <button @click="addTable" :disabled="isCorrect || tables >= currentLevel.maxT"
                   class="px-6 py-4 font-bold bg-slate-800 text-white rounded-xl shadow-md flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50">
                   <PhPlus weight="bold" class="w-6 h-6" /> Voeg Tafel Toe
                 </button>

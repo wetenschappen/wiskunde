@@ -30,6 +30,12 @@ const routes = [
   }
 ]
 
+routes.push({
+  path: '/test-activities',
+  name: 'ActivityTester',
+  component: () => import('../views/ActivityTester.vue')
+})
+
 const router = createRouter({
   history: createWebHashHistory(),
   routes,

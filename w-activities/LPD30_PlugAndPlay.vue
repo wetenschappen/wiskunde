@@ -20,6 +20,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const mainArea = ref(null)
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
@@ -224,7 +226,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
@@ -254,7 +256,7 @@ onUnmounted(() => {
                       {{ slotData[currentLevel.slots[0]] !== undefined ? slotData[currentLevel.slots[0]] : `[${currentLevel.slots[0]}]` }}
                     </button>
                     <span class="text-xl" v-if="currentLevel.formula.includes('×')">×</span>
-                    <button @click="selectSlot(currentLevel.slots[1])" v-if="currentLevel.slots.length class="active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"> 1" :disabled="isCorrect"
+                    <button @click="selectSlot(currentLevel.slots[1])" v-if="currentLevel.slots.length > 1" :disabled="isCorrect"
                       class="min-w-[60px] h-12 bg-white rounded-lg border-2 shadow-sm flex items-center justify-center transition-all hover:scale-105"
                       :class="activeSlot === currentLevel.slots[1] ? 'border-emerald-500 ring-4 ring-emerald-200' : (slotData[currentLevel.slots[1]] ? 'border-emerald-600 text-emerald-700' : 'border-slate-300 text-slate-400 border-dashed')">
                       {{ slotData[currentLevel.slots[1]] !== undefined ? slotData[currentLevel.slots[1]] : `[${currentLevel.slots[1]}]` }}
@@ -302,7 +304,7 @@ onUnmounted(() => {
                   <polygon :points="currentLevel.svg" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="4" stroke-linejoin="round" />
                 </svg>
                 <button v-for="tag in currentLevel.tags" :key="tag.val" @click="assignValue(tag.val)"
-                  :class="`absolute ${tag.style} bg-white px-4 py-1 rounded-full border-2 font-black shadow-md transition-all hover:scale-110 active:scale-95 ${activeSlot ? 'animate-pulse ring-4' : ''}` focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+                  :class="['absolute bg-white px-4 py-1 rounded-full border-2 font-black shadow-md transition-all hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none', tag.style, activeSlot ? 'animate-pulse ring-4' : '']" >
                   {{ tag.val }}
                 </button>
               </div>

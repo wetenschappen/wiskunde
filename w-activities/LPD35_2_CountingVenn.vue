@@ -28,6 +28,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
+
+const mainArea = ref(null)
 const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
@@ -199,7 +201,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
@@ -288,7 +290,7 @@ onUnmounted(() => {
                      @dragover.prevent @drop.stop="onDrop('outside')"
                      :class="slots.outside ? 'border-slate-400 bg-slate-100' : 'border-slate-300 bg-slate-50'">
                   <span v-if="!slots.outside" class="text-xs text-slate-400 font-bold uppercase">Geen</span>
-                  <div v-else @click="returnToAvailable('outside')" class="w-full h-full flex items-center justify-center text-xl font-bold text-slate-800 cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable(" @keydown.space.prevent="returnToAvailable(" aria-label="Interactief element">{{ slots.outside }}</div>
+                  <div v-else @click="returnToAvailable('outside')" class="w-full h-full flex items-center justify-center text-xl font-bold text-slate-800 cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable('outside')" @keydown.space.prevent="returnToAvailable('outside')" aria-label="Interactief element">{{ slots.outside }}</div>
                 </div>
 
                 <div class="relative flex w-full justify-center">
@@ -308,7 +310,7 @@ onUnmounted(() => {
                            @dragover.prevent @drop.stop="onDrop('left')"
                            :class="slots.left ? 'border-blue-500' : 'border-blue-300'">
                         <span v-if="!slots.left" class="text-xs text-blue-400 font-bold">{{ currentLevel.leftLabel[0] }} \ {{ currentLevel.rightLabel[0] }}</span>
-                        <div v-else @click="returnToAvailable('left')" class="w-full h-full flex items-center justify-center text-xl font-bold text-blue-800 cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable(" @keydown.space.prevent="returnToAvailable(" aria-label="Interactief element">{{ slots.left }}</div>
+                        <div v-else @click="returnToAvailable('left')" class="w-full h-full flex items-center justify-center text-xl font-bold text-blue-800 cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable('left')" @keydown.space.prevent="returnToAvailable('left')" aria-label="Interactief element">{{ slots.left }}</div>
                       </div>
                     </div>
 
@@ -317,7 +319,7 @@ onUnmounted(() => {
                            @dragover.prevent @drop.stop="onDrop('center')"
                            :class="slots.center ? 'border-math-blue' : 'border-surface-200'">
                         <span v-if="!slots.center" class="text-xs text-math-blue font-bold">{{ currentLevel.leftLabel[0] }} ∩ {{ currentLevel.rightLabel[0] }}</span>
-                        <div v-else @click="returnToAvailable('center')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable(" @keydown.space.prevent="returnToAvailable(" aria-label="Interactief element">{{ slots.center }}</div>
+                        <div v-else @click="returnToAvailable('center')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable('center')" @keydown.space.prevent="returnToAvailable('center')" aria-label="Interactief element">{{ slots.center }}</div>
                       </div>
                     </div>
 
@@ -326,7 +328,7 @@ onUnmounted(() => {
                            @dragover.prevent @drop.stop="onDrop('right')"
                            :class="slots.right ? 'border-math-blue' : 'border-surface-200'">
                         <span v-if="!slots.right" class="text-xs text-math-blue font-bold">{{ currentLevel.rightLabel[0] }} \ {{ currentLevel.leftLabel[0] }}</span>
-                        <div v-else @click="returnToAvailable('right')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable(" @keydown.space.prevent="returnToAvailable(" aria-label="Interactief element">{{ slots.right }}</div>
+                        <div v-else @click="returnToAvailable('right')" class="w-full h-full flex items-center justify-center text-xl font-bold text-math-blue cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" role="button" tabindex="0" @keydown.enter.prevent="returnToAvailable('right')" @keydown.space.prevent="returnToAvailable('right')" aria-label="Interactief element">{{ slots.right }}</div>
                       </div>
                     </div>
 

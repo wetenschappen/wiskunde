@@ -21,6 +21,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
+const mainArea = ref(null)
+
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
@@ -273,7 +275,7 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit(" @keydown.space.prevent="emit(" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
@@ -348,7 +350,7 @@ onUnmounted(() => {
                   <!-- Option A -->
                   <div @click="selectTriangle('A')"
                        class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
-                       :class="selectedTriangle === 'A' ? (isCorrect && currentLevelData.optA.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
+                       :class="selectedTriangle === 'A' ? (isCorrect && currentLevelData.optA.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle('A')" @keydown.space.prevent="selectTriangle('A')" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie A</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optA.svg"></svg>
                   </div>
@@ -356,7 +358,7 @@ onUnmounted(() => {
                   <!-- Option B -->
                   <div @click="selectTriangle('B')"
                        class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
-                       :class="selectedTriangle === 'B' ? (isCorrect && currentLevelData.optB.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
+                       :class="selectedTriangle === 'B' ? (isCorrect && currentLevelData.optB.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle('B')" @keydown.space.prevent="selectTriangle('B')" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie B</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optB.svg"></svg>
                   </div>
@@ -364,7 +366,7 @@ onUnmounted(() => {
                   <!-- Option C -->
                   <div @click="selectTriangle('C')"
                        class="bg-white p-4 rounded-xl shadow-sm border-4 cursor-pointer transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]"
-                       :class="selectedTriangle === 'C' ? (isCorrect && currentLevelData.optC.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle(" @keydown.space.prevent="selectTriangle(" aria-label="Kies optie">
+                       :class="selectedTriangle === 'C' ? (isCorrect && currentLevelData.optC.isCorrect ? 'border-emerald-500 bg-emerald-100' : 'border-math-blue bg-math-blue-bg') : 'border-slate-200'" role="button" tabindex="0" @keydown.enter.prevent="selectTriangle('C')" @keydown.space.prevent="selectTriangle('C')" aria-label="Kies optie">
                       <h4 class="font-bold text-slate-400 mb-2">Optie C</h4>
                       <svg width="150" height="120" viewBox="0 0 200 150" v-html="currentLevelData.optC.svg"></svg>
                   </div>
