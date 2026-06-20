@@ -8,7 +8,6 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Open Sans', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
         slate: {

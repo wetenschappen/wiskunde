@@ -293,14 +293,11 @@ function nextRecognitionQuestion() {
 // ==================== LIFECYCLE ====================
 watch(() => props.isOpen, (val) => {
   if (val && !document.fullscreenElement) {
-    nextTick(() => document.documentElement.requestFullscreen().catch(() => {}))
   } else if (!val && document.fullscreenElement) {
-    document.exitFullscreen()
   }
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (document.fullscreenElement) document.exitFullscreen()
 })
 
 // ==================== ANALYSIS STEPS ====================

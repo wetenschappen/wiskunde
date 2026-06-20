@@ -6,9 +6,9 @@
  *   Vervang alle [PLACEHOLDERS] en registreer het bestand in src/data/modules.js
  *
  * VASTE STRUCTUUR (niet aanpassen):
- *   A  Diagnostisch & Instap  → entry-ticket + slidesA
+ *   A  Instap  → entry-ticket + slidesA
  *   B  Verwerken              → slidesB + workbook + activity (+extraActivities)
- *   C  Samenvatting & Exit    → slidesC + exit-ticket
+ *   C  Afsluiting    → slidesC + exit-ticket
  */
 
 export default {
@@ -50,9 +50,9 @@ export default {
     // Pas alleen title/description/slidesKey/activityId aan indien nodig.
     timeline: {
 
-        // ── STAP A: Diagnostisch & Instap (± 15 min) ──────────────────────────
+        // ── STAP A: Instap (± 15 min) ──────────────────────────
         stepA: {
-            step: 'A', title: 'Diagnostisch & Instap', time: '15 min',
+            step: 'A', title: 'Instap', time: '15 min',
             cards: [
                 {
                     id: 'card-entry',
@@ -110,9 +110,9 @@ export default {
             // ]
         },
 
-        // ── STAP C: Samenvatting & Exit (± 5 min) ─────────────────────────────
+        // ── STAP C: Afsluiting (± 5 min) ─────────────────────────────
         stepC: {
-            step: 'C', title: 'Samenvatting & Exit', time: '5 min',
+            step: 'C', title: 'Afsluiting', time: '5 min',
             cards: [
                 {
                     id: 'card-pres-c',

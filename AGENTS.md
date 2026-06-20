@@ -1,7 +1,7 @@
 # AGENTS.md — Digitaal Leerpad (Wiskunde)
 
 > Single source of truth for AI agents working on this project.  
-> Last updated: 2026-06-20
+> Last updated: 2026-06-20 (session 2)
 
 ---
 
@@ -149,7 +149,7 @@ export default {
   // Typically 3 steps: A (instap/diagnostisch), B (verwerken), C (samenvatting/exit)
   timeline: {
     stepA: {
-      step: 'A', title: 'Diagnostisch & Instap', time: '15 min',
+      step: 'A', title: 'Instap', time: '15 min',
       cards: [
         { id: 'card-entry', type: 'digital', title: 'Diagnostische Toets',
           description: 'Wat weet je al?', action: 'entry-ticket', icon: 'PhQuestion' },
@@ -167,12 +167,14 @@ export default {
         { id: 'card-activity', type: 'digital', title: 'Interactieve Oefening',
           description: 'Visuele verkenning.', action: 'activity', activityId: 'similarity', icon: 'PhShapes' }
       ],
-      extraActivities: [   // Optional: shown in collapsible branch
+      // extraActivities is optional. The "Extra Materiaal" toggle always appears on step B.
+      // If omitted, the panel shows "Geen extra materiaal beschikbaar".
+      extraActivities: [
         { id: 'mixedRetrieval', title: 'Gemengde Herhaling', category: 'Herhaling', icon: 'PhArrowsClockwise' }
       ]
     },
     stepC: {
-      step: 'C', title: 'Samenvatting & Exit', time: '5 min',
+      step: 'C', title: 'Afsluiting', time: '5 min',
       cards: [
         { id: 'card-pres-c', type: 'class', title: 'Samenvatting',
           description: 'Kern van de les.', action: 'presentation', slidesKey: 'slidesC' },
@@ -382,43 +384,69 @@ export default {
 
 Activities are registered in `src/composables/useActivitySystem.js`. Each maps a string key to a Vue component.
 
+### Activity Roles — Where Each Type Belongs
+
+Activities serve two distinct roles in a lesson:
+
+| Role | Where | Which activities |
+|---|---|---|
+| **Subject-specific practice** | `card-activity` digital card in step B | Topic-specific ones (`similarity`, `pythagoras`, `linearFunctions`, etc.) |
+| **Extra materiaal** | `extraActivities` in step B (collapsible panel) | General ones: `mixedRetrieval`, `dragDrop`, `categorySort`, `mathFillBlanks`, `hotspot` |
+
+**Do not** put subject-specific activities in `extraActivities`, and **do not** put general activities in the main digital card.
+
+### Extra Materiaal Panel
+
+The **Extra Materiaal** toggle (`+` button) is always visible at the bottom of step B — whether or not `extraActivities` is defined. If the array is absent or empty, the panel shows *"Geen extra materiaal beschikbaar"*.
+
+Recommended general activities for extra materiaal:
+
+| Key | Best for |
+|---|---|
+| `mixedRetrieval` | Multiple-choice retrieval practice (any topic) |
+| `dragDrop` | Term ↔ definition matching |
+| `categorySort` | Sorting concepts into categories |
+| `mathFillBlanks` | Fill-in-the-blank with live math context (graph / equation / table) |
+| `hotspot` | Explore-style: click points on a graph or image to reveal info |
+
 ### Full Activity Registry
 
-| Key | Component | Topic |
-|---|---|---|
-| `dragDrop` | DragDropActivity | Generic matching |
-| `fillBlanks` | FillBlanksActivity | Fill-in-the-blank |
-| `categorySort` | CategorySortActivity | Sorting into categories |
-| `symbolDrill` | SymbolDrillActivity | Math symbol practice |
-| `mixedRetrieval` | MixedRetrievalActivity | Mixed review |
-| `hotspot` | HotspotActivity | Click-on-image |
-| `realNumbers` | RealNumbersActivity | Real number sets |
-| `logic` | LogicActivity | Logic / sets |
-| `linearEquations` | LinearEquationsActivity | 1st degree equations |
-| `linearSystems` | LinearSystemsActivity | Systems of equations |
-| `linearFunctions` | LinearFunctionsActivity | Linear functions |
-| `functionIntroduction` | FunctionIntroductionActivity | Function concept |
-| `quadraticFunctions` | QuadraticFunctionsActivity | Quadratic functions |
-| `quadraticEquations` | QuadraticEquationsActivity | Quadratic equations |
-| `rationalFunctions` | RationalFunctionsActivity | Rational functions |
-| `polynomialDivision` | PolynomialDivisionActivity | Polynomial division |
-| `vectors` | VectorsActivity | Vectors |
-| `analyticGeometry` | AnalyticGeometryActivity | Analytic geometry |
-| `circleGeometry` | CircleGeometryActivity | Circle geometry |
-| `similarity` | SimilarityActivity | Similarity / scaling |
-| `pythagoras` | PythagorasActivity | Pythagoras |
-| `trigonometryCircle` | TrigonometryCircleActivity | Unit circle |
-| `trigonometryRightTriangle` | TrigonometryRightTriangleActivity | Right triangle trig |
-| `spatialGeometry` | SpatialGeometryActivity | 3D / spatial geometry |
-| `descriptiveStatistics` | DescriptiveStatisticsActivity | Stats: centre + spread |
-| `correlation` | CorrelationActivity | Correlation / regression |
-| `graphTheory` | GraphTheoryActivity | Graph theory |
-| `countingProblems` | CountingProblemsActivity | Combinatorics / counting |
+| Key | Component | Topic | Role |
+|---|---|---|---|
+| `dragDrop` | DragDropActivity | Generic matching | Extra materiaal |
+| `categorySort` | CategorySortActivity | Sorting into categories | Extra materiaal |
+| `mixedRetrieval` | MixedRetrievalActivity | Multiple-choice review | Extra materiaal |
+| `mathFillBlanks` | MathFillBlanksActivity | Fill-in-blank + math context | Extra materiaal |
+| `hotspot` | HotspotActivity | Explore (image or graph) | Extra materiaal |
+| `realNumbers` | RealNumbersActivity | Real number sets | Card activity |
+| `logic` | LogicActivity | Logic / sets | Card activity |
+| `linearEquations` | LinearEquationsActivity | 1st degree equations | Card activity |
+| `linearSystems` | LinearSystemsActivity | Systems of equations | Card activity |
+| `linearFunctions` | LinearFunctionsActivity | Linear functions | Card activity |
+| `functionIntroduction` | FunctionIntroductionActivity | Function concept | Card activity |
+| `quadraticFunctions` | QuadraticFunctionsActivity | Quadratic functions | Card activity |
+| `quadraticEquations` | QuadraticEquationsActivity | Quadratic equations | Card activity |
+| `rationalFunctions` | RationalFunctionsActivity | Rational functions | Card activity |
+| `polynomialDivision` | PolynomialDivisionActivity | Polynomial division | Card activity |
+| `vectors` | VectorsActivity | Vectors | Card activity |
+| `analyticGeometry` | AnalyticGeometryActivity | Analytic geometry | Card activity |
+| `circleGeometry` | CircleGeometryActivity | Circle geometry | Card activity |
+| `similarity` | SimilarityActivity | Similarity / scaling | Card activity |
+| `pythagoras` | PythagorasActivity | Pythagoras | Card activity |
+| `trigonometryCircle` | TrigonometryCircleActivity | Unit circle | Card activity |
+| `trigonometryRightTriangle` | TrigonometryRightTriangleActivity | Right triangle trig | Card activity |
+| `spatialGeometry` | SpatialGeometryActivity | 3D / spatial geometry | Card activity |
+| `descriptiveStatistics` | DescriptiveStatisticsActivity | Stats: centre + spread | Card activity |
+| `correlation` | CorrelationActivity | Correlation / regression | Card activity |
+| `graphTheory` | GraphTheoryActivity | Graph theory | Card activity |
+| `countingProblems` | CountingProblemsActivity | Combinatorics / counting | Card activity |
+
+> **Excluded from use:** `fillBlanks` (hardcoded for a specific force-diagram lesson, not generic), `symbolDrill` (chemistry elements only).
 
 ### Referencing an Activity from a Card
 
 ```javascript
-// In timeline card:
+// In timeline card (subject-specific):
 { id: 'card-activity', type: 'digital', title: 'Interactieve Oefening',
   action: 'activity', activityId: 'similarity' }
 
@@ -429,6 +457,89 @@ activities: {
 ```
 
 Activity completion marks `'card-' + activityId` as done in progress.
+
+### MathFillBlanksActivity — Data Format
+
+A fill-in-the-blank activity with an optional live math context panel on the left.
+
+```javascript
+mathFillBlanks: {
+  type: 'mathFillBlanks',
+  title: 'Grafiek Lezen',
+  instruction: 'Bestudeer de grafiek en vul de juiste waarden in.',
+
+  // context: one of 'graph' | 'equation' | 'table' | 'text' (optional)
+  context: {
+    type: 'graph',
+    label: 'f(x) = 2x + 1',          // shown in context footer
+    config: {                          // passed directly to MathGraphSvg
+      domain: [-5, 5],
+      range:  [-5, 10],
+      functions: [{ expr: '2*x+1', color: '#F97316' }],
+      points:    [{ x: 0, y: 1, label: 'A', color: '#0f172a' }]
+    }
+  },
+  // context: { type: 'equation', content: '\\( ax^2 + bx + c = 0 \\)' }
+  // context: { type: 'table',    headers: ['x','f(x)'], rows: [[-1,1],[0,3],[1,5]] }
+  // context: { type: 'text',     content: 'Een rechte heeft vergelijking ...' }
+
+  questions: [
+    { sentence: 'Het snijpunt met de y-as is ___ .',  answer: '1',    hint: 'Kijk naar x = 0.' },
+    { sentence: 'De rico is ___ .',                   answer: '2',    altAnswers: ['2.0'] },
+    { sentence: 'Voor \\( x = 3 \\) is f(x) = ___ .', answer: '7' }
+  ]
+}
+```
+
+- `sentence`: plain text with `___` as the blank; supports `\( ... \)` math anywhere.
+- `answer`: correct value (string or number). Comparison is case-insensitive, comma↔dot normalised.
+- `altAnswers`: extra accepted values (optional array).
+- `hint`: shown on request (optional).
+- Enter key submits, Escape closes.
+
+### HotspotActivity — Image & Graph Modes
+
+Supports two modes depending on what props are provided:
+
+**Image mode** (original) — hotspot positions as percentages relative to the image:
+```javascript
+hotspot: {
+  type: 'hotspot',
+  title: 'Figuur Verkennen',
+  instruction: 'Klik op de hotspots om meer te ontdekken.',
+  image: 'https://...',        // required for image mode
+  hotspots: [
+    { x: 25, y: 40, title: 'Label', content: 'Uitleg...', color: 'amber' }
+  ]
+}
+```
+
+**Graph mode** (new) — hotspot positions in math coordinates, auto-converted to SVG percentages:
+```javascript
+hotspotGraph: {
+  type: 'hotspot',
+  title: 'Kwadratische Functie Verkennen',
+  instruction: 'Klik op de punten om hun eigenschappen te ontdekken.',
+  graphConfig: {               // required for graph mode (replaces image)
+    domain: [-4, 4],
+    range:  [-2, 8],
+    functions: [{ expr: 'x^2 - 1', color: '#F97316' }],
+    points:    [{ x: 0, y: -1, label: 'T', color: '#0f172a' }]
+  },
+  hotspots: [
+    {
+      x: 0, y: -1,             // math coordinates
+      title: 'Top T(0, −1)',
+      content: 'De top van de parabool. Minimumwaarde is \\( -1 \\).',
+      color: 'amber'
+    }
+  ]
+}
+```
+
+- `color` on a hotspot controls the info-panel icon colour. Use Tailwind colour names: `amber`, `emerald`, `indigo`, `rose`, etc.
+- Clicking all hotspots emits `complete` and marks the card as done.
+- A "Volgende →" button in the info panel lets students step through hotspots sequentially.
 
 ---
 
@@ -495,18 +606,23 @@ exitTicket: {
 - Use `slidesKey` on presentation cards to point to the right slide array
 - Give every card a unique `id` (used for progress tracking)
 - Use KaTeX-style math wrapped in `\( ... \)` — it renders correctly everywhere (tickets, slides, spot checks, activities)
-- Use `type: 'math'` as the subject value (not `'physics'` or `'chemistry'`)
-- Keep timeline to 3 steps: A (instap), B (verwerken), C (exit)
+- Use `subject: 'math'` (not `'physics'` or `'chemistry'`)
+- Keep timeline to exactly 3 steps: **A** `Instap` · **B** `Verwerken` · **C** `Afsluiting`
 - Use `entry-ticket` for diagnostic questions at the start
+- Put subject-specific activities in the `card-activity` digital card in step B
+- Put general activities (`mixedRetrieval`, `dragDrop`, `mathFillBlanks`, `hotspot`, `categorySort`) in `extraActivities` for the Extra Materiaal panel
+- Use `cp src/lessons/_template.js` for every new lesson — the template enforces the correct ABC structure
 
 ### ❌ DON'T
 - Don't use `route-assessment` — this feature has been removed
 - Don't use `sequence` or `trueFalse` activity keys — not in the current registry
 - Don't write a `discipline` slide manually — it's always auto-generated
 - Don't use emojis in lesson text — use Phosphor icons instead
-- Don't use math in the `userInput` binding of FillBlanks activity — that field is user-typed text, not lesson data
+- Don't use `fillBlanks` or `symbolDrill` in `extraActivities` — they are not generic (see excluded list above)
 - Don't import lesson files in `App.vue` — routing handles this automatically
 - Don't use arbitrary spacing values (`p-7`, `mb-11`, etc.)
+- Don't name timeline steps anything other than `Instap`, `Verwerken`, `Afsluiting` — these are the standard labels used across all lessons
+- Don't call `requestFullscreen` or `exitFullscreen` inside activity components — activities are modal overlays, not fullscreen apps
 
 ---
 
@@ -526,3 +642,46 @@ exitTicket: {
 
 **Progress not resetting**  
 → Use the `R` key in lesson view, or clear `localStorage` manually.
+
+**Extra Materiaal panel not showing activities**  
+→ Check that the `id` in each `extraActivities` entry exactly matches a key in the lesson's `activities` map.
+
+**MathFillBlanks graph not rendering**  
+→ Ensure `context.config` is a valid `MathGraphSvg` config object with at least `domain`, `range`, and `functions`.
+
+**HotspotActivity hotspots misaligned in graph mode**  
+→ Verify that `domain` and `range` in `graphConfig` match what the graph actually shows. Hotspot coordinates use math units, not pixels.
+
+---
+
+## Changelog
+
+### Session 2 — 2026-06-20
+
+#### Timeline
+- **Step titles standardised** across all 70+ lesson files:
+  - `'Diagnostisch & Instap'` → `'Instap'`
+  - `'Samenvatting & Exit'` → `'Afsluiting'`
+  - `'Verwerken'` unchanged
+- **Extra Materiaal toggle** (`ExtraChallengeBranch`) now always rendered on step B regardless of whether `extraActivities` is defined. Shows *"Geen extra materiaal beschikbaar"* when the array is absent or empty. Not shown on steps A or C.
+
+#### Template
+- **`_template.js` rewritten** (v3.0) to enforce the ABC structure: `slidesA/B/C`, correct card types, `entry-ticket` → `presentation` in A, `presentation` → `workbook` → `activity` in B, `presentation` → `exit-ticket` in C. Old template had 5 steps (A–E) with wrong card types and a single `slides` array.
+
+#### Module selection view
+- **`ModuleSelection.vue` rewritten** from a 3-column card grid to a grouped table-of-contents list. Lessons are grouped by module number (parsed from the lesson ID, e.g. `nando3-m01-l01` → Module 01). Each group shows a header with icon + topic name + lesson count. Each lesson is a horizontal row with a coloured lesson-number pill, full title, and arrow.
+
+#### Activity system
+- **Fullscreen bug fixed** across all 29 activity components: `fullscreen` prop default changed from `true` to `false`, and all `requestFullscreen` / `exitFullscreen` browser API calls removed. Activities are modal overlays — they do not and should not touch the browser fullscreen API.
+- **`DragDropActivity` UI rewritten**: terms are now compact draggable chips in a wrapping pool at the top of the modal; definitions are horizontal rows with a right-aligned drop zone. Eliminates the clipping issue caused by full-width draggable bars.
+- **Activity roles defined**: subject-specific activities belong in `card-activity`; general activities (`mixedRetrieval`, `dragDrop`, `categorySort`, `mathFillBlanks`, `hotspot`) belong in `extraActivities`.
+- **`fillBlanks` and `symbolDrill` disqualified** from `extraActivities`: `fillBlanks` is hardcoded for a specific force-diagram lesson (not generic); `symbolDrill` is chemistry-only.
+
+#### New components
+- **`MathFillBlanksActivity`** (`src/components/activities/MathFillBlanksActivity.vue`) — new general-purpose activity for extra materiaal. Left panel shows a live math context (`graph` / `equation` / `table` / `text`); right panel presents sequential fill-in-the-blank questions. Registered as `mathFillBlanks` in `useActivitySystem.js`.
+- **`HotspotActivity` generalised** — now supports two modes:
+  - `image` mode (unchanged): provide `image` URL + hotspot positions as percentages.
+  - `graph` mode (new): provide `graphConfig` (a `MathGraphSvg` config) + hotspot positions in math coordinates, auto-converted to SVG percentages. Info panel slides in from the right with a "Volgende →" sequential navigation button.
+
+#### Demo lesson
+- **`nando1-demo.js` updated** to showcase all four Extra Materiaal activity types: `dragDrop` (begrippen koppelen), `mixedRetrieval` (kennischeck), `mathFillBlanks` (grafiek lezen — `f(x) = 2x+1`), `hotspot` in graph mode (kwadratische functie `x²−1` with top + two zeros as hotspots).

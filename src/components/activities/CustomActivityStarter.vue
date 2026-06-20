@@ -28,7 +28,6 @@ const shouldPulse = ref(false)
 
 watch(() => props.isOpen, (val) => {
     if (!val) {
-        if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
         window.removeEventListener('keydown', handleKeydown)
         shouldPulse.value = false
     } else {
@@ -43,7 +42,6 @@ watch(() => props.isOpen, (val) => {
         if (props.fullscreen) {
             nextTick(() => {
                 if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(e => {})
                 }
             })
         }
@@ -71,7 +69,6 @@ onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown)
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
     if (document.fullscreenElement) {
-        document.exitFullscreen().catch(e => {})
     }
 })
 

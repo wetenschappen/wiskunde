@@ -327,14 +327,11 @@ const line2Path = computed(() => generateLinePath(a2.value, b2.value, c2.value))
 // ==================== LIFECYCLE ====================
 watch(() => props.isOpen, (val) => {
   if (val && !document.fullscreenElement) {
-    nextTick(() => document.documentElement.requestFullscreen().catch(() => {}))
   } else if (!val && document.fullscreenElement) {
-    document.exitFullscreen()
   }
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (document.fullscreenElement) document.exitFullscreen()
 })
 
 // ==================== ANALYSIS STEPS ====================

@@ -13,7 +13,7 @@ const props = defineProps({
       { q: "Wat is de rico van de rechte door (0,0) en (2,4)?", a: ["1/2", "2", "4"], c: 1 }
     ]
   },
-  fullscreen: { type: Boolean, default: true }
+  fullscreen: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['close', 'complete'])
@@ -60,17 +60,8 @@ function resetActivity() {
   score.value = 0
 }
 
-// FULLSCREEN & ESCAPE
-watch(() => props.isOpen, (val) => {
-  if (val) {
-    resetActivity()
-    if (props.fullscreen && !document.fullscreenElement) {
-      nextTick(() => document.documentElement.requestFullscreen().catch(() => {}))
-    }
-  } else if (document.fullscreenElement) {
-    document.exitFullscreen().catch(() => {})
-  }
-}, { immediate: true })
+// Reset on open, Escape to close — no fullscreen API touches
+watch(() => props.isOpen, (val) => { if (val) resetActivity() })
 
 function handleKeydown(e) {
   if (e.key === 'Escape' && props.isOpen) emit('close')

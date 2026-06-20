@@ -255,9 +255,7 @@ const targetLine = computed(() => generateLinePath(targetSlope.value, targetInte
 // ==================== LIFECYCLE ====================
 watch(() => props.isOpen, (val) => {
   if (val && !document.fullscreenElement) {
-    nextTick(() => document.documentElement.requestFullscreen().catch(() => {}))
   } else if (!val && document.fullscreenElement) {
-    document.exitFullscreen()
   }
   
   // Generate initial data when opened
@@ -267,7 +265,6 @@ watch(() => props.isOpen, (val) => {
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (document.fullscreenElement) document.exitFullscreen()
 })
 
 // Regenerate data when parameters change in analysis mode

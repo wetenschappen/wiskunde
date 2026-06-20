@@ -29,6 +29,7 @@ const CorrelationActivity = defineAsyncComponent(() => import('../components/act
 const RationalFunctionsActivity = defineAsyncComponent(() => import('../components/activities/RationalFunctionsActivity.vue'))
 const PolynomialDivisionActivity = defineAsyncComponent(() => import('../components/activities/PolynomialDivisionActivity.vue'))
 const SpatialGeometryActivity = defineAsyncComponent(() => import('../components/activities/SpatialGeometryActivity.vue'))
+const MathFillBlanksActivity  = defineAsyncComponent(() => import('../components/activities/MathFillBlanksActivity.vue'))
 
 // Registry
 const COMPONENT_MAP = {
@@ -59,7 +60,8 @@ const COMPONENT_MAP = {
     correlation: CorrelationActivity,
     rationalFunctions: RationalFunctionsActivity,
     polynomialDivision: PolynomialDivisionActivity,
-    spatialGeometry: SpatialGeometryActivity
+    spatialGeometry:  SpatialGeometryActivity,
+    mathFillBlanks:   MathFillBlanksActivity
 }
 
 export function useActivitySystem(lessonData, markAsDoneCallback) {

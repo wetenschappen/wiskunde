@@ -57,7 +57,7 @@ export default {
     // STEP A: Instap & Voorkennis
     stepA: {
       step: 'A',
-      title: 'Diagnostisch & Instap',
+      title: 'Instap',
       time: '15 min',
       cards: [
         {
@@ -120,24 +120,30 @@ export default {
       ],
       extraActivities: [
         {
-          id: 'spotCheckDemo',
-          title: 'Snelle Check',
-          category: 'Evaluatie',
-          icon: 'PhCheckCircle'
+          id: 'mixedRetrieval',
+          title: 'Kennischeck',
+          category: 'Herhaling',
+          icon: 'PhBrain'
         },
         {
-          id: 'hotspotVisual',
-          title: 'Symbolen in Beeld',
-          category: 'Visual',
-          icon: 'PhImageSquare'
+          id: 'mathFillBlanks',
+          title: 'Grafiek Lezen',
+          category: 'Invullen',
+          icon: 'PhFunction'
+        },
+        {
+          id: 'hotspotGraph',
+          title: 'Grafiek Verkennen',
+          category: 'Verkennen',
+          icon: 'PhHandPointing'
         }
-        ]
+      ]
     },
     
     // STEP C: Samenvatting & Afsluiting
     stepC: {
       step: 'C',
-      title: 'Samenvatting & Exit',
+      title: 'Afsluiting',
       time: '10 min',
       cards: [
         {
@@ -193,16 +199,78 @@ export default {
       ]
     },
     
-    realNumbers: {
-      type: 'realNumbers',
-      title: 'Rekenen met Getallen',
-      instruction: 'Doe de volgende berekeningen in je hoofd en schrijf de antwoorden op.'
+    mathFillBlanks: {
+      type: 'mathFillBlanks',
+      title: 'Grafiek Lezen',
+      instruction: 'Bestudeer de grafiek en vul de juiste waarden in.',
+      context: {
+        type: 'graph',
+        label: 'f(x) = 2x + 1',
+        config: {
+          domain: [-5, 5],
+          range: [-5, 10],
+          functions: [{ expr: '2*x+1', color: '#F97316' }],
+          points: [
+            { x: 0,  y: 1,  label: 'A', color: '#0f172a' },
+            { x: 2,  y: 5,  label: 'B', color: '#0f172a' },
+            { x: -1, y: -1, label: 'C', color: '#0f172a' }
+          ]
+        }
+      },
+      questions: [
+        { sentence: 'Het snijpunt met de y-as (punt A) heeft coördinaat \( y = \) ___ .', answer: '1', hint: 'Kijk waar de rechte de y-as kruist.' },
+        { sentence: 'De rico (richtingscoëfficiënt) van de rechte is ___ .', answer: '2', altAnswers: ['2.0'], hint: 'Hoeveel stijgt f(x) als x met 1 toeneemt?' },
+        { sentence: 'Voor \( x = 2 \) (punt B) geldt \( f(2) = \) ___ .', answer: '5', hint: 'Vul x = 2 in: 2·2 + 1.' },
+        { sentence: 'Het snijpunt met de x-as ligt bij \( x = \) ___ .', answer: '-0.5', altAnswers: ['-1/2', '\u22120.5'], hint: 'Los 2x + 1 = 0 op.' }
+      ]
     },
-    
-    hotspot: {
+
+    hotspotGraph: {
       type: 'hotspot',
-      title: 'Kenteken Herkennen',
-      instruction: 'Klik op het juiste wiskundige symbool in deze afbeelding met basisbewerkingen.'
+      title: 'Kwadratische Functie Verkennen',
+      instruction: 'Klik op de gemarkeerde punten om hun eigenschappen te ontdekken.',
+      graphConfig: {
+        domain: [-4, 4],
+        range: [-2, 8],
+        functions: [{ expr: 'x^2 - 1', color: '#F97316' }],
+        points: [
+          { x: 0,  y: -1, label: 'T',  color: '#0f172a' },
+          { x: 1,  y: 0,  label: 'N1', color: '#0f172a' },
+          { x: -1, y: 0,  label: 'N2', color: '#0f172a' }
+        ]
+      },
+      hotspots: [
+        {
+          x: 0, y: -1,
+          title: 'Top T(0, −1)',
+          content: 'De <strong>top</strong> van de parabool ligt op \( T(0, -1) \). Dit is het laagste punt — de minimumwaarde van de functie is \( -1 \).',
+          color: 'amber'
+        },
+        {
+          x: 1, y: 0,
+          title: 'Nulpunt N₁(1, 0)',
+          content: 'Een <strong>nulpunt</strong> ligt op \( x = 1 \). Hier geldt \( f(1) = 1^2 - 1 = 0 \).',
+          color: 'emerald'
+        },
+        {
+          x: -1, y: 0,
+          title: 'Nulpunt N₂(−1, 0)',
+          content: 'Het tweede nulpunt ligt symmetrisch op \( x = -1 \). Parabolen zijn altijd symmetrisch t.o.v. de top.',
+          color: 'emerald'
+        }
+      ]
+    },
+
+    mixedRetrieval: {
+      type: 'mixedRetrieval',
+      title: 'Kennischeck: Basisbewerkingen',
+      questions: [
+        { q: 'Wat is het resultaat van \\( 6 \\times 7 \\)?',          a: ['42', '48', '36', '54'],      c: 0 },
+        { q: 'Welke bewerking is het omgekeerde van vermenigvuldigen?',   a: ['Optellen', 'Aftrekken', 'Delen', 'Kwadrateren'], c: 2 },
+        { q: 'Hoe schrijf je de verzameling gehele getallen?',            a: ['\\( \\mathbb{N} \\)', '\\( \\mathbb{Z} \\)', '\\( \\mathbb{Q} \\)', '\\( \\mathbb{R} \\)'], c: 1 },
+        { q: 'Wat is \\( 15 \\div 3 \\)?',                              a: ['3', '4', '5', '6'],          c: 2 },
+        { q: 'Is optellen commutatief?',                                  a: ['Ja', 'Nee', 'Soms', 'Nooit'], c: 0 }
+      ]
     }
   },
 

@@ -23,7 +23,7 @@ export default {
     },
     timeline: {
         stepA: {
-            step: 'A', title: 'Diagnostisch & Instap', time: '15 min',
+            step: 'A', title: 'Instap', time: '15 min',
             cards: [
                 { id: 'card-entry', type: 'digital', title: 'Diagnostische Toets', description: 'Wat weet je al?', action: 'entry-ticket', icon: 'PhQuestion' },
                 { id: 'card-pres-a', type: 'class', title: 'Inleidende Instructie', description: 'Korte theorie.', action: 'presentation', slidesKey: 'slidesA' }
@@ -38,7 +38,7 @@ export default {
             ]
         },
         stepC: {
-            step: 'C', title: 'Samenvatting & Exit', time: '5 min',
+            step: 'C', title: 'Afsluiting', time: '5 min',
             cards: [
                 { id: 'card-pres-c', type: 'class', title: 'Samenvatting', description: 'Kern van de les.', action: 'presentation', slidesKey: 'slidesC' },
                 { id: 'card-exit', type: 'digital', title: 'Exit Ticket', description: 'Reflectie op de les.', action: 'exit-ticket', icon: 'PhTarget' }

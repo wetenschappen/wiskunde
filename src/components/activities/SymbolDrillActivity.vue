@@ -195,7 +195,6 @@ const shouldPulse = ref(false)
 
 watch(() => props.isOpen, (val) => {
     if (!val) {
-        if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
         window.removeEventListener('keydown', handleKeydown)
     } else {
         window.addEventListener('keydown', handleKeydown)
@@ -206,7 +205,6 @@ watch(() => props.isOpen, (val) => {
         if (props.fullscreen) {
             nextTick(() => {
                 if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(e => {})
                 }
             })
         }
@@ -222,7 +220,6 @@ function handleKeydown(e) {
 onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown)
     if (document.fullscreenElement) {
-        document.exitFullscreen().catch(e => {})
     }
 })
 </script><template>

@@ -240,15 +240,12 @@ function closeChallenge() {
 
 watch(() => props.isOpen, (val) => {
   if (val && !document.fullscreenElement) {
-    nextTick(() => document.documentElement.requestFullscreen().catch(() => {}))
   } else if (!val && document.fullscreenElement) {
-    document.exitFullscreen()
   }
   if (val) initializeProofBuilder()
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (document.fullscreenElement) document.exitFullscreen()
 })
 
 watch(proofType, () => initializeProofBuilder())

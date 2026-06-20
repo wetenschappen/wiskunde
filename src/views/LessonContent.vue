@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { 
     PhPresentationChart, PhInfo, PhGameController, PhFlask, PhPlanet, PhTextAa, 
     PhArrowsDownUp, PhThumbsUp, PhListBullets, PhDiamondsFour, PhTrophy, PhTarget, 
-    PhAtom, PhWrench, PhFilePdf, PhUsers, PhLightbulb, PhScales, PhChartLine, PhMathOperations, PhMicroscope, PhQuestion 
+    PhAtom, PhWrench, PhFilePdf, PhUsers, PhLightbulb, PhScales, PhChartLine, PhMathOperations, PhQuestion 
 } from '@phosphor-icons/vue'
 import { studentLists } from '../data/students.js'
 
@@ -13,9 +13,6 @@ import { useProgress } from '../composables/useProgress.js'
 import { useActivitySystem } from '../composables/useActivitySystem.js'
 import { useLesson, normalizeLesson } from '../composables/useLesson.js'
 
-// import lessonData from '../lessons/elektriciteit-schakelingen-1.js'
-// import lessonData from '../lessons/elektriciteit-schakelingen-2.js'
-// import lessonData from '../lessons/elektriciteit-veiligheid-1.js'
 const props = defineProps({ lessonData: { type: Object, required: true } })
 
 const router = useRouter()
@@ -67,11 +64,11 @@ const showSpotCheck = ref(false)
 
 const showTimer = ref(true)
 const showNamePicker = ref(false)
-const showWatermark = ref(localStorage.getItem('planner-show-watermark') !== 'false')
 
 const showSolutions = ref(false)
 const showDiscipline = ref(false)
-const currentCardId = ref(null) // Track which card opend a modal
+const currentCardId = ref(null) // Track which card opened a modal
+const currentEntryCardId = ref(null) // Separate tracking for entry ticket
 
 // Dynamic Branch States
 const branchStates = reactive({})
@@ -86,9 +83,6 @@ function handleStartTimer(timeStr) {
     }
 }
 
-// ============================================
-// LIFECYCLE & EVENTS
-// ============================================
 // ============================================
 // LIFECYCLE & EVENTS
 // ============================================
@@ -109,10 +103,6 @@ function handleGlobalKeydown(e) {
         showNamePicker.value = !showNamePicker.value
     }
     if ((e.key === 'r' || e.key === 'R')) progress.resetProgress(lessonData.id)
-    if (e.key === 'c' || e.key === 'C') {
-        showWatermark.value = !showWatermark.value
-        localStorage.setItem('planner-show-watermark', showWatermark.value)
-    }
 }
 
 // Watchers for Scroll Lock
@@ -155,6 +145,7 @@ function handleCardAction(card) {
         const entryTicket = lessonData.entryTicket
         currentExitTicket.value = entryTicket?.questions || entryTicket
         currentTicketMode.value = 'entry'
+        currentEntryCardId.value = card.id
         showExit.value = true
     }
     else if (card.action === 'external-link' && card.url) {
@@ -287,6 +278,7 @@ const isTimelineComplete = computed(() => {
                 v-if="step.step === 'B'"
                 v-model:isOpen="branchStates[step.id]" 
                 :label="getBranchLabel(step)"
+                :count="step.extraActivities?.length || 0"
             >
                 <div class="p-3">
                     <template v-if="step.extraActivities && step.extraActivities.length">
@@ -343,7 +335,7 @@ const isTimelineComplete = computed(() => {
     :questions="currentExitTicket" 
     :goals="lesson.goals"
     @close="showExit = false" 
-    @complete="progress.markAsDone(currentCardId)" 
+    @complete="progress.markAsDone(currentTicketMode === 'entry' ? currentEntryCardId : currentCardId)" 
   />
 
   <SpotCheckModal :isOpen="showSpotCheck" :questions="lesson.spotCheck" title="Check-up" @close="showSpotCheck = false" @complete="progress.markAsDone('card-spotcheck')" />
