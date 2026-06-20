@@ -87,12 +87,12 @@ function close() {
                 {{ idx + 1 }}
               </div>
               <div class="flex-1">
-                <p class="text-slate-800 font-bold text-lg mb-0 leading-tight">{{ q.question }}</p>
+                <p class="text-slate-800 font-bold text-lg mb-0 leading-tight" v-html="q.question"></p>
                 
                 <Transition name="fade">
                   <div v-if="revealedIndices.has(idx)" class="text-rose-700 text-sm font-medium py-2.5 px-4 bg-rose-50 border-l-4 border-rose-400 rounded-r-lg mt-3 animate-in fade-in slide-in-from-top-1">
                      <span class="text-[10px] font-black uppercase tracking-wider block mb-1 opacity-60">Antwoord</span>
-                     {{ q.answer }}
+                     <span v-html="q.answer"></span>
                   </div>
                 </Transition>
               </div>

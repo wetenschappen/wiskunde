@@ -4,12 +4,12 @@ export const modules = [
   // Nando 1 (Year 1)
   {
     id: 'nando1-demo',
-    title: 'Demo Lecture',
+    title: 'Demo: Basisbewerkingen',
     year: 1,
     grade: '1ste Jaar Wiskunde',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   
   // Nando 3 (Year 3)
@@ -19,8 +19,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m01-l02-operatoren',
@@ -28,8 +28,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m01-l03-consolidatie',
@@ -37,8 +37,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m02-l01-irrationaal',
@@ -46,8 +46,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m02-l02-intervallen',
@@ -55,8 +55,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m02-l03-wortels',
@@ -64,8 +64,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m02-l04-consolidatie',
@@ -73,8 +73,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m03-l01-begrip',
@@ -82,8 +82,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m03-l02-rekenen',
@@ -91,8 +91,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m03-l03-coordinaten',
@@ -100,8 +100,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m03-l04-meetkunde',
@@ -109,8 +109,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m04-l01-basis',
@@ -118,8 +118,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m04-l02-gevorderd',
@@ -127,8 +127,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m04-l03-uitdaging',
@@ -136,8 +136,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhMathOperations,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m05-l01-hoofdbewerkingen',
@@ -145,8 +145,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m05-l02-wetenschappelijk',
@@ -154,8 +154,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m05-l03-wortels',
@@ -163,8 +163,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m05-l04-consolidatie',
@@ -172,8 +172,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m06-l01-vergelijkingen',
@@ -181,8 +181,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m06-l02-problemen',
@@ -190,8 +190,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m06-l03-formules',
@@ -199,8 +199,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m07-l01-gelijkvormigheid',
@@ -208,8 +208,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m07-l02-kenmerken',
@@ -217,8 +217,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m07-l03-thales',
@@ -226,8 +226,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m08-l01-functies',
@@ -235,8 +235,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m08-l02-ongelijkheden',
@@ -244,8 +244,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m09-l01-homothetie',
@@ -253,8 +253,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m09-l02-thales',
@@ -262,8 +262,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m09-l03-metrisch',
@@ -271,8 +271,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m10-l01-consolidatie',
@@ -280,8 +280,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m11-l01-pythagoras',
@@ -289,8 +289,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m11-l02-toepassingen',
@@ -298,8 +298,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m12-l01-eerstegraads',
@@ -307,8 +307,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m12-l02-verloop',
@@ -316,8 +316,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m12-l03-opstellen',
@@ -325,8 +325,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m13-l01-goniometrie',
@@ -334,8 +334,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m13-l02-formules',
@@ -343,8 +343,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m13-l03-vraagstukken',
@@ -352,8 +352,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m14-l01-consolidatie',
@@ -361,8 +361,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m15-l01-cartesisch',
@@ -370,8 +370,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m15-l02-parametrisch',
@@ -379,8 +379,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m16-l01-centrummaten',
@@ -388,8 +388,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m16-l02-spreidingsmaten',
@@ -397,8 +397,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m16-l03-gegroepeerd',
@@ -406,8 +406,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m17-l01-lijnen',
@@ -415,8 +415,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m17-l02-eigenschappen',
@@ -424,8 +424,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m17-l03-raaklijnen',
@@ -433,8 +433,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhGraph,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'nando3-m18-l01-consolidatie',
@@ -442,8 +442,8 @@ export const modules = [
     year: 3,
     grade: '3 Wiskunde (D5)',
     icon: PhCalculator,
-    color: 'text-brand-orange',
-    bg: 'bg-orange-50'
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
   },
   
   // Nando 4 (Year 4)

@@ -133,7 +133,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
             </div>
           </div>
 
-          <h4 class="text-2xl font-bold text-slate-800 mb-8 leading-tight">{{ currentQuestion.q }}</h4>
+          <h4 class="text-2xl font-bold text-slate-800 mb-8 leading-tight" v-html="currentQuestion.q"></h4>
 
           <div class="space-y-3">
             <button v-for="(opt, idx) in currentQuestion.a" :key="idx"
@@ -145,8 +145,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
                         isChecked && idx === currentQuestion.c ? '!border-emerald-500 !bg-emerald-50' : '',
                         isChecked && selectedOption === idx && idx !== currentQuestion.c ? '!border-red-500 !bg-red-50' : ''
                     ]">
-              <span class="font-bold text-lg" :class="isChecked && idx === currentQuestion.c ? 'text-emerald-700' : (isChecked && selectedOption === idx ? 'text-red-700' : 'text-slate-700')">
-                {{ opt }}
+              <span class="font-bold text-lg" :class="isChecked && idx === currentQuestion.c ? 'text-emerald-700' : (isChecked && selectedOption === idx ? 'text-red-700' : 'text-slate-700')" v-html="opt">
               </span>
               <div v-if="isChecked">
                 <PhCheckCircle v-if="idx === currentQuestion.c" weight="fill" class="text-2xl text-emerald-500"/>

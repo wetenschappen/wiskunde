@@ -111,7 +111,7 @@ onUnmounted(() => {
             </div>
             <div>
                 <h2 class="text-2xl font-bold text-slate-800">{{ title }}</h2>
-                <p class="text-sm text-slate-500">{{ instruction }}</p>
+                <p class="text-sm text-slate-500" v-html="instruction"></p>
             </div>
         </div>
         

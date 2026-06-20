@@ -270,7 +270,7 @@ onMounted(() => {
       <!-- Body -->
       <div class="p-8 overflow-hidden flex flex-col flex-1 bg-slate-100">
         
-        <p class="text-slate-500 text-center font-bold mb-6 uppercase tracking-wider text-sm">{{ instruction }}</p>
+        <p class="text-slate-500 text-center font-bold mb-6 uppercase tracking-wider text-sm" v-html="instruction"></p>
 
         <!-- Main Content Area -->
         <div class="flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
@@ -308,19 +308,19 @@ onMounted(() => {
                         </div>
 
                         <div class="text-2xl font-black text-slate-800 flex items-center gap-3">
-                            {{ q.answer }} <span class="text-slate-300 text-base font-medium">({{ q.altAnswers[0] }})</span>
+                            <span v-html="q.answer"></span> <span class="text-slate-300 text-base font-medium">(<span v-html="q.altAnswers[0]"></span>)</span>
                         </div>
 
                         <p v-if="q.extension" class="text-lg text-slate-600 leading-snug bg-slate-50 p-3 rounded-lg flex flex-wrap gap-x-1 items-center border border-slate-100">
                             <PhInfo weight="bold" class="text-indigo-500 mr-2 shrink-0"/>
                             <template v-for="(ext, eIdx) in q.extension" :key="eIdx">
                                 <span v-if="ext.type === 'text'">{{ ext.value }}</span>
-                                <span v-else-if="ext.type === 'auto'" class="font-bold text-emerald-600">{{ q.answer }}</span>
+                                <span v-else-if="ext.type === 'auto'" class="font-bold text-emerald-600" v-html="q.answer"></span>
                                 <span v-else-if="ext.type === 'select'" class="font-bold text-indigo-600 underline decoration-indigo-200">{{ ext.correct }}</span>
                             </template>
                         </p>
                         <p v-else class="text-lg text-slate-500 italic bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            {{ q.sentence.split('___').join(q.answer) }}
+                            <span v-html="q.sentence.split('___').join(q.answer)"></span>
                         </p>
                     </div>
                 </div>
@@ -399,8 +399,7 @@ onMounted(() => {
                     <div class="text-xl font-bold text-slate-800 mb-6 leading-relaxed flex flex-wrap items-center gap-y-2">
                         <template v-for="(ext, idx) in currentQuestion.extension" :key="idx">
                             <span v-if="ext.type === 'text'">{{ ext.value }}</span>
-                            <span v-else-if="ext.type === 'auto'" class="font-black text-emerald-600 px-2 py-0.5 bg-emerald-50 rounded-md border border-emerald-200 mx-1">
-                                {{ currentQuestion.answer }}
+                            <span v-else-if="ext.type === 'auto'" class="font-black text-emerald-600 px-2 py-0.5 bg-emerald-50 rounded-md border border-emerald-200 mx-1" v-html="currentQuestion.answer">
                             </span>
                             <div v-else-if="ext.type === 'select'" class="inline-block relative">
                                 <select v-model="extensionAnswers[currentQuestion.extension.filter(e => e.type === 'select').indexOf(ext)]"

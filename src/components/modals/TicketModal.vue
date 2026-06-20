@@ -220,7 +220,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
 
         <!-- MULTIPLE CHOICE -->
         <div v-if="currentPart.type === 'mc'" :key="'mc-'+currentPart.id" class="flex-1 flex flex-col max-w-3xl mx-auto w-full">
-          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8">{{ currentPart.question }}</h4>
+          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8" v-html="currentPart.question"></h4>
             <div class="space-y-4">
             <button 
               v-for="(opt, idx) in currentPart.options" 
@@ -231,7 +231,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
                 ? accentBgSelected
                 : ['border-slate-200 text-slate-600', accentBgHover]"
             >
-              <span class="text-base md:text-lg font-medium">{{ opt }}</span>
+              <span class="text-base md:text-lg font-medium" v-html="opt"></span>
               <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-4"
                    :class="answers[currentPart.id] === idx ? accentDot : ['border-slate-300', accentDotHover]">
                 <div v-if="answers[currentPart.id] === idx" class="w-3 h-3 bg-white rounded-full"></div>
@@ -242,8 +242,8 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
 
         <!-- OPEN QUESTION -->
         <div v-else-if="currentPart.type === 'open'" :key="'open-'+currentPart.id" class="flex-1 flex flex-col max-w-3xl mx-auto w-full">
-          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">{{ currentPart.question }}</h4>
-          <p class="text-slate-500 text-base md:text-lg mb-6">{{ currentPart.description }}</p>
+          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4" v-html="currentPart.question"></h4>
+          <p class="text-slate-500 text-base md:text-lg mb-6" v-html="currentPart.description"></p>
           <textarea 
             v-model="answers[currentPart.id]" 
             class="flex-1 min-h-64 w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none text-slate-700 placeholder-slate-400 text-base md:text-lg leading-relaxed"
@@ -253,8 +253,8 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
 
         <!-- GRAPH POINT -->
         <div v-else-if="currentPart.type === 'graph-point'" :key="'graph-'+currentPart.id" class="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{{ currentPart.question }}</h4>
-          <p class="text-slate-500 text-base mb-6">{{ currentPart.description }}</p>
+          <h4 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2" v-html="currentPart.question"></h4>
+          <p class="text-slate-500 text-base mb-6" v-html="currentPart.description"></p>
           <div class="flex-1 border-2 border-slate-200 rounded-2xl overflow-hidden bg-white relative cursor-crosshair min-h-[400px]">
             <MathGraphSvg 
               :config="getGraphConfig(currentPart)" 
@@ -269,7 +269,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
 
         <!-- MOOD SELECTOR -->
         <div v-else-if="currentPart.type === 'mood'" :key="'mood-'+currentPart.id" class="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto w-full">
-          <h4 class="text-3xl md:text-4xl font-bold text-slate-900 mb-12">{{ currentPart.question }}</h4>
+          <h4 class="text-3xl md:text-4xl font-bold text-slate-900 mb-12" v-html="currentPart.question"></h4>
           <div class="flex justify-center gap-6 md:gap-8">
             <button @click="selectedMood = 'happy'" class="group relative w-28 h-28 md:w-32 md:h-32 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-2" 
               :class="selectedMood === 'happy' ? 'border-emerald-500 bg-emerald-50 text-emerald-600 scale-110 shadow-xl' : 'border-slate-200 text-slate-300 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-400'">
@@ -306,7 +306,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
                   <PhXCircle v-else weight="fill" class="text-amber-500 text-lg" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-slate-800">{{ r.question }}</p>
+                  <p class="text-sm font-medium text-slate-800" v-html="r.question"></p>
                   <p v-if="!r.isCorrect" class="text-xs text-amber-600 mt-1 font-medium">Dit onderwerp vraagt nog aandacht.</p>
                 </div>
               </div>
@@ -331,7 +331,7 @@ const progressBarColor = computed(() => isEntry.value ? 'bg-amber-500' : 'bg-ind
               <div class="grid grid-cols-1 gap-3 text-left">
                 <div v-for="(goal, idx) in goals" :key="idx" class="flex items-center gap-3 text-base text-slate-600">
                   <PhCheckCircle weight="fill" class="text-emerald-500 shrink-0" />
-                  {{ goal }}
+                  <span v-html="goal"></span>
                 </div>
               </div>
             </div>

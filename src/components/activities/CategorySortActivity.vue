@@ -178,7 +178,7 @@ onUnmounted(() => {
       <div class="p-6 overflow-y-auto flex-1">
         
         <!-- Instruction -->
-        <p class="text-slate-600 text-center mb-6">{{ instruction }}</p>
+        <p class="text-slate-600 text-center mb-6" v-html="instruction"></p>
 
         <!-- Completion State -->
         <div v-if="isComplete" class="text-center py-8">

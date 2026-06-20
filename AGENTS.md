@@ -494,7 +494,7 @@ exitTicket: {
 - Register every new lesson in `src/data/modules.js`
 - Use `slidesKey` on presentation cards to point to the right slide array
 - Give every card a unique `id` (used for progress tracking)
-- Use KaTeX-style math wrapped in `\( ... \)` — it auto-processes everywhere
+- Use KaTeX-style math wrapped in `\( ... \)` — it renders correctly everywhere (tickets, slides, spot checks, activities)
 - Use `type: 'math'` as the subject value (not `'physics'` or `'chemistry'`)
 - Keep timeline to 3 steps: A (instap), B (verwerken), C (exit)
 - Use `entry-ticket` for diagnostic questions at the start
@@ -504,6 +504,7 @@ exitTicket: {
 - Don't use `sequence` or `trueFalse` activity keys — not in the current registry
 - Don't write a `discipline` slide manually — it's always auto-generated
 - Don't use emojis in lesson text — use Phosphor icons instead
+- Don't use math in the `userInput` binding of FillBlanks activity — that field is user-typed text, not lesson data
 - Don't import lesson files in `App.vue` — routing handles this automatically
 - Don't use arbitrary spacing values (`p-7`, `mb-11`, etc.)
 
@@ -518,7 +519,7 @@ exitTicket: {
 → Check that `activityId` in the card matches a key in `activities` map, and that key exists in the `COMPONENT_MAP` in `useActivitySystem.js`.
 
 **Math not rendering**  
-→ Wrap in `\( ... \)`. Avoid `$...$` — only `\( \)` is processed by `useMathEngine.js`.
+→ Wrap in `\( ... \)` (preferred) or `$...$` (also supported). Both are processed by `useMathEngine.js` and rendered via `v-html` everywhere in the app — tickets, spot checks, slide content, and activity instructions all support math notation.
 
 **Slides not loading**  
 → Check that `slidesKey` on the card matches a top-level key in the lesson file (e.g. `slidesB`).

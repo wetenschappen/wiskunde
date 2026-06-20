@@ -242,7 +242,7 @@ onMounted(() => {
       <div class="p-6 overflow-y-auto flex-1">
         
         <!-- Instruction -->
-        <p class="text-slate-600 text-center mb-6">{{ instruction }}</p>
+        <p class="text-slate-600 text-center mb-6" v-html="instruction"></p>
 
         <!-- Completion State -->
         <div v-if="isComplete" class="text-center py-8">
@@ -307,7 +307,7 @@ onMounted(() => {
               ]"
             >
               <!-- Definition Label -->
-              <p class="text-sm text-slate-500 mb-2">{{ pair.definition }}</p>
+              <p class="text-sm text-slate-500 mb-2" v-html="pair.definition"></p>
               
               <!-- Dropped Term (if any) -->
               <div v-if="getTermInZone(defIndex) !== null" class="flex items-center justify-between">
