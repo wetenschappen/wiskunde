@@ -163,6 +163,7 @@ Translates Anthropic API requests into Zed's format and streams responses back.
 **Optimisations built in:**
 - **Prompt caching** — preserves `cache_control` on system prompt array, tool definitions (last tool), and last user message content blocks → 3 Anthropic cache breakpoints active (Pi side)
 - **4th cache breakpoint** *(2026-06-20)* — proxy injects `cache_control` on the last assistant message for conversations ≥ 6 messages, pushing cache hit rate from ~85% to ~90–92%
+- **Bug fix: cache TTL mismatch** *(2026-06-20)* — injected `cache_control` now mirrors Pi's TTL (detected from incoming request); prevents `500: ttl='1h' must not come after ttl='5m'` from Anthropic. Also skips `thinking` content blocks which cannot carry `cache_control`
 - **Adaptive thinking** — forwards Pi's `thinking` param so Sonnet 4.6 reasons when needed
 - **Temperature suppression** — automatically dropped when thinking is active (Anthropic requirement)
 - **Persistent HTTPS keep-alive** *(2026-06-20)* — single TCP+TLS connection to `cloud.zed.dev` reused across all turns; eliminates ~150–300ms TLS handshake overhead per call
@@ -216,12 +217,29 @@ function buildZedPayload(originalBody) {
         .filter(m => m.role === "user" || m.role === "assistant")
         .map(m => { /* normalises tool_use/tool_result blocks, passes rest through */ });
 
+    // ─── Derive cache TTL from Pi's settings ──────────────────────────
+    // PI_CACHE_RETENTION=long makes Pi send {type:"ephemeral", ttl:"1h"} on
+    // the system, last tool, and last user message. The injected block must
+    // use the same TTL; an injected 5m block followed by Pi's 1h block
+    // violates Anthropic's monotonically-decreasing TTL enforcement.
+    // ─────────────────────────────────────────────────────────────────────
+    const injectedCacheControl = (() => {
+        let ttl;
+        for (const t of (tools || []))     if (t.cache_control?.ttl) ttl = t.cache_control.ttl;
+        for (const b of [].concat(system||[])) if (b?.cache_control?.ttl) ttl = b.cache_control.ttl;
+        for (const m of (messages||[]))    if (Array.isArray(m.content))
+            for (const b of m.content)     if (b.cache_control?.ttl) ttl = b.cache_control.ttl;
+        return ttl ? { type: 'ephemeral', ttl } : { type: 'ephemeral' };
+    })();
+
     // 4th cache breakpoint: inject cache_control on last assistant message (turn 3+)
+    // Skip thinking blocks — they cannot carry cache_control.
     if (cleanMessages.length >= 6) {
         const lastAssistant = [...cleanMessages].reverse().find(m => m.role === 'assistant');
         if (lastAssistant?.content?.length > 0) {
-            const lastBlock = lastAssistant.content[lastAssistant.content.length - 1];
-            if (!lastBlock.cache_control) lastBlock.cache_control = { type: 'ephemeral' };
+            const lastBlock = [...lastAssistant.content].reverse()
+                .find(b => b.type !== 'thinking' && b.type !== 'redacted_thinking');
+            if (lastBlock && !lastBlock.cache_control) lastBlock.cache_control = injectedCacheControl;
         }
     }
 
@@ -440,6 +458,7 @@ curl -s http://127.0.0.1:5005/health
 | 3 | **In-memory token cache + `fs.watch`** — `auth.json` read once at startup, auto-refreshed on file change | `zed-proxy.js` | Removes disk I/O per request |
 | 4 | **Stable session `thread_id`** — generated once at proxy start, not per request | `zed-proxy.js` | Session correlation with Zed |
 | 5 | **4th cache breakpoint** — `cache_control` injected on last assistant message for turns 3+ | `zed-proxy.js` | +5–7% cache hit rate |
+| 5b | **Bug fix: cache TTL mismatch** — injected `cache_control` now mirrors Pi's TTL (1h when `PI_CACHE_RETENTION=long`); skipped `thinking` blocks | `zed-proxy.js` | Fixes 500 error |
 | 6 | **Retry with exponential backoff** — 429 / 503 retried up to 3× with 1.5s backoff | `zed-proxy.js` | Resilience against transient errors |
 | 7 | **Platform-aware `user-agent`** — detects `linux` / `macos` / `windows` at runtime | `zed-proxy.js` | Correct OS reporting to Zed |
 | 8 | **`/health` endpoint** — `GET /health` → `200 OK`; launcher startup check now uses `-sf` | `zed-proxy.js` + `pi-zed` | Clean startup signal |

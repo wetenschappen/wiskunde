@@ -1,347 +1,210 @@
 /**
- * 📘 MASTER LESSON TEMPLATE (v2.0 - Volledig Dynamisch)
- * 
- * HOE DIT BESTAND TE GEBRUIKEN:
- * 1. Kopieer dit bestand naar een nieuwe naam (bijv. chemie-zuren.js).
- * 2. Vul de 9 onderstaande gebieden in.
- * 3. Importeer je nieuwe bestand in App.vue (regel ~11).
- * 
- * RICHTLIJNEN:
- * - Gebruik GEEN emojis in de teksten.
- * - Gebruik HTML tags zoals <strong> en <br> voor opmaak in beschrijvingen.
- * - Alle 'correct' velden zijn 0-indexed (0 = eerste optie, 1 = tweede, etc.).
+ * LESSON TEMPLATE — ABC Methode (v3.0)
+ *
+ * HOE GEBRUIKEN:
+ *   cp src/lessons/_template.js src/lessons/nando3-mXX-lXX-onderwerp.js
+ *   Vervang alle [PLACEHOLDERS] en registreer het bestand in src/data/modules.js
+ *
+ * VASTE STRUCTUUR (niet aanpassen):
+ *   A  Diagnostisch & Instap  → entry-ticket + slidesA
+ *   B  Verwerken              → slidesB + workbook + activity (+extraActivities)
+ *   C  Samenvatting & Exit    → slidesC + exit-ticket
  */
 
 export default {
-    // 1. ============================================
-    // METADATA (Algemene informatie)
-    // ============================================
-    id: 'vak-onderwerp',              // Unieke ID (lowercase, kebab-case, bijv. 'fysica-licht')
-    subject: 'physics',                // 'physics' | 'chemistry' | 'science'
-    className: '4NWb',                 // Klasnaam voor weergave
-    title: '[TITEL VAN DE LES]',       // Verschijnt groot in de header
-    description: '[Korte samenvatting van de les]', // Ondertitel in header
 
-    // 2. ============================================
-    // CONFIG (Ondersteunende data & links)
-    // ============================================
+    // ─── 1. METADATA ────────────────────────────────────────────────────────────
+    id: 'nando3-mXX-lXX-onderwerp',     // Moet exact overeenkomen met de bestandsnaam (zonder .js)
+    subject: 'math',
+    className: '3de Middelbaar',
+    title: 'Module XX - Les X',
+    description: '[Korte beschrijving van de les]',
+
+    // ─── 2. CONFIG ──────────────────────────────────────────────────────────────
     config: {
-        groenCode: 'CODE123',            // Code verschijnt op het groene antwoordblad
-        groenAntwoord: 'antwoord',       // Wachtwoord om digitale uitwerkingen te openen
-        masterCode: 'docent-overrule',   // Mastercode voor de leerkracht
-        cursusLink: 'https://...',       // Link naar het digitale handboek (PDF/Website)
-        classId: '4-Newton',             // ID die verwijst naar de leerlingenlijst in students.js
-
-        // Optionele extra tools in de toolbox (PSE is al standaard aanwezig)
-        extraTools: [
-            { label: 'Formularium', url: 'https://...', icon: 'PhFilePdf', color: 'text-rose-600' }
-        ],
-
-        // Invidivuele oplossingen met optioneel wachtwoord
-        oplossingen: [
-            { label: 'Oplossingen Deel 1', url: 'https://...', password: 'code' }
-        ],
-
-        textbook: '[NAAM HANDBOEK] - Pagina X tot Y'
+        groenCode: 'MXXLX',
+        groenAntwoord: 'wiskunde',
+        masterCode: 'nando',
+        classId: '3-Wiskunde',          // Verwijst naar src/data/students.js
+        textbook: 'Nando 3 Module XX',
+        // cursusLink: 'https://...',   // Optioneel: opent in Toolbox
     },
 
-    // 3. ============================================
-    // GOALS (De 3-5 leerdoelen voor deze les)
-    // ============================================
+    // ─── 3. GOALS ───────────────────────────────────────────────────────────────
     goals: [
-        'Ik kan de definitie van ... geven',
-        'Ik kan de formule ... toepassen op een vraagstuk',
-        'Ik kan het verschil tussen ... en ... uitleggen'
+        'Ik kan ...',
+        'Ik begrijp ...',
+        'Ik pas ... toe op ...'
     ],
 
-    // 4. ============================================
-    // WORKBOOK (Instellingen voor de werkboek-modal)
-    // ============================================
+    // ─── 4. WORKBOOK ────────────────────────────────────────────────────────────
     workbook: {
-        title: 'Werkboek: [ONDERWERP]',
-        subtitle: '[VAK] • [THEMA]',
-        instruction: 'Maak de oefeningen hieronder in je werkboek.', // Optioneel — korte instructie boven de tabel
-        formulaHint: 'Tip: Denk aan de formule [X = Y * Z]', // Optioneel
-        exercises: [
-            // Elke rij = één oefening in de inhoudstafel
-            // { nr: 'Oef 1', title: 'Oefening over breuken',   page: 'p19' },
-            // { nr: 'Oef 2', title: 'Vermenigvuldiging',        page: 'p21' },
-            // { nr: 'Oef 3', title: 'Deling met rest',          page: 'p23' },
-        ]
+        title: 'Werkboek Oefeningen',
+        subtitle: 'Module XX',
+        instruction: '<p>Maak <strong>oefeningen X–X</strong> op pagina XX.</p>',
+        formulaHint: 'Raadpleeg het handboek voor de volledige theorie.'
     },
 
-    // 5. ============================================
-    // TIMELINE (De flow van de les)
-    // ============================================
-    // Structuur: Stap A → Stap B → Stap C → etc.
+    // ─── 5. TIMELINE ────────────────────────────────────────────────────────────
+    // NIET aanpassen: de 3 stappen, card-id's en acties zijn standaard.
+    // Pas alleen title/description/slidesKey/activityId aan indien nodig.
     timeline: {
-        // STAP A: Altijd de start (bijv. klassikale instructie)
+
+        // ── STAP A: Diagnostisch & Instap (± 15 min) ──────────────────────────
         stepA: {
-            step: 'A',
-            title: 'Instructie',
-            time: '20 min',
+            step: 'A', title: 'Diagnostisch & Instap', time: '15 min',
             cards: [
-                {
-                    id: 'card-pres',
-                    type: 'class',              // 'class' (rood) | 'digital' (blauw) | 'paper' (groen) | 'check' (paars)
-                    title: '[TITEL ACTIVITEIT A]',
-                    description: '[Wat gaan we doen?]',
-                    action: 'presentation'      // 'presentation' opent de slides
-                },
                 {
                     id: 'card-entry',
                     type: 'digital',
-                    title: 'Toegangsticket',
-                    description: 'Check je voorkennis voor we beginnen.',
+                    title: 'Diagnostische Toets',
+                    description: 'Wat weet je al?',
                     action: 'entry-ticket',
                     icon: 'PhQuestion'
+                },
+                {
+                    id: 'card-pres-a',
+                    type: 'class',
+                    title: 'Inleidende Instructie',
+                    description: 'Korte theorie.',
+                    action: 'presentation',
+                    slidesKey: 'slidesA'
                 }
             ]
         },
 
-        // STAP B: Basis of Begeleide Oefening
+        // ── STAP B: Verwerken (± 30 min) ──────────────────────────────────────
         stepB: {
-            step: 'B',
-            title: 'Oefening',
-            time: '30 min',
+            step: 'B', title: 'Verwerken', time: '30 min',
             cards: [
                 {
-                    id: 'card-workbook-b',
+                    id: 'card-pres-b',
+                    type: 'class',
+                    title: 'Uitgebreide Theorie',
+                    description: 'Stap voor stap uitgewerkt.',
+                    action: 'presentation',
+                    slidesKey: 'slidesB'
+                },
+                {
+                    id: 'card-workbook',
                     type: 'paper',
-                    title: 'Verdieping in het werkboek',
-                    description: 'Oefen de theorie zelfstandig.',
+                    title: 'Boek Oefeningen',
+                    description: 'Maak oefeningen in het handboek.',
                     action: 'workbook',
                     icon: 'PhBookOpen'
+                },
+                {
+                    id: 'card-activity',
+                    type: 'digital',
+                    title: 'Interactieve Verwerking',
+                    description: 'Visuele verkenning.',
+                    action: 'activity',
+                    activityId: 'main',     // Verwijst naar activities.main hieronder
+                    icon: 'PhShapes'
                 }
             ],
-            extraActivities: [
-                { id: 'dragdrop', title: 'Begrippen Herhalen', category: 'Actief', icon: 'PhArrowsDownUp' }
-            ]
+            // extraActivities: Optioneel — verwijder dit blok als er niets is.
+            // De "+ Extra Materiaal" knop verschijnt altijd; dit vult de inhoud.
+            // extraActivities: [
+            //     { id: 'mixedRetrieval', title: 'Gemengde Herhaling', category: 'Herhaling', icon: 'PhArrowsClockwise' }
+            // ]
         },
 
-        // STAP C t/m E: De rest van de lesflow (meestal klassikaal of individueel onderzoek)
+        // ── STAP C: Samenvatting & Exit (± 5 min) ─────────────────────────────
         stepC: {
-            step: 'C',
-            title: '[TITEL STAP C]',
-            time: '20 min',
+            step: 'C', title: 'Samenvatting & Exit', time: '5 min',
             cards: [
                 {
-                    id: 'card-c1',
-                    type: 'digital',
-                    title: '[TITEL KAART C]',
-                    description: '[Beschrijving]',
-                    action: 'external-link',
-                    url: 'https://...',        // Nodig bij action: 'external-link'
-                    icon: 'PhGameController'
-                }
-            ]
-        },
-
-        stepD: {
-            step: 'D',
-            title: '[TITEL STAP D]',
-            time: '15 min',
-            cards: [
-                {
-                    id: 'card-d1',
-                    type: 'paper',
-                    title: '[TITEL KAART D]',
-                    description: '[Beschrijving]',
-                    action: 'custom',           // Hoeft alleen gemarkeerd te worden als 'klaar'
-                    icon: 'PhFlask'
-                }
-            ]
-        },
-
-        stepE: {
-            step: 'E',
-            title: 'Afsluiting',
-            time: '10 min',
-            cards: [
+                    id: 'card-pres-c',
+                    type: 'class',
+                    title: 'Samenvatting',
+                    description: 'Kern van de les.',
+                    action: 'presentation',
+                    slidesKey: 'slidesC'
+                },
                 {
                     id: 'card-exit',
-                    type: 'check',
+                    type: 'digital',
                     title: 'Exit Ticket',
-                    description: 'Laat zien wat je vandaag hebt geleerd.',
+                    description: 'Reflectie op de les.',
                     action: 'exit-ticket',
-                    icon: 'PhTrophy'
+                    icon: 'PhTarget'
                 }
             ]
         }
     },
 
-    // 6. ============================================
-    // ACTIVITIES (De "Holy 5" Interactieve Modules)
-    // ============================================
+    // ─── 6. ACTIVITIES ──────────────────────────────────────────────────────────
+    // Voeg hier een entry toe voor elk activityId dat in de timeline gebruikt wordt.
+    // Zie AGENTS.md voor de volledige lijst van beschikbare activity-types.
     activities: {
-        dragDrop: {
-            title: 'Begrippen Matchen',
-            instruction: 'Sleep elk begrip naar de juiste definitie',
-            pairs: [
-                { term: 'Begriff A', definition: 'Definitie A' },
-                { term: 'Begriff B', definition: 'Definitie B' }
-                // Minimaal 4, maximaal 8 paren
-            ]
+        main: {
+            type: 'dragDrop',           // Vervang door het gewenste type
+            title: '[Activiteitsnaam]'
         },
-        fillBlanks: {
-            title: 'Vul de Lege Plekken In',
-            instruction: 'Typ de juiste woorden in de tekst.',
-            questions: [
-                { sentence: 'De hoofdstad van België is ___.', answer: 'brussel', hint: 'Begint met een B' }
-                // Minimaal 4 vragen
-            ]
-        },
-        categorySort: {
-            title: 'Sorteren en Classificeren',
-            instruction: 'Sorteer de items in de juiste kolommen.',
-            columns: [
-                { id: 'cat1', label: 'Groep 1' },
-                { id: 'cat2', label: 'Groep 2' }
-            ],
-            items: [
-                { id: 'i1', text: 'Item X', columnId: 'cat1' },
-                { id: 'i2', text: 'Item Y', columnId: 'cat2' }
-                // Minimaal 6 items
-            ]
-        },
-
+        // mixedRetrieval: {
+        //     type: 'mixedRetrieval',
+        //     title: 'Gemengde Herhaling'
+        // }
     },
 
-    // 7. ============================================
-    // ROUTE ASSESSMENT (De quiz die de route bepaalt)
-    // ============================================
-    routeAssessment: {
-        threshold: 75,                  // Score >= 75% gaat naar 'advanced', anders naar 'default'
-        questions: [
-            {
-                id: 'q1',
-                question: '[VRAAG 1]',
-                options: ['Optie A', 'Optie B', 'Optie C', 'Optie D'],
-                correct: 1              // 0-indexed: B is correct
-            }
-            // PRECIES 4 VRAGEN NODIG
-        ]
-    },
+    // ─── 7. SLIDES ──────────────────────────────────────────────────────────────
+    // Elke slidesKey in de timeline-kaarten moet hier als top-level key bestaan.
 
-    // 8. ============================================
-    // PRESENTATION SLIDES (Basis layouts: 13 types)
-    // ============================================
-    // Types: 'title', 'hero', 'steps', 'predict', 'standard', 'realworld', 
-    //        'big', 'equation', 'attention', 'multichoice', 'recap', 'summary', 'celebration'
-    slides: [
-        {
-            layout: 'title',
-            title: '[TITEL]',
-            subtitle: '[ONDERTITEL]',
-            badge: '[VAK] • [MODULE]',
-            icon: 'atom'               // 'atom', 'flask', 'fire', 'drop', 'scales', 'lightbulb', 'function'
-        },
-        {
-            layout: 'hero',
-            title: '[HOOK]',
-            subtitle: '[BOEIENDE STATEMENT]',
-            image: 'https://images.unsplash.com/...',
-            credit: 'Bron info'
-        },
-        {
-            layout: 'steps',
-            title: 'Wat ga je leren?',
-            steps: [
-                { icon: 'flask', text: 'Stap 1' },
-                { icon: 'function', text: 'Stap 2' }
-            ]
-        },
-        {
-            layout: 'predict',
-            title: 'Voorspelling',
-            question: '[VRAAG DIE VOORKENNIS ACTIVEERT]?',
-            hint: 'Denk aan...',
-            revealText: '[HET ANTWOORD DAT LATER VERSCHIJNT]'
-        },
-        {
-            layout: 'standard',
-            title: '[TITEL UITLEG]',
-            content: 'Hier komt de hoofdtekst van je uitleg. Gebruik <strong>vet</strong> voor focus.'
-        },
-        {
-            layout: 'big',
-            title: '[LABEL/WET]',
-            content: 'GROTE BOODSCHAP',
-            subtext: 'Kleine toelichting'
-        },
-        {
-            layout: 'equation',
-            title: 'De Formule',
-            equation: 'A = B * C',
-            parts: [
-                { label: 'A', items: ['Omschrijving A'], color: 'teal' },
-                { label: 'B', items: ['Omschrijving B'], color: 'violet' }
-            ],
-            note: 'Let op eenheden!'
-        },
-        {
-            layout: 'multichoice',
-            title: 'Check',
-            question: '[QUIZ VRAAG]?',
-            options: [
-                { id: 'A', text: 'Antwoord A', correct: false },
-                { id: 'B', text: 'Antwoord B', correct: true }
-            ],
-            explanation: 'Uitleg waarom B juist is.'
-        },
-        {
-            layout: 'summary',
-            title: 'Samenvatting',
-            items: [
-                'Punt 1: ...',
-                'Punt 2: ...'
-            ]
-        },
-        {
-            layout: 'celebration',
-            title: 'Klaar!',
-            subtitle: 'Je kunt nu starten met de oefeningen.',
-            stats: [
-                { label: 'Moeilijkheid', value: '4/5' },
-                { label: 'Status', value: 'VOLTOOID' }
-            ]
-        }
+    slidesA: [
+        { layout: 'title', title: 'Nando 3 Module XX', subtitle: '[Onderwerp]', badge: 'Wiskunde', icon: 'function' },
+        { layout: 'steps', title: 'Wat ga je leren?', steps: [
+            { icon: 'function', text: '[Leerdoel 1]' },
+            { icon: 'function', text: '[Leerdoel 2]' }
+        ]},
+        { layout: 'predict', title: 'Wat weet je al?', question: '[Activeringsvraag]?', hint: 'Denk aan...', revealText: '[Antwoord]' }
     ],
 
-    // 9. ============================================
-    // ENTRY TICKET (Diagnostische toets — start van de les)
-    // ============================================
+    slidesB: [
+        { layout: 'definition', term: '[Begrip]', definition: '[Definitie]' },
+        { layout: 'worked-example', title: '[Voorbeeldtitel]', steps: [
+            { label: 'Gegeven',    content: '[Wat is gegeven?]' },
+            { label: 'Stap 1',    content: '[Eerste stap]' },
+            { label: 'Oplossing', content: '[Eindantwoord]' }
+        ]},
+        { layout: 'multichoice', title: 'Check', question: '[Tussentijdse vraag]?', options: [
+            { id: 'A', text: '[Optie A]', correct: false },
+            { id: 'B', text: '[Optie B]', correct: true }
+        ], explanation: '[Uitleg waarom B juist is.]' }
+    ],
+
+    slidesC: [
+        { layout: 'summary', title: 'Samenvatting', items: [
+            '[Kernpunt 1]',
+            '[Kernpunt 2]',
+            '[Kernpunt 3]'
+        ]},
+        { layout: 'celebration', title: 'Klaar!', subtitle: 'Goed gewerkt vandaag.',
+          stats: [{ label: 'Module', value: 'XX' }, { label: 'Status', value: 'TOP' }] }
+    ],
+
+    // ─── 8. TICKETS ─────────────────────────────────────────────────────────────
+
     entryTicket: {
         questions: [
-            {
-                id: 'en1',
-                type: 'mc',
-                question: '[VOORKENNISVRAAG]?',
-                options: ['Optie A', 'Optie B', 'Optie C', 'Optie D'],
-                correct: 2
-            }
-            // 3-5 VRAGEN AANBEVOLEN
+            { id: 'en1', type: 'mc', question: '[Voorkennisvraag]?',
+              options: ['[Optie A]', '[Optie B]', '[Optie C]'], correct: 0 },
+            { id: 'en2', type: 'mc', question: '[Tweede voorkennisvraag]?',
+              options: ['[Optie A]', '[Optie B]', '[Optie C]'], correct: 1 }
         ]
     },
 
-    // EXIT TICKET (De quiz aan het einde van de les)
-    // ============================================
     exitTicket: {
         questions: [
-            {
-                id: 'e1',
-                type: 'mc',             // 'mc' = meerkeuze
-                question: '[VRAAG 1]?',
-                options: ['Optie A', 'Optie B', 'Optie C', 'Optie D'],
-                correct: 2
-            },
-            {
-                id: 'open',
-                type: 'open',           // 'open' = tekstveld
-                question: '[REFLECTIEVRAAG]',
-                description: 'Leg in je eigen woorden uit hoe...'
-            }
-            // 3-5 VRAGEN AANBEVOLEN
+            { id: 'ex1', type: 'mc', question: '[Leerdoelvraag 1]?',
+              options: ['[Optie A]', '[Optie B]', '[Optie C]'], correct: 0 },
+            { id: 'ex2', type: 'open', question: '[Reflectievraag]',
+              description: 'Leg in je eigen woorden uit ...' }
         ]
-    }
+    },
+
+    // ─── 9. SPOT CHECK (optioneel) ───────────────────────────────────────────────
+    // spotCheck: {
+    //     questions: [{ question: '[Vraag]', answer: '[Antwoord]' }]
+    // }
 }

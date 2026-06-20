@@ -282,22 +282,27 @@ const isTimelineComplete = computed(() => {
                 <template #action>{{ getActionText(card) }}</template>
             </ActivityCard>
             
-            <!-- EXTRA BRANCH -->
+            <!-- EXTRA BRANCH (step B only) -->
             <ExtraChallengeBranch 
-                v-if="step.extraActivities" 
+                v-if="step.step === 'B'"
                 v-model:isOpen="branchStates[step.id]" 
                 :label="getBranchLabel(step)"
             >
                 <div class="p-3">
-                    <BranchActivityButton 
-                        v-for="act in step.extraActivities"
-                        :key="act.id"
-                        :title="act.title"
-                        :category="act.category"
-                        :icon="iconMap[act.icon]"
-                        :isDone="progress.isDone('card-' + act.id.toLowerCase())"
-                        @click="activitySystem.handleOpenActivity(act.id.toLowerCase())"
-                    />
+                    <template v-if="step.extraActivities && step.extraActivities.length">
+                        <BranchActivityButton 
+                            v-for="act in step.extraActivities"
+                            :key="act.id"
+                            :title="act.title"
+                            :category="act.category"
+                            :icon="iconMap[act.icon]"
+                            :isDone="progress.isDone('card-' + act.id.toLowerCase())"
+                            @click="activitySystem.handleOpenActivity(act.id.toLowerCase())"
+                        />
+                    </template>
+                    <p v-else class="text-xs text-slate-400 text-center py-3 italic tracking-wide">
+                        Geen extra materiaal beschikbaar
+                    </p>
                 </div>
             </ExtraChallengeBranch>
         </TimelineItem>
