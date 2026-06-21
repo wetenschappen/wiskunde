@@ -278,7 +278,7 @@ const isTimelineComplete = computed(() => {
                 v-if="step.step === 'B'"
                 v-model:isOpen="branchStates[step.id]" 
                 :label="getBranchLabel(step)"
-                :count="step.extraActivities?.length || 0"
+
             >
                 <div class="p-3">
                     <template v-if="step.extraActivities && step.extraActivities.length">

@@ -1,16 +1,11 @@
 <script setup>
-import { computed } from 'vue'
-import { PhPlus, PhMinus, PhGameController } from '@phosphor-icons/vue'
+import { PhPlus, PhMinus } from '@phosphor-icons/vue'
 
 const props = defineProps({
   isOpen: Boolean,
   label: {
     type: String,
-    default: 'Extra Challenge'
-  },
-  count: {
-    type: Number,
-    default: 0
+    default: 'Extra Materiaal'
   }
 })
 
@@ -19,10 +14,6 @@ const emit = defineEmits(['update:isOpen'])
 function toggle() {
   emit('update:isOpen', !props.isOpen)
 }
-
-const labelSuffix = computed(() => {
-  return props.count > 0 ? ` (${props.count})` : ''
-})
 </script>
 
 <template>
@@ -40,13 +31,13 @@ const labelSuffix = computed(() => {
 
     <div 
         @click="toggle"
-        class="relative md:absolute md:-left-[220px] md:top-0 md:h-9 flex items-center gap-3 mb-6 md:mb-0 cursor-pointer group w-fit md:w-[180px] md:justify-end select-none"
+        class="relative md:absolute md:-left-[220px] md:top-0 md:h-9 flex items-center gap-3 mb-6 md:mb-0 cursor-pointer group w-fit md:w-[150px] md:justify-end select-none"
     >
         <span 
             class="text-[10px] font-bold tracking-widest uppercase transition-colors md:text-right"
             :class="isOpen ? 'text-amber-600' : 'text-slate-400 group-hover:text-amber-500'"
         >
-            {{ label }}<span v-if="labelSuffix" class="opacity-60">{{ labelSuffix }}</span>
+            {{ label }}
         </span>
         
         <div v-if="isOpen" class="h-[1px] bg-amber-200 w-12 md:w-4"></div>
