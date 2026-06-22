@@ -32,9 +32,10 @@ const feedback = ref({ type: 'info', text: 'Klik op een van de gelijkheidstekens
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
-
 const attemptCount = ref(0)
 const levels = ref([])
+const prediction = ref(null)
+const showPrediction = ref(true)
 
 function generateLevel() {
   // Level 1: Simple 2-step chain with wrong early =
@@ -140,19 +141,24 @@ function generateLevel() {
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
 // Domain Logic
-const eqStates = ref({}) // map of eqId -> 'normal', 'wrong', 'correct'
+const eqStates = ref({})
 
 function resetActivityState() {
-    isCorrect.value = false;
-celebrationDone.value = false
+    prediction.value = null
+    showPrediction.value = true
+    isCorrect.value = false; celebrationDone.value = false
     isChecked.value = false;
     attemptCount.value = 0;
-    feedback.value = { type: 'info', text: 'Klik op het FOUTE gelijkheidsteken (=) in het notitieblok.' };
+    feedback.value = { type: 'info', text: 'Voorspel EERST welk = teken fout is.' };
     eqStates.value = {};
     generateLevel();
-    currentLevelData.value.parts.forEach(p => {
-        if (p.isEq) eqStates.value[p.id] = 'normal';
-    });
+    currentLevelData.value.parts.forEach(p => { if (p.isEq) eqStates.value[p.id] = 'normal' });
+}
+
+function submitPrediction(choice) {
+    prediction.value = choice
+    showPrediction.value = false
+    feedback.value = { type: 'info', text: 'Klik nu op het foute = teken om te controleren.' }
 }
 
 function selectEq(eqId) {
@@ -163,9 +169,10 @@ function selectEq(eqId) {
     for (let key in eqStates.value) eqStates.value[key] = 'normal';
 
     if (eqId === currentLevelData.value.badEqId) {
-        isCorrect.value = true;
-        eqStates.value[eqId] = 'correct'; // Correctly identified as error
-        feedback.value = { type: 'success', text: 'Prima! gezien! Dit gelijkheidsteken is wiskundig fout, ook al volgt de leerling de opdracht in stappen.' }
+    isCorrect.value = true;
+        eqStates.value[eqId] = 'correct';
+        const predBonus = (prediction.value && prediction.value === eqId) ? ' 🎯 En je voorspelling klopte!' : '';
+        feedback.value = { type: 'success', text: '👍 Juist! Dit = teken is wiskundig fout.' + predBonus + '<br/><br/><strong>Waarom?</strong> Links en rechts van dit = hebben niet dezelfde waarde. Leerlingen schrijven vaak een "treintje":<br/><code>3+5=8-2=6</code><br/>Maar 3+5=8, niet 8-2. Het = teken verbindt GEEN stappen — het zegt dat L- en R-kant PRECIES DEZELFDE WAARDE hebben.<br/><br/>✏️ <strong>LPD-doel:</strong> Je herkent foutief gebruik van = en kunt het correct gebruiken als wiskundige bewering.' }
     } else {
         isCorrect.value = false;
         attemptCount.value++;
@@ -219,13 +226,13 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-50">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -234,12 +241,12 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -249,16 +256,29 @@ onUnmounted(() => {
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
+
+            <!-- Prediction gate -->
+            <div v-if="showPrediction" class="p-4 mb-4 border-2 border-amber-200 bg-amber-50 rounded-xl shadow-sm">
+              <p class="font-bold text-amber-800 mb-3 text-sm">🔮 Voorspelling &mdash; welk = teken is fout?</p>
+              <p class="text-xs text-amber-700 mb-3">Voordat je klikt: welk = teken is WISKUNDIG FOUT?</p>
+              <div class="flex gap-2">
+                <button v-for="part in currentLevelData.parts" :key="'p-'+part.id" v-if="part.isEq" @click="submitPrediction(part.id)"
+                  class="flex-1 py-2 font-bold text-center rounded-lg transition-all border-2 text-sm"
+                  :class="prediction === part.id ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400'">
+                  = #{{ currentLevelData.parts.filter(p => p.isEq).indexOf(part) + 1 }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-amber-50 text-amber-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-slate-100 text-slate-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-amber-500 hover:bg-amber-400 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -290,13 +310,13 @@ onUnmounted(() => {
 
                           <template v-for="(part, index) in currentLevelData.parts" :key="index">
 
-                              <span v-if="!part.isEq" class="opacity-90 hover:opacity-100 transition-opacity" :class="index === currentLevelData.parts.length - 1 ? 'border-b-4 border-blue-900' : ''">
+                              <span v-if="!part.isEq" class="opacity-90 hover:opacity-100 transition-opacity" :class="index === currentLevelData.parts.length - 1 ? 'border-b-4 border-amber-900' : ''">
                                   {{ part.text }}
                               </span>
 
                               <div v-else class="relative inline-block">
                                   <button @click="selectEq(part.id)" :disabled="isCorrect"
-                                          class="px-2 rounded-lg border-2 border-transparent transition-all hover:border-blue-300 active:scale-95 bg-white/50 cursor-pointer focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
+                                          class="px-2 rounded-lg border-2 border-transparent transition-all hover:border-blue-300 active:scale-95 bg-white/50 cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
                                           :class="eqStates[part.id] === 'correct' ? '!border-red-500 !bg-red-100' : (eqStates[part.id] === 'wrong' ? '!border-red-500 !bg-red-100 animate-shake' : '')">
                                       =
                                   </button>

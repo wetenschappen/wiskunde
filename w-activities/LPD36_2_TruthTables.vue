@@ -6,7 +6,8 @@ import {
   PhWarningCircle,
   PhArrowRight,
   PhTable,
-  PhArrowClockwise
+  PhArrowClockwise,
+  PhLightbulb
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
@@ -39,7 +40,7 @@ const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
 
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = 4
 
 function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
 
@@ -127,15 +128,29 @@ const operatorPool = [
   }
 ]
 
+const tautologyPool = [
+  { formula: 'A ∨ ¬A', description: 'De wet van de uitgesloten derde.', correct: 'tautologie', hint: 'A=0→¬A=1→A∨¬A=1. A=1→¬A=0→A∨¬A=1. Alle uitkomsten 1!' },
+  { formula: 'A ∧ ¬A', description: 'A waar EN A niet waar — kan niet.', correct: 'contradictie', hint: 'A=0→1→0. A=1→0→0. Alle uitkomsten 0!' },
+  { formula: 'A → (B → A)', description: 'Als A waar is, impliceert B hoe dan ook A.', correct: 'tautologie', hint: 'A=0: 0→(...)=1. A=1: 1→(B→1)=1. Alles 1!' },
+  { formula: '(A ∧ B) → A', description: 'Als A en B waar zijn, dan is A waar.', correct: 'tautologie', hint: 'De enige 0-mogelijkheid: A∧B=1 en A=0 — onmogelijk!' },
+  { formula: 'A ∧ (¬A ∨ B)', description: 'Geen vaste uitkomst — hangt af van A en B.', correct: 'satisfiable', hint: 'A=0: 0. A=1: B. Soms 0, soms 1.' },
+  { formula: '(A ∨ B) ∧ ¬A', description: 'A of B waar, A niet waar — dus B moet waar zijn.', correct: 'satisfiable', hint: 'A=0,B=0: 0. A=0,B=1: 1. A=1: 0.' },
+  { formula: '(A → B) ↔ (¬A ∨ B)', description: 'Implicatie ≡ ¬A ∨ B.', correct: 'tautologie', hint: 'Vergelijk A→B en ¬A∨B — identiek in alle 4 rijen.' }
+]
+
+const currentTautology = ref(null)
+const tautologyAnswer = ref(null)
+
 function generateLevel(levelNum) {
-  // Pick 3 distinct operators, sorted by difficulty
   const pool = shuffle(operatorPool)
-  return pool[levelNum % pool.length]
+  if (levelNum <= 2) return pool[levelNum % pool.length]
+  currentTautology.value = shuffle(tautologyPool)[0]
+  tautologyAnswer.value = null
+  return null
 }
 
 const levels = ref([])
 const currentLevel = computed(() => levels.value[currentInternalLevel.value])
-
 const tableRows = ref([])
 
 function toggleAns(index) {
@@ -170,13 +185,26 @@ function autoCheck() {
   }
 }
 
+function checkTautology(answer) {
+  tautologyAnswer.value = answer
+  if (answer === currentTautology.value.correct) {
+    isCorrect.value = true; isChecked.value = true
+    feedback.value = { type: 'success', text: `✓ Correct! ${currentTautology.value.description}` }
+  } else {
+    attemptCount.value++
+    const hints = [currentTautology.value.hint, 'Controleer wat er voor ALLE combinaties van A en B gebeurt.', 'Bekijk de definitie: tautologie = altijd 1, contradictie = altijd 0.']
+    feedback.value = { type: 'error', text: hints[Math.min(attemptCount.value - 1, 2)] }
+  }
+}
+
 function resetActivityState() {
   isCorrect.value = false
-celebrationDone.value = false
+  celebrationDone.value = false
   isChecked.value = false
   attemptCount.value = 0
+  tautologyAnswer.value = null
   feedback.value = { type: 'info', text: '' }
-  tableRows.value = currentLevel.value.tableRows.map(r => ({ ...r, ans: null }))
+  if (currentLevel.value && currentLevel.value.tableRows) tableRows.value = currentLevel.value.tableRows.map(r => ({ ...r, ans: null }))
 }
 
 function nextLevel() {
@@ -236,14 +264,14 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-sky-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-sky-600" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-50">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -252,13 +280,13 @@ onUnmounted(() => {
           <div class="flex items-center gap-1.5 ml-4 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">
             <span v-for="i in totalInternalLevels" :key="i"
                   class="w-2.5 h-2.5 rounded-full border"
-                  :class="i <= currentInternalLevel + 1 ? 'bg-sky-500 border-sky-600' : 'bg-slate-200 border-slate-300'">
+                  :class="i <= currentInternalLevel + 1 ? 'bg-amber-500 border-amber-600' : 'bg-slate-200 border-slate-300'">
             </span>
             <span class="ml-1.5">Level {{ currentInternalLevel + 1 }}</span>
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
                 :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
@@ -269,39 +297,51 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="currentLevel.instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
-              <p class="font-bold text-slate-800">Logische Poorten:</p>
-              <div class="bg-white p-4 border border-slate-200 rounded-lg font-mono text-lg shadow-sm text-center">
-                {{ currentLevel.operatorText }}
+            <!-- Levels 0-2: truth table -->
+            <template v-if="currentInternalLevel < 3">
+              <MathText :content="currentLevel.instruction" class="mb-6 prose prose-sm text-slate-600" />
+              <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-4">
+                <p class="font-bold text-slate-800">Logische Poorten:</p>
+                <div class="bg-white p-4 border border-slate-200 rounded-lg font-mono text-lg shadow-sm text-center">{{ currentLevel.operatorText }}</div>
+                <p class="text-sm text-slate-600 italic">{{ currentLevel.description }}</p>
               </div>
-              <p class="text-sm text-slate-600 italic">{{ currentLevel.description }}</p>
-            </div>
+            </template>
+
+            <!-- Level 3: tautology/contradiction -->
+            <template v-else>
+              <MathText content="<p>Een <strong>tautologie</strong> is ALTIJD waar (alle uitkomsten 1)<br/>Een <strong>contradictie</strong> is ALTIJD onwaar (alle uitkomsten 0)<br/><strong>Satisfiable</strong> = soms waar, soms onwaar</p>" class="mb-4 prose prose-sm text-slate-600" />
+              <div class="p-4 border-t border-slate-200 bg-amber-50 rounded-xl text-center">
+                <p class="font-mono font-bold text-lg text-slate-800 mb-2">{{ currentTautology.formula }}</p>
+                <p class="text-xs text-slate-600">{{ currentTautology.description }}</p>
+              </div>
+            </template>
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
                  class="flex items-center gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
                  role="status" aria-live="polite" aria-atomic="true" :class="{
-                   'bg-emerald-100 text-emerald-800': feedback.type === 'success',
+                   'bg-amber-50 text-amber-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
-                   'bg-blue-100 text-blue-800': feedback.type === 'info',
+                   'bg-slate-100 text-slate-800': feedback.type === 'info',
                  }">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0" weight="fill" />
                <span>{{ feedback.text }}</span>
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button v-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
-              <div v-else class="flex-1 py-4 text-center text-xs text-slate-400">Vul alle cellen in voor automatische controle</div>
+              <div v-else class="flex-1 py-4 text-center text-xs text-slate-400">
+                <template v-if="currentInternalLevel < 3">Vul alle cellen in voor automatische controle</template>
+              </div>
             </div>
           </div>
         </div>
@@ -311,38 +351,50 @@ onUnmounted(() => {
 
             <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
-              <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 overflow-hidden w-full max-w-lg">
-
-                <div class="flex bg-slate-800 text-white text-xl font-bold">
-                  <div class="flex-1 p-4 text-center border-r border-slate-600">A</div>
-                  <div class="flex-1 p-4 text-center border-r border-slate-600">B</div>
-                  <div class="flex-1 p-4 text-center text-sky-300">{{ currentLevel.operatorText }}</div>
+              <!-- Levels 0-2: truth table -->
+              <template v-if="currentInternalLevel < 3">
+                <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 overflow-hidden w-full max-w-lg">
+                  <div class="flex bg-slate-800 text-white text-xl font-bold">
+                    <div class="flex-1 p-4 text-center border-r border-slate-600">A</div>
+                    <div class="flex-1 p-4 text-center border-r border-slate-600">B</div>
+                    <div class="flex-1 p-4 text-center text-amber-300">{{ currentLevel.operatorText }}</div>
+                  </div>
+                  <div v-for="(row, index) in tableRows" :key="index" class="flex border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors h-20 items-center">
+                    <div class="flex-1 text-center font-mono text-2xl font-bold border-r border-slate-200 h-full flex items-center justify-center text-slate-700">{{ row.A }}</div>
+                    <div class="flex-1 text-center font-mono text-2xl font-bold border-r border-slate-200 h-full flex items-center justify-center text-slate-700">{{ row.B }}</div>
+                    <div class="flex-1 text-center font-mono text-2xl font-bold h-full flex items-center justify-center p-2">
+                      <button @click="toggleAns(index)"
+                              class="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center transition-colors font-black text-3xl focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
+                              :class="{ 'border-slate-300 hover:border-amber-400 bg-slate-50 text-transparent': row.ans === null, 'border-amber-500 bg-amber-50 text-amber-700': row.ans !== null }">
+                        {{ row.ans !== null ? row.ans : '?' }}
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              </template>
 
-                <div v-for="(row, index) in tableRows" :key="index" class="flex border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors h-20 items-center">
-
-                  <div class="flex-1 text-center font-mono text-2xl font-bold border-r border-slate-200 h-full flex items-center justify-center text-slate-700">
-                    {{ row.A }}
-                  </div>
-
-                  <div class="flex-1 text-center font-mono text-2xl font-bold border-r border-slate-200 h-full flex items-center justify-center text-slate-700">
-                    {{ row.B }}
-                  </div>
-
-                  <div class="flex-1 text-center font-mono text-2xl font-bold h-full flex items-center justify-center p-2">
-                    <button @click="toggleAns(index)"
-                            class="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center transition-colors font-black text-3xl active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                            :class="{
-                              'border-slate-300 hover:border-sky-400 bg-slate-50 text-transparent': row.ans === null,
-                              'border-sky-500 bg-sky-50 text-sky-700': row.ans !== null
-                            }">
-                      {{ row.ans !== null ? row.ans : '?' }}
+              <!-- Level 3: tautology classification -->
+              <template v-else>
+                <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-8 w-full max-w-lg text-center">
+                  <div class="text-3xl font-mono font-black text-slate-800 mb-6">{{ currentTautology.formula }}</div>
+                  <p class="text-sm text-slate-600 mb-6">{{ currentTautology.description }}</p>
+                  <p class="font-bold text-slate-700 mb-4">Dit is een...</p>
+                  <div class="flex flex-col gap-3">
+                    <button @click="checkTautology('tautologie')" class="w-full py-4 font-bold text-lg rounded-xl transition-all border-2 active:scale-[0.98]"
+                      :class="tautologyAnswer === 'tautologie' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400'" :disabled="isCorrect">
+                      ✅ Tautologie (altijd waar)
+                    </button>
+                    <button @click="checkTautology('contradictie')" class="w-full py-4 font-bold text-lg rounded-xl transition-all border-2 active:scale-[0.98]"
+                      :class="tautologyAnswer === 'contradictie' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400'" :disabled="isCorrect">
+                      ❌ Contradictie (altijd onwaar)
+                    </button>
+                    <button @click="checkTautology('satisfiable')" class="w-full py-4 font-bold text-lg rounded-xl transition-all border-2 active:scale-[0.98]"
+                      :class="tautologyAnswer === 'satisfiable' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400'" :disabled="isCorrect">
+                      ❓ Satisfiable (soms waar, soms onwaar)
                     </button>
                   </div>
-
                 </div>
-
-              </div>
+              </template>
 
             </div>
 

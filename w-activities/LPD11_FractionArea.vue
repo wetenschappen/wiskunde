@@ -1,111 +1,199 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhGridFour, PhArrowClockwise, PhLightbulb
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhGridFour, PhArrowClockwise, PhLightbulb, PhMinus
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
-  title: { type: String, default: 'Rationale Getallen: Vermenigvuldigen' },
+  title: { type: String, default: 'Breuken met Oppervlaktemodellen' },
   instruction: {
     type: String,
-    default: 'Breuken vermenigvuldigen lijkt op een formule (teller x teller, noemer x noemer), maar visueel is het de oppervlakte van een rechthoek!<br/><br/><strong>Opdracht:</strong> Gebruik de verticale slider om de ene breuk (geel) te selecteren. Gebruik de horizontale slider om de andere (blauw) te selecteren. Kijk naar het groene overlappende deel.'
+    default: 'Breuken optellen en aftrekken kan je zien met een oppervlaktemodel. Het rooster stelt de gemeenschappelijke noemer voor.<br/><br/><strong>Opdracht:</strong> Voorspel de uitkomst en gebruik de schuifregelaars om je antwoord te controleren.'
   },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
-  fullscreen: { type: Boolean, default: true },
+  fullscreen: { type: Boolean, default: false },
   icon: { type: Object, default: () => PhGridFour }
 })
 
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
-
-const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Beweeg beide sliders om de breuken te visualiseren.' })
+const feedback = ref({ type: 'info', text: 'Voorspel de breuk voordat je de schuifregelaars gebruikt.' })
 const attemptCount = ref(0)
 
-// Level Logic — generated randomly
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
 const levels = ref([])
 
+const showPrediction = ref(true)
+const predictedNum = ref(null)
+const predictedDen = ref(null)
+const showWorkedExample = ref(true)
+const hintCount = ref(0)
+const showReflection = ref(false)
+const reflectionAnswer = ref('')
+const reflectionPassed = ref(false)
+
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
-function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b) }
+function lcm(a, b) { return (a * b) / gcd(a, b) }
 
 function generateLevel(levelIndex) {
-  let num1, den1, num2, den2, cols, rows
-
   if (levelIndex === 0) {
-    // Simple fractions
-    const fractions = [
-      [1, 2, 3, 4, 4, 2],   // 1/2 x 3/4
-      [2, 3, 1, 2, 2, 3],   // 2/3 x 1/2
-      [1, 3, 2, 5, 5, 3],   // 1/3 x 2/5
-      [3, 4, 1, 3, 3, 4],   // 3/4 x 1/3
+    // Level 1: Identify a fraction from a shaded area model
+    const configs = [
+      { total: 8, colored: 3, rows: 2, cols: 4 },
+      { total: 6, colored: 2, rows: 2, cols: 3 },
+      { total: 9, colored: 4, rows: 3, cols: 3 },
+      { total: 10, colored: 3, rows: 2, cols: 5 },
+      { total: 12, colored: 5, rows: 3, cols: 4 },
+      { total: 8, colored: 5, rows: 2, cols: 4 }
     ]
-    const f = pick(fractions)
-    num1 = f[0]; den1 = f[1]; num2 = f[2]; den2 = f[3]; cols = f[4]; rows = f[5]
+    const c = pick(configs)
+    const g = gcd(c.colored, c.total)
+    return {
+      mode: 'identify',
+      goalText: `Opdracht 1: Welk deel van de figuur is gekleurd?`,
+      totalCells: c.total, coloredCount: c.colored,
+      rows: c.rows, cols: c.cols,
+      answerNum: c.colored / g, answerDen: c.total / g,
+      frac1Num: c.colored, frac1Den: c.total
+    }
   } else if (levelIndex === 1) {
-    // Medium
-    const fractions = [
-      [2, 3, 4, 5, 5, 3],
-      [3, 5, 2, 3, 3, 5],
-      [1, 4, 3, 5, 5, 4],
-      [2, 5, 3, 4, 4, 5],
+    // Level 2: Add fractions
+    const configs = [
+      { n1: 1, d1: 4, n2: 1, d2: 6, rows: 3, cols: 4 },
+      { n1: 1, d1: 3, n2: 1, d2: 4, rows: 3, cols: 4 },
+      { n1: 1, d1: 2, n2: 1, d2: 3, rows: 2, cols: 3 },
+      { n1: 1, d1: 3, n2: 2, d2: 5, rows: 3, cols: 5 },
+      { n1: 2, d1: 5, n2: 1, d2: 4, rows: 4, cols: 5 },
+      { n1: 1, d1: 4, n2: 3, d2: 8, rows: 4, cols: 4 }
     ]
-    const f = pick(fractions)
-    num1 = f[0]; den1 = f[1]; num2 = f[2]; den2 = f[3]; cols = f[4]; rows = f[5]
+    const c = pick(configs)
+    const common = lcm(c.d1, c.d2)
+    const scaled1n = c.n1 * (common / c.d1)
+    const scaled2n = c.n2 * (common / c.d2)
+    const sum = scaled1n + scaled2n
+    const g = gcd(sum, common)
+    return {
+      mode: 'add',
+      goalText: `Opdracht 2: ${c.n1}/${c.d1} + ${c.n2}/${c.d2}`,
+      totalCells: common, rows: c.rows, cols: c.cols,
+      frac1Num: c.n1, frac1Den: c.d1,
+      frac2Num: c.n2, frac2Den: c.d2,
+      scaled1Num: scaled1n, scaled2Num: scaled2n,
+      answerNum: sum / g, answerDen: common / g,
+      rawNum: sum, rawDen: common,
+      commonDen: common,
+      needsSimplify: g > 1
+    }
   } else {
-    // Harder
-    const fractions = [
-      [1, 4, 2, 3, 3, 4],
-      [3, 5, 1, 3, 3, 5],
-      [2, 5, 2, 3, 3, 5],
-      [3, 4, 2, 5, 5, 4],
+    // Level 3: Subtract fractions
+    const configs = [
+      { n1: 1, d1: 2, n2: 1, d2: 4, rows: 2, cols: 4 },
+      { n1: 2, d1: 3, n2: 1, d2: 2, rows: 2, cols: 3 },
+      { n1: 3, d1: 4, n2: 1, d2: 3, rows: 3, cols: 4 },
+      { n1: 2, d1: 3, n2: 2, d2: 5, rows: 3, cols: 5 },
+      { n1: 3, d1: 4, n2: 1, d2: 2, rows: 2, cols: 4 },
+      { n1: 5, d1: 6, n2: 1, d2: 3, rows: 3, cols: 6 }
     ]
-    const f = pick(fractions)
-    num1 = f[0]; den1 = f[1]; num2 = f[2]; den2 = f[3]; cols = f[4]; rows = f[5]
-  }
-
-  const targetNum = num1 * num2
-  const targetDen = den1 * den2
-  const g = gcd(targetNum, targetDen)
-  const simplifiedNum = targetNum / g
-  const simplifiedDen = targetDen / g
-
-  return {
-    goalText: `Opdracht ${levelIndex + 1}: Wat is ${num1}/${den1} x ${num2}/${den2}?`,
-    num1, den1, num2, den2, cols, rows,
-    targetNum, targetDen,
-    targetX: num2, targetY: num1
+    const c = pick(configs)
+    const common = lcm(c.d1, c.d2)
+    const scaled1n = c.n1 * (common / c.d1)
+    const scaled2n = c.n2 * (common / c.d2)
+    const diff = scaled1n - scaled2n
+    const g = gcd(Math.abs(diff), common)
+    return {
+      mode: 'subtract',
+      goalText: `Opdracht 3: ${c.n1}/${c.d1} - ${c.n2}/${c.d2}`,
+      totalCells: common, rows: c.rows, cols: c.cols,
+      frac1Num: c.n1, frac1Den: c.d1,
+      frac2Num: c.n2, frac2Den: c.d2,
+      scaled1Num: scaled1n, scaled2Num: scaled2n,
+      answerNum: diff / g, answerDen: common / g,
+      rawNum: diff, rawDen: common,
+      commonDen: common,
+      needsSimplify: g > 1 && diff > 0
+    }
   }
 }
 
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
-// Domain Logic
-const selX = ref(0)
-const selY = ref(0)
+const slider1 = ref(0)
+const slider2 = ref(0)
 
-const userNum = ref(null)
-const userDen = ref(null)
+const hintLevels = computed(() => {
+  const d = currentLevelData.value
+  if (!d) return ['', '', '']
+
+  if (d.mode === 'identify') {
+    return [
+      `Het hele rooster stelt 1 geheel voor. Hoeveel vakjes zijn er in totaal? Hoeveel zijn er gekleurd?`,
+      `Voorbeeld: 4 van de 6 vakjes gekleurd = 4/6 = 2/3 (vereenvoudigd). Hoeveel van de ${d.totalCells} vakjes zijn oranje?`,
+      `Totaal: ${d.totalCells} vakjes. Gekleurd: ${d.coloredCount} vakjes. Breuk: ${d.coloredCount}/${d.totalCells} = __/__ (vereenvoudigd)`
+    ]
+  }
+
+  if (d.mode === 'add') {
+    return [
+      `Eerst gelijknamig maken: de noemer wordt KGV = ${d.commonDen}. ${d.frac1Num}/${d.frac1Den} = ?/${d.commonDen} en ${d.frac2Num}/${d.frac2Den} = ?/${d.commonDen}`,
+      `Voorbeeld: 1/3 + 1/6. Eerst gelijknamig: 1/3 = 2/6. Dan optellen: 2/6 + 1/6 = 3/6 = 1/2. Nu bij jou: ${d.frac1Num}/${d.frac1Den} + ${d.frac2Num}/${d.frac2Den}.`,
+      `${d.frac1Num}/${d.frac1Den} = ${d.scaled1Num}/${d.commonDen}  en  ${d.frac2Num}/${d.frac2Den} = ${d.scaled2Num}/${d.commonDen}.  ${d.scaled1Num}/${d.commonDen} + ${d.scaled2Num}/${d.commonDen} = __/${d.commonDen} = __/__ (vereenvoudigd)`
+    ]
+  }
+
+  if (d.mode === 'subtract') {
+    return [
+      `Eerst gelijknamig maken: de noemer wordt KGV = ${d.commonDen}. Dan tellers aftrekken.`,
+      `Voorbeeld: 1/2 - 1/4. Eerst gelijknamig: 1/2 = 2/4. Dan aftrekken: 2/4 - 1/4 = 1/4. Nu bij jou: ${d.frac1Num}/${d.frac1Den} - ${d.frac2Num}/${d.frac2Den}.`,
+      `${d.frac1Num}/${d.frac1Den} = ${d.scaled1Num}/${d.commonDen}  en  ${d.frac2Num}/${d.frac2Den} = ${d.scaled2Num}/${d.commonDen}.  ${d.scaled1Num}/${d.commonDen} - ${d.scaled2Num}/${d.commonDen} = __/${d.commonDen} = __/__`
+    ]
+  }
+  return ['', '', '']
+})
 
 function getHintText() {
+  const idx = Math.min(hintCount.value - 1, hintLevels.value.length - 1)
+  if (idx >= 0) return hintLevels.value[idx]
+  return ''
+}
+
+function getCellState(idx) {
   const d = currentLevelData.value
-  if (attemptCount.value === 1) {
-    return 'Het hele vierkant stelt 1 geheel voor. Het groene deel is het product van de twee breuken. Hoeveel vakjes zijn groen? Uit hoeveel vakjes bestaat het hele vierkant?'
+  if (!d) return 'white'
+
+  if (d.mode === 'identify') {
+    // First `coloredCount` cells are amber
+    return idx < d.coloredCount ? 'amber' : 'white'
   }
-  if (attemptCount.value === 2) {
-    return `Teller: ${d.num1} x ${d.num2} = ?  Noemer: ${d.den1} x ${d.den2} = ?  Het groene gebied in de tekening bevestigt deze berekening.`
+
+  if (d.mode === 'add') {
+    // First `scaled1Num` cells are amber-400 (frac1)
+    // Next `scaled2Num` cells are amber-200 (frac2)
+    if (idx < d.scaled1Num) return 'frac1'
+    if (idx < d.scaled1Num + d.scaled2Num) return 'frac2'
+    return 'white'
   }
-  return `Vermenigvuldig de tellers: ${d.num1} x ${d.num2} = ${d.targetNum}. Vermenigvuldig de noemers: ${d.den1} x ${d.den2} = ${d.targetDen}. Het antwoord is ${d.targetNum}/${d.targetDen}.`
+
+  if (d.mode === 'subtract') {
+    // First `scaled1Num` cells are amber-400 (frac1/minuend)
+    // First `scaled2Num` of those are crossed out (subtrahend)
+    if (idx < d.scaled1Num) {
+      if (idx < d.scaled2Num) return 'crossed'
+      return 'frac1'
+    }
+    return 'white'
+  }
+
+  return 'white'
 }
 
 function resetActivityState() {
@@ -116,47 +204,183 @@ function resetActivityState() {
   levels.value = newLevels
 
   isCorrect.value = false
-celebrationDone.value = false
+  celebrationDone.value = false
   isChecked.value = false
-  feedback.value = { type: 'info', text: 'Beweeg beide sliders om de breuken te visualiseren.' }
+  feedback.value = { type: 'info', text: 'Voorspel de breuk voordat je de schuifregelaars gebruikt.' }
   attemptCount.value = 0
-  selX.value = 0
-  selY.value = 0
-  userNum.value = null
-  userDen.value = null
+  hintCount.value = 0
+  slider1.value = 0
+  slider2.value = 0
+  predictedNum.value = null
+  predictedDen.value = null
+  showPrediction.value = true
+  showReflection.value = false
+  reflectionAnswer.value = ''
+  reflectionPassed.value = false
+  showWorkedExample.value = currentInternalLevel.value === 0
+}
+
+function submitPrediction() {
+  const d = currentLevelData.value
+  if (predictedNum.value === null || predictedDen.value === null ||
+      predictedNum.value === '' || predictedDen.value === '') {
+    feedback.value = { type: 'error', text: 'Vul zowel een teller als een noemer in.' }
+    return
+  }
+
+  const userGcd = gcd(predictedNum.value, predictedDen.value)
+  const userSimpleNum = predictedNum.value / userGcd
+  const userSimpleDen = predictedDen.value / userGcd
+
+  const targetSimpleNum = d.answerNum
+  const targetSimpleDen = d.answerDen
+
+  if (userSimpleNum === targetSimpleNum && userSimpleDen === targetSimpleDen) {
+    const label = d.mode === 'identify' ? 'de breuk' : (d.mode === 'add' ? 'de som' : 'het verschil')
+    feedback.value = {
+      type: 'success',
+      text: `Correct! ${label} = ${d.answerNum}/${d.answerDen}. Gebruik nu de schuifregelaars om je antwoord visueel te controleren.`
+    }
+    showPrediction.value = false
+    hintCount.value = 0
+  } else {
+    attemptCount.value++
+
+    // Error analysis
+    if (d.mode === 'add' || d.mode === 'subtract') {
+      // Check if they added/subtracted denominators
+      if (userSimpleNum !== targetSimpleNum && userSimpleDen === targetSimpleDen) {
+        feedback.value = {
+          type: 'error',
+          text: `De noemer ${userSimpleDen} klopt, maar de teller nog niet. Denk aan: tellers ${d.mode === 'add' ? 'optellen' : 'aftrekken'} na gelijknamig maken.`
+        }
+      } else if (d.mode === 'add' && predictedNum.value === d.frac1Num + d.frac2Num && predictedDen.value === d.frac1Den + d.frac2Den) {
+        feedback.value = {
+          type: 'error',
+          text: `Je hebt tellers EN noemers opgeteld: ${d.frac1Num}+${d.frac2Num}=${predictedNum.value} en ${d.frac1Den}+${d.frac2Den}=${predictedDen.value}. Bij breuken optellen moet je EERST gelijknamig maken (noemer = KGV), pas DAN tellers optellen. Noemers worden NOOIT opgeteld!`
+        }
+      } else if (d.mode === 'add' && predictedDen.value === d.frac1Den + d.frac2Den) {
+        feedback.value = {
+          type: 'error',
+          text: `Je hebt noemers opgeteld (${d.frac1Den}+${d.frac2Den}=${predictedDen.value}). Noemers mag je NIET optellen! Eerst gelijknamig maken, dan alleen tellers optellen.`
+        }
+      } else if (d.mode === 'add' && predictedDen.value === d.frac1Den && predictedDen.value === d.frac2Den) {
+        feedback.value = {
+          type: 'error',
+          text: `De noemer ${predictedDen.value} klopt niet voor beide breuken — ze hebben verschillende noemers. Maak ze eerst gelijknamig! KGV(${d.frac1Den}, ${d.frac2Den}) = ${d.commonDen}.`
+        }
+      } else if (d.mode === 'subtract' && predictedNum.value === Math.abs(d.frac1Num - d.frac2Num) && predictedDen.value === Math.max(d.frac1Den, d.frac2Den)) {
+        feedback.value = {
+          type: 'error',
+          text: `Je hebt de breuken niet gelijknamig gemaakt. Eerst de noemer gelijk maken (KGV = ${d.commonDen}), dan pas de tellers aftrekken.`
+        }
+      } else {
+        const opLabel = d.mode === 'add' ? 'optellen' : 'aftrekken'
+        feedback.value = {
+          type: 'error',
+          text: `${predictedNum.value}/${predictedDen.value} klopt niet. Denk aan: gelijknamig maken, dan tellers ${opLabel}.`
+        }
+      }
+    } else {
+      // Level 1: identify
+      feedback.value = {
+        type: 'error',
+        text: `${predictedNum.value}/${predictedDen.value} is niet correct. Tel het aantal gekleurde vakjes (teller) en het totaal aantal vakjes (noemer). Vereenvoudig daarna.`
+      }
+    }
+  }
+}
+
+function showHint() {
+  hintCount.value++
+  feedback.value = { type: 'info', text: getHintText() }
+}
+
+function skipWorkedExample() {
+  showWorkedExample.value = false
 }
 
 function checkAnswer() {
   isChecked.value = true
+  const d = currentLevelData.value
 
-  if (userNum.value === null || userDen.value === null || userNum.value === '' || userDen.value === '') {
-    feedback.value = { type: 'error', text: 'Niet helemaal... Vul zowel een teller als een noemer in.' }
-    return
-  }
-
-  const data = currentLevelData.value
-
-  // First check if the visual model is correct
-  if (selX.value !== data.targetX || selY.value !== data.targetY) {
-    attemptCount.value++
-    feedback.value = { type: 'error', text: `De visualisatie klopt nog niet. Zorg dat je horizontaal ${data.num2}/${data.den2} kleurt, en verticaal ${data.num1}/${data.den1}.` }
-    return
-  }
-
-  // Then check the numerical answer
-  if (userNum.value === data.targetNum && userDen.value === data.targetDen) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: `Perfect! Je ziet dat het hele rooster uit ${data.targetDen} stukken bestaat (noemer x noemer). De groene overlap is ${data.targetNum} stukken groot (teller x teller).`
-    }
-  } else {
-    attemptCount.value++
-
-    if (userNum.value !== data.targetNum) {
-      feedback.value = { type: 'error', text: 'Niet helemaal... Kijk naar de GROENE (overlappende) vlakjes. Hoeveel zijn het er? Vul dit bovenaan in (de teller).' }
+  if (d.mode === 'identify') {
+    // Check sliders match
+    if (slider1.value === d.coloredCount) {
+      isCorrect.value = true
+      showReflection.value = true
+      reflectionAnswer.value = ''
+      reflectionPassed.value = false
+      feedback.value = {
+        type: 'success',
+        text: `Juist! ${d.coloredCount} van de ${d.totalCells} vakjes zijn gekleurd = ${d.answerNum}/${d.answerDen}.`
+      }
     } else {
-      feedback.value = { type: 'error', text: 'Niet helemaal... Uit hoeveel kleine vlakjes bestaat de Grote Vierkant in TOTAAL nu? Vul dit onderaan in (de noemer).' }
+      attemptCount.value++
+      feedback.value = {
+        type: 'error',
+        text: `De schuif staat op ${slider1.value}, maar er zijn ${d.coloredCount} vakjes gekleurd.`
+      }
+    }
+  } else if (d.mode === 'add') {
+    if (slider1.value === d.scaled1Num && slider2.value === d.scaled2Num) {
+      isCorrect.value = true
+      showReflection.value = true
+      reflectionAnswer.value = ''
+      reflectionPassed.value = false
+      let extra = ''
+      if (d.needsSimplify) {
+        extra = ` Vereenvoudigd: ${d.answerNum}/${d.answerDen}.`
+      }
+      feedback.value = {
+        type: 'success',
+        text: `Perfect! ${d.scaled1Num}/${d.commonDen} + ${d.scaled2Num}/${d.commonDen} = ${d.rawNum}/${d.rawDen}.${extra}`
+      }
+    } else {
+      attemptCount.value++
+      const totalShown = slider1.value + slider2.value
+      const g2 = gcd(totalShown, d.commonDen)
+      feedback.value = {
+        type: 'error',
+        text: `Je hebt ${slider1.value} + ${slider2.value} = ${totalShown}/${d.commonDen} = ${totalShown/g2}/${d.commonDen/g2} geselecteerd. Dat klopt niet. Gebruik de hint voor hulp.`
+      }
+    }
+  } else if (d.mode === 'subtract') {
+    if (slider1.value === d.scaled1Num && slider2.value === d.scaled2Num) {
+      isCorrect.value = true
+      showReflection.value = true
+      reflectionAnswer.value = ''
+      reflectionPassed.value = false
+      let extra = ''
+      if (d.needsSimplify) {
+        extra = ` Vereenvoudigd: ${d.answerNum}/${d.answerDen}.`
+      }
+      feedback.value = {
+        type: 'success',
+        text: `Juist! ${d.scaled1Num}/${d.commonDen} - ${d.scaled2Num}/${d.commonDen} = ${d.rawNum}/${d.rawDen}.${extra}`
+      }
+    } else {
+      attemptCount.value++
+      const remaining = slider1.value - slider2.value
+      const g2 = gcd(Math.abs(remaining), d.commonDen)
+      feedback.value = {
+        type: 'error',
+        text: `Je hebt ${slider1.value} - ${slider2.value} = ${remaining}/${d.commonDen} = ${remaining/g2}/${d.commonDen/g2}. Dat klopt niet. Gebruik de hint voor hulp.`
+      }
+    }
+  }
+}
+
+function checkReflection() {
+  const ans = reflectionAnswer.value.toLowerCase().trim()
+
+  if ((ans.includes('teller') || ans.includes('noemer')) && ans.length > 5) {
+    reflectionPassed.value = true
+    showReflection.value = false
+  } else {
+    feedback.value = {
+      type: 'info',
+      text: 'Denk na: waarom tel je tellers op maar blijven noemers hetzelfde? Wat verandert er in het rooster als je breuken optelt?'
     }
   }
 }
@@ -172,218 +396,466 @@ function handleNext() {
   }
 }
 
-// Lifecycle
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
     resetActivityState()
     nextTick(() => mainArea.value?.focus())
     window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
-    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
   } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
     window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
   }
 }, { immediate: true })
 
-function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
-const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
-onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
+function handleKeydown(e) {
+  if (e.key === 'Escape' && props.isOpen) emit('close')
+}
+
+onMounted(() => {})
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
-// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
-
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
-              </div>
+  <div
+    class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]"
+    @click="emit('close')" role="button" tabindex="0"
+    @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')"
+    aria-label="Achtergrond"
+  ></div>
+  <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center p-2 rounded-lg bg-amber-50">
+          <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-500" />
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+          <div class="flex items-center gap-2">
+            <p class="text-xs font-medium text-slate-500">
+              Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}
+            </p>
+            <div class="flex gap-1">
+              <div
+                v-for="i in totalInternalLevels" :key="i"
+                class="w-2 h-2 rounded-full"
+                :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-200'"
+              ></div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
-      </header>
+      </div>
+      <button
+        @click="emit('close')"
+        class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
+      >
+        <PhX class="w-6 h-6" />
+      </button>
+    </header>
 
-      <main class="flex flex-1 overflow-hidden">
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
+    <main class="flex flex-1 overflow-hidden">
+      <!-- Left panel -->
+      <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
+        <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
+          <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+          <MathText :content="instruction" class="mb-4 prose prose-sm text-slate-600" />
 
-            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
+          <!-- Worked Example -->
+          <div v-if="showWorkedExample" class="bg-amber-50 p-4 rounded-lg mb-4 border-l-4 border-amber-400 animate-fadeIn">
+            <p class="font-bold text-amber-800 mb-2">Voorbeeld: breuken optellen</p>
+            <p class="text-sm text-slate-700 mb-2">Wat is 1/3 + 1/6?</p>
+            <div class="text-xs text-slate-600 space-y-1 mb-2">
+              <p><strong>Stap 1:</strong> Gelĳknamig maken. KGV(3, 6) = 6. 1/3 = 2/6.</p>
+              <p><strong>Stap 2:</strong> Nu hebben ze dezelfde noemer (6). Tel de tellers op: 2/6 + 1/6.</p>
+              <p><strong>Stap 3:</strong> Teller: 2 + 1 = 3. Noemer blijft 6. Antwoord: 3/6.</p>
+              <p><strong>Stap 4:</strong> Vereenvoudig: 3/6 = 1/2.</p>
             </div>
-
-            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-math-blue mb-4">Wat is de groene breuk?</label>
-               <div class="flex items-center gap-4 justify-center">
-                   <div class="font-mono font-black text-2xl text-slate-500">
-                       <div class="flex flex-col items-center">
-                           <span>{{ currentLevelData.num1 }}</span>
-                           <div class="h-1 w-full bg-slate-400 my-1"></div>
-                           <span>{{ currentLevelData.den1 }}</span>
-                       </div>
-                   </div>
-                   <span class="font-bold text-lg text-slate-400">&times;</span>
-                   <div class="font-mono font-black text-2xl text-slate-500">
-                       <div class="flex flex-col items-center">
-                           <span>{{ currentLevelData.num2 }}</span>
-                           <div class="h-1 w-full bg-slate-400 my-1"></div>
-                           <span>{{ currentLevelData.den2 }}</span>
-                       </div>
-                   </div>
-                   <span class="font-bold text-lg text-slate-400">=</span>
-
-                   <div class="flex flex-col items-center gap-1 w-16">
-                       <input type="number" v-model.number="userNum" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
-                       <div class="h-1 w-full bg-slate-700 rounded-full"></div>
-                       <input type="number" v-model.number="userDen" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
-                   </div>
-               </div>
-            </div>
+            <p class="font-mono text-base font-bold text-slate-800">1/3 + 1/6 = 1/2</p>
+            <button
+              @click="skipWorkedExample"
+              class="mt-3 text-sm font-bold text-amber-600 hover:text-amber-700 underline"
+            >
+              Begrepen, start de opdracht &rarr;
+            </button>
           </div>
 
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
-            </div>
+          <!-- Goal -->
+          <div
+            v-if="!showWorkedExample"
+            class="text-center bg-amber-50 p-4 border border-amber-200 rounded-xl shadow-sm mb-4 animate-fadeIn"
+          >
+            <p class="font-bold text-amber-800">{{ currentLevelData?.goalText }}</p>
+            <p v-if="currentLevelData?.mode === 'add' || currentLevelData?.mode === 'subtract'" class="text-xs text-slate-500 mt-1">
+              Gemeenschappelijke noemer = {{ currentLevelData?.commonDen }}
+            </p>
+          </div>
 
-            <!-- Progressive hint -->
-            <div v-if="!isCorrect && attemptCount > 0"
-                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn bg-math-blue-bg text-math-blue border border-surface-200">
-               <PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ getHintText() }}</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
+          <!-- Prediction Gate -->
+          <div
+            v-if="showPrediction && !showWorkedExample"
+            class="p-4 border border-amber-200 bg-amber-50 rounded-xl animate-fadeIn mb-4"
+          >
+            <p class="font-bold text-amber-800 text-sm mb-2">
+              <template v-if="currentLevelData?.mode === 'identify'">Voorspel: welk deel is gekleurd?</template>
+              <template v-else-if="currentLevelData?.mode === 'add'">Voorspel de som</template>
+              <template v-else>Voorspel het verschil</template>
+            </p>
+            <p class="text-sm text-slate-600 mb-3">
+              <template v-if="currentLevelData?.mode === 'identify'">Welke breuk van de figuur is oranje gekleurd?</template>
+              <template v-else-if="currentLevelData?.mode === 'add'">
+                {{ currentLevelData?.frac1Num }}/{{ currentLevelData?.frac1Den }}
+                + {{ currentLevelData?.frac2Num }}/{{ currentLevelData?.frac2Den }} = ?
+              </template>
+              <template v-else>
+                {{ currentLevelData?.frac1Num }}/{{ currentLevelData?.frac1Den }}
+                - {{ currentLevelData?.frac2Num }}/{{ currentLevelData?.frac2Den }} = ?
+              </template>
+            </p>
+            <div class="flex items-center gap-2 justify-center">
+              <span class="font-mono font-bold text-slate-700">=</span>
+              <div class="flex flex-col items-center gap-1 w-16">
+                <input
+                  type="number" v-model.number="predictedNum"
+                  @keyup.enter="submitPrediction"
+                  class="w-full p-2 text-lg font-bold text-center border-2 border-amber-300 rounded-lg bg-white outline-none focus:border-amber-500"
+                  placeholder="?"
+                />
+                <div class="h-0.5 w-full bg-slate-400 rounded-full"></div>
+                <input
+                  type="number" v-model.number="predictedDen"
+                  @keyup.enter="submitPrediction"
+                  class="w-full p-2 text-lg font-bold text-center border-2 border-amber-300 rounded-lg bg-white outline-none focus:border-amber-500"
+                  placeholder="?"
+                />
+              </div>
+              <button
+                @click="submitPrediction"
+                class="py-2 px-4 font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 text-sm active:scale-[0.98]"
+              >
+                Voorspel
               </button>
             </div>
           </div>
+
+          <!-- Slider controls (after prediction) -->
+          <div v-if="!showPrediction && !isCorrect" class="p-4 border border-slate-200 bg-white rounded-xl shadow-sm mb-4 space-y-4 animate-fadeIn">
+            <p class="text-sm font-bold text-slate-700">Stel de schuifregelaars in:</p>
+
+            <!-- Level 1: single slider -->
+            <div v-if="currentLevelData?.mode === 'identify'" class="space-y-2">
+              <label class="text-xs text-slate-600">
+                Gekleurde vakjes:
+                <span class="font-bold text-amber-700">{{ slider1 }} / {{ currentLevelData?.totalCells }}</span>
+              </label>
+              <input
+                type="range" min="0" :max="currentLevelData?.totalCells || 1" step="1"
+                v-model.number="slider1"
+                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              />
+            </div>
+
+            <!-- Level 2/3: two sliders -->
+            <div v-if="currentLevelData?.mode === 'add'" class="space-y-3">
+              <div class="space-y-1">
+                <label class="text-xs text-slate-600">
+                  Breuk 1 (oranje): <span class="font-bold text-amber-700">{{ slider1 }} / {{ currentLevelData?.commonDen }}</span>
+                </label>
+                <input
+                  type="range" min="0" :max="currentLevelData?.commonDen || 1" step="1"
+                  v-model.number="slider1"
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs text-slate-600">
+                  Breuk 2 (licht oranje): <span class="font-bold text-amber-600">{{ slider2 }} / {{ currentLevelData?.commonDen }}</span>
+                </label>
+                <input
+                  type="range" min="0" :max="(currentLevelData?.commonDen || 1) - slider1" step="1"
+                  v-model.number="slider2"
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+              </div>
+              <p class="text-xs text-slate-500 text-center">
+                Totaal: <strong>{{ slider1 + slider2 }} / {{ currentLevelData?.commonDen }}</strong>
+              </p>
+            </div>
+
+            <div v-if="currentLevelData?.mode === 'subtract'" class="space-y-3">
+              <div class="space-y-1">
+                <label class="text-xs text-slate-600">
+                  Begin (minuend): <span class="font-bold text-amber-700">{{ slider1 }} / {{ currentLevelData?.commonDen }}</span>
+                </label>
+                <input
+                  type="range" min="0" :max="currentLevelData?.commonDen || 1" step="1"
+                  v-model.number="slider1"
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs text-slate-600">
+                  Weg te halen: <span class="font-bold text-slate-700">{{ slider2 }} / {{ currentLevelData?.commonDen }}</span>
+                </label>
+                <input
+                  type="range" min="0" :max="slider1" step="1"
+                  v-model.number="slider2"
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+              </div>
+              <p class="text-xs text-slate-500 text-center">
+                Verschil: <strong>{{ slider1 - slider2 }} / {{ currentLevelData?.commonDen }}</strong>
+              </p>
+            </div>
+          </div>
+
+          <!-- Why explanation -->
+          <div
+            v-if="isCorrect && !showReflection"
+            class="mt-4 p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400 animate-fadeIn"
+          >
+            <p class="font-bold text-amber-800 text-sm mb-1">
+              <template v-if="currentLevelData?.mode === 'add'">Waarom tel je tellers op en niet noemers?</template>
+              <template v-else-if="currentLevelData?.mode === 'subtract'">Waarom trek je tellers af en niet noemers?</template>
+              <template v-else>Waarom is de noemer het totaal aantal vakjes?</template>
+            </p>
+            <p class="text-xs text-amber-700 leading-relaxed">
+              <template v-if="currentLevelData?.mode === 'add'">
+                Eerst maak je breuken gelijknamig: je zoekt de KGV van de noemers en past beide breuken aan.
+                De noemer blijft hetzelfde omdat het vakje/deel even groot blijft. Alleen het aantal
+                vakjes (tellers) wordt opgeteld. De noemer verandert niet &mdash; die stelt de grootte van
+                het deel voor, niet het aantal.
+              </template>
+              <template v-else-if="currentLevelData?.mode === 'subtract'">
+                Net als bij optellen: eerst gelijknamig maken met KGV, dan alleen de tellers aftrekken.
+                De noemer verandert niet omdat de grootte van de delen hetzelfde blijft.
+              </template>
+              <template v-else>
+                De noemer is het totale aantal gelijke delen waar het geheel in verdeeld is.
+                De teller is het aantal delen dat gekleurd is. Het rooster maakt dit zichtbaar:
+                tel de oranje vakjes en het totaal.
+              </template>
+            </p>
+          </div>
+
+          <!-- Reflection -->
+          <div
+            v-if="showReflection"
+            class="mt-4 p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400 animate-fadeIn"
+          >
+            <p class="font-bold text-amber-800 mb-2 text-sm">Reflectie:</p>
+            <p class="text-xs text-amber-700 mb-2">
+              <template v-if="currentLevelData?.mode === 'add' || currentLevelData?.mode === 'subtract'">
+                Waarom moet je breuken eerst gelijknamig maken voor je tellers kan optellen of aftrekken?
+                Wat gebeurt er in het rooster?
+              </template>
+              <template v-else>
+                Hoe zou je bepalen welk deel van een figuur gekleurd is als de figuur in ongelijke delen verdeeld was?
+              </template>
+            </p>
+            <textarea
+              v-model="reflectionAnswer"
+              class="w-full p-2 text-sm border border-amber-300 rounded-lg bg-white outline-none focus:border-amber-500 h-16 resize-none"
+              placeholder="Typ je uitleg..."
+            ></textarea>
+            <button
+              @click="checkReflection"
+              class="w-full mt-2 py-2 text-sm font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 active:scale-[0.98]"
+            >
+              Bevestig
+            </button>
+          </div>
         </div>
 
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+        <!-- Footer -->
+        <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
+          <div
+            v-if="feedback.text"
+            class="flex items-start gap-3 p-3 mb-4 text-sm font-medium rounded-lg animate-fadeIn border-l-4"
+            role="status" aria-live="polite" aria-atomic="true"
+            :class="{
+              'bg-amber-50 text-amber-800 border-amber-400': feedback.type === 'success',
+              'bg-red-100 text-red-800 border-red-400': feedback.type === 'error',
+              'bg-slate-100 text-slate-700 border-slate-400': feedback.type === 'info'
+            }"
+          >
+            <component
+              :is="feedback.type === 'success' ? PhCheckCircle : (feedback.type === 'error' ? PhWarningCircle : PhLightbulb)"
+              class="w-5 h-5 shrink-0 mt-0.5" weight="fill"
+            />
+            <span>{{ feedback.text }}</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <button
+              @click="resetActivityState"
+              class="p-4 text-lg transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98]"
+            >
+              <PhArrowClockwise />
+            </button>
+            <button
+              v-if="showPrediction && !showWorkedExample && attemptCount > 0"
+              @click="showHint"
+              class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] text-sm flex items-center justify-center gap-2"
+            >
+              <PhLightbulb weight="fill" class="w-4 h-4" />
+              Hint {{ hintCount >= 3 ? '3/3' : hintCount + 1 + '/3' }}
+            </button>
+            <button
+              v-if="!showPrediction && !isCorrect"
+              @click="checkAnswer"
+              class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 active:scale-[0.98] text-sm"
+            >
+              Controleer
+            </button>
+            <button
+              v-if="isCorrect && !showReflection"
+              @click="handleNext"
+              class="flex-1 py-4 font-bold text-white rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
+              <PhArrowRight weight="bold" />
+            </button>
+          </div>
+        </div>
+      </div>
 
-              <div class="relative flex flex-col items-center">
+      <!-- Visual area: Grid display -->
+      <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+        <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
 
-                  <!-- Y Slider (for fraction 1) -->
-                  <div class="absolute -left-16 top-0 bottom-0 flex flex-col items-center justify-between pb-8">
-                      <span class="font-bold text-blue-600 mb-2">{{ currentLevelData.num1 }}/{{ currentLevelData.den1 }}</span>
-                      <input type="range" min="0" :max="currentLevelData.rows" step="1" v-model.number="selY" :disabled="isCorrect"
-                             class="h-64 appearance-none cursor-pointer accent-blue-500 slider-vertical"
-                             style="width: 8px; writing-mode: vertical-lr; direction: rtl; transform: rotate(180deg);" />
-                  </div>
+          <div class="relative flex flex-col items-center">
 
-                  <!-- The Grid -->
-                  <div class="relative bg-white border-4 border-slate-300 shadow-md" style="width: 400px; height: 300px;">
-
-                      <!-- Grid container dynamic cols/rows -->
-                      <div class="absolute inset-0 grid"
-                           :style="{ gridTemplateColumns: `repeat(${currentLevelData.cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${currentLevelData.rows}, minmax(0, 1fr))` }">
-                          <template v-for="y in currentLevelData.rows" :key="'ry'+y">
-                              <template v-for="x in currentLevelData.cols" :key="'rx'+x">
-
-                                  <div class="border border-slate-200 transition-colors duration-300"
-                                       :class="{
-                                           'bg-emerald-400': x <= selX && y <= selY,
-                                           'bg-math-blue-light': x <= selX && y > selY,
-                                           'bg-blue-300': x > selX && y <= selY,
-                                           'bg-transparent': x > selX && y > selY
-                                       }">
-                                  </div>
-
-</template>
-</template>
+            <!-- The Grid -->
+            <div
+              class="relative bg-white border-4 border-slate-300 shadow-md"
+              :style="{
+                width: currentLevelData ? `${Math.min(currentLevelData.cols * 60, 420)}px` : '300px',
+                height: currentLevelData ? `${Math.min(currentLevelData.rows * 60, 360)}px` : '200px'
+              }"
+            >
+              <div
+                class="absolute inset-0 grid"
+                :style="currentLevelData ? {
+                  gridTemplateColumns: `repeat(${currentLevelData.cols}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${currentLevelData.rows}, minmax(0, 1fr))`
+                } : {}"
+              >
+                <template v-if="currentLevelData">
+                  <!-- Iterate cells row by row -->
+                  <template v-for="row in currentLevelData.rows" :key="'r'+row">
+                    <div
+                      v-for="col in currentLevelData.cols" :key="'c'+col"
+                      class="border border-slate-200 transition-colors duration-300 flex items-center justify-center relative"
+                      :class="{
+                        'bg-amber-400': getCellState((row-1) * currentLevelData.cols + (col-1)) === 'frac1',
+                        'bg-amber-200': getCellState((row-1) * currentLevelData.cols + (col-1)) === 'frac2',
+                        'bg-amber-100': getCellState((row-1) * currentLevelData.cols + (col-1)) === 'amber',
+                        'bg-white': getCellState((row-1) * currentLevelData.cols + (col-1)) === 'white'
+                      }"
+                    >
+                      <!-- Crossed-out cell for subtraction -->
+                      <div
+                        v-if="getCellState((row-1) * currentLevelData.cols + (col-1)) === 'crossed'"
+                        class="absolute inset-0 flex items-center justify-center"
+                      >
+                        <div class="w-full h-0.5 bg-slate-700 rotate-45 absolute"></div>
+                        <div class="w-full h-0.5 bg-slate-700 -rotate-45 absolute"></div>
                       </div>
-
-                  </div>
-
-                  <!-- X Slider (for fraction 2) -->
-                  <div class="w-[400px] mt-8 flex flex-col items-center">
-                      <input type="range" min="0" :max="currentLevelData.cols" step="1" v-model.number="selX" :disabled="isCorrect"
-                             class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" />
-                      <span class="font-bold text-math-blue mt-2">{{ currentLevelData.num2 }}/{{ currentLevelData.den2 }}</span>
-                  </div>
-
+                    </div>
+                  </template>
+                </template>
               </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex gap-6 mt-6 text-xs text-slate-500 flex-wrap justify-center">
+              <div v-if="currentLevelData?.mode === 'identify'" class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-amber-100 rounded"></div>
+                <span>Gekleurd ({{ currentLevelData?.coloredCount }}/{{ currentLevelData?.totalCells }})</span>
+              </div>
+              <div v-if="currentLevelData?.mode === 'add' || currentLevelData?.mode === 'subtract'" class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-amber-400 rounded"></div>
+                <span v-if="currentLevelData?.mode === 'add'">
+                  {{ currentLevelData?.frac1Num }}/{{ currentLevelData?.frac1Den }}
+                  = {{ currentLevelData?.scaled1Num }}/{{ currentLevelData?.commonDen }}
+                </span>
+                <span v-else>
+                  Minuend: {{ currentLevelData?.frac1Num }}/{{ currentLevelData?.frac1Den }}
+                  = {{ currentLevelData?.scaled1Num }}/{{ currentLevelData?.commonDen }}
+                </span>
+              </div>
+              <div v-if="currentLevelData?.mode === 'add'" class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-amber-200 rounded"></div>
+                <span>
+                  {{ currentLevelData?.frac2Num }}/{{ currentLevelData?.frac2Den }}
+                  = {{ currentLevelData?.scaled2Num }}/{{ currentLevelData?.commonDen }}
+                </span>
+              </div>
+              <div v-if="currentLevelData?.mode === 'subtract'" class="flex items-center gap-2">
+                <div class="w-4 h-4 relative">
+                  <div class="w-full h-full bg-amber-400 rounded"></div>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-full h-0.5 bg-slate-700 rotate-45 absolute"></div>
+                    <div class="w-full h-0.5 bg-slate-700 -rotate-45 absolute"></div>
+                  </div>
+                </div>
+                <span>
+                  Subtrahend: {{ currentLevelData?.frac2Num }}/{{ currentLevelData?.frac2Den }}
+                  = {{ currentLevelData?.scaled2Num }}/{{ currentLevelData?.commonDen }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Sum / Difference display -->
+            <div v-if="!showPrediction && currentLevelData?.mode === 'add'" class="mt-4 text-center text-sm text-slate-700">
+              <span class="font-bold">{{ slider1 }}/{{ currentLevelData.commonDen }}</span>
+              <span> + </span>
+              <span class="font-bold">{{ slider2 }}/{{ currentLevelData.commonDen }}</span>
+              <span> = </span>
+              <span class="font-bold text-amber-700">{{ slider1 + slider2 }}/{{ currentLevelData.commonDen }}</span>
+            </div>
+
+            <div v-if="!showPrediction && currentLevelData?.mode === 'subtract'" class="mt-4 text-center text-sm text-slate-700">
+              <span class="font-bold">{{ slider1 }}/{{ currentLevelData.commonDen }}</span>
+              <span> - </span>
+              <span class="font-bold">{{ slider2 }}/{{ currentLevelData.commonDen }}</span>
+              <span> = </span>
+              <span class="font-bold text-amber-700">{{ slider1 - slider2 }}/{{ currentLevelData.commonDen }}</span>
+            </div>
 
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" />
+</div>
+<SuccessCelebration
+  :show="isCorrect && !celebrationDone"
+  @done="celebrationDone = true"
+  :is-level-complete="currentInternalLevel === totalInternalLevels - 1"
+/>
 </template>
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
+.shadow-inner-light { box-shadow: inset -5px 0 15px -10px rgba(0,0,0,0.1); }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
-.animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-
-/* Horizontal slider */
-input[type=range]:not(.slider-vertical)::-webkit-slider-thumb {
+input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 24px;
   width: 24px;
   border-radius: 50%;
-  background: #f59e0b;
+  background: #d97706;
   border: 4px solid white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   cursor: pointer;
-  margin-top: -11px;
+  margin-top: -10px;
 }
-input[type=range]:not(.slider-vertical)::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-  background: #cbd5e1;
-  border-radius: 2px;
-}
-
-/* Vertical slider */
-input[type=range].slider-vertical::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  background: #3b82f6;
-  border: 4px solid white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  cursor: pointer;
-  margin-left: -8px;
-}
-input[type=range].slider-vertical::-webkit-slider-runnable-track {
+input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
   cursor: pointer;

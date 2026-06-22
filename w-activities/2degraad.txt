@@ -1,0 +1,715 @@
+4 Leerplandoelen
+4.1 Problemen oplossen en wiskundig redeneren
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 1 De leerlingen beschrijven fenomenen uit de realiteit aan de hand van wiskundige
+concepten uit de tweede graad.
+Samenhang tweede graad: Wisselwerking wetenschappen, technologie, wiskunde en
+maatschappij (II-Nat’-d LPD 5S; II-NatS-d LPD 6S; II-TeWe-d LPD 5)
+Wenk: Je kan aan dit doel werken door voldoende contexten bij de inhoudelijke doelen
+aan bod te laten komen. Telkens wanneer er met een context wordt gewerkt, zal
+een wiskundig concept worden gebruikt om iets uit de realiteit te beschrijven. Je
+kan zowel werken met richtingspecifieke als actuele contexten.
+Wenk: Je kan via dit doel ook werken aan het STEM-doel over de wisselwerking tussen
+wetenschappen, technologie, wiskunde en de maatschappij.
+LPD 2 De leerlingen lossen vraagstukken en problemen op door te mathematiseren en
+demathematiseren en door gebruik te maken van heuristieken.
+Samenhang tweede graad: Een oplossing ontwerpen (II-Nat’-d LPD 4S; II-NatS-d LPD 5S; IITeWe-d LPD 4)
+Duiding: Bij vraagstukken is de oplossingsmethode vaak aansluitend bij de pas geziene
+leerstof, terwijl bij problemen oplossen heuristieken en een oplossingsmethode
+moeten worden gekozen.
+Wenk: Je kan het oplossen van problemen best integreren in het normale lesgebeuren en
+gespreid doorheen het schooljaar laten terugkomen. De leerlingen zullen die
+vaardigheid maar verwerven doorheen een actief leerproces. Je kan bijvoorbeeld
+na een aantal leerinhouden of hoofdstukken problemen laten oplossen waarbij
+leerlingen zelf de passende leerinhoud moeten selecteren. Je kan ook problemen 
+Wiskunde B+S’’ (versie oktober 2024) 13
+D/2024/13.758/351 II-WisS’’-d
+aan bod laten komen die los staan van de geziene leerinhouden.
+Wenk: Heuristische methoden worden veelvuldig gebruikt bij het oplossen van
+problemen. Belangrijk is ze bewust te laten ervaren en te expliciteren op het
+ogenblik dat ze spontaan worden gebruikt. Voorbeelden van heuristieken die aan
+bod kunnen komen: het gegeven en gevraagde expliciteren, het probleem
+herformuleren of opdelen in deelproblemen, een schets of tekening maken,
+bijzondere gevallen onderzoeken, tijdelijk één van de voorwaarden laten vallen,
+van achter naar voor werken, alle mogelijkheden opschrijven en dan elimineren.
+Wenk: Het demathematiseren kan gebeuren via een antwoordzin. Controleren of een
+antwoord realistisch is, hoort ook bij deze stap van het oplossingsproces.
+LPD 3 De leerlingen gebruiken ICT om berekeningen uit te voeren en grafische
+voorstellingen te maken.
+Wenk: Je kan ICT breed en strategisch (laten) inzetten en combineren met de
+inhoudelijke doelen.
+Wenk: Voorbeelden van grafische voorstellingen: grafieken van functies, statistische
+tabellen en diagrammen.
+Wenk: Je kan aandacht schenken aan het zinvol gebruik van ICT, bv. bij berekeningen.
+LPD 4 De leerlingen beargumenteren wiskundige redeneringen en maken daarbij ook
+gebruik van eigenschappen of van een tegenvoorbeeld.
+Wenk: Om de correctheid van een wiskundige uitspraak na te gaan kan het nuttig zijn om
+ze eerst te laten illustreren met voorbeelden. Om aan te tonen dat een uitspraak
+vals is kan er worden gewerkt met een tegenvoorbeeld.
+Wenk: Je kan dit doel breed inzetten en combineren met de inhoudelijke doelen.
+Wiskundige redeneringen of argumentaties komen bv. ook aan bod in oefeningen
+waarbij wiskundige eigenschappen worden toegepast.
+Wenk: Je kan aandacht schenken aan het gestructureerd verwoorden en noteren van de
+gedachtegang bij een redenering met correct gebruik van vakterminologie. Je kan
+tijdens de les de leerlingen hun redenering mondeling laten uitleggen en de
+leerlingen evalueren door mogelijke fouten aan te wijzen en te laten verbeteren.
+Wenk: Symbolen kunnen handig zijn om een uitdrukking verkort weer te geven. Het is
+anderzijds niet de bedoeling om daarin te overdrijven, m.a.w. geen symboliek om
+de symboliek. Het is niet nodig dat de leerlingen de dubbele pijl systematisch
+gebruiken bij het oplossen van vergelijkingen.
+LPD B1 De leerlingen bewijzen wiskundige uitspraken.
+ Bewijstechnieken: rechtstreeks bewijs, bewijs uit het ongerijmde
+Wenk: Je kan tussenstappen van een bewijs laten verantwoorden. Je kan bewijzen laten
+reconstrueren in een gewijzigde situatie (zoals in een specifieke situatie of met
+andere symbolen).
+Wenk: Voorbeelden van bewijzen: eigenschappen en rekenregels van bewerkingen, de 
+14 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+gelijkvormigheidskenmerken van driehoeken, de stelling van Thales, de stelling
+van Pythagoras, formule voor de afstand tussen twee punten en tussen een punt
+en rechte in het vlak, goniometrische formules (bv. grondformule), de sinus- en
+cosinusregel, discriminantformule bij het oplossen van
+tweedegraadsvergelijkingen, reststelling voor veeltermen, eigenschappen van de
+cirkel, eigenschappen van grafen …
+Wenk: Je kan de bewijstechniek ‘bewijs uit het ongerijmde’ gebruiken bij de
+irrationaliteit van √2 of voor de uniciteit van quotiënt en rest bij de Euclidische
+deling van veeltermen.
+4.2 Getallenleer
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 5 De leerlingen leggen de invoering van de reële getallen uit als de vervollediging van
+de reële getallenas.
+ Getallen met eindige of oneindige doorlopende decimale vorm, met of zonder repeterend
+deel
+Wenk: De noodzaak van de invoering van reële getallen kan worden geduid door aan te
+geven dat vierkantswortels van rationale getallen niet rationaal hoeven te zijn (bv.
+√2). Je kan de irrationale lengte √2 exact construeren als de lengte van de
+diagonaal van een vierkant met zijde 1 (door gebruik te maken van de stelling van
+Pythagoras) of als de lengte van de zijde van een ingeschreven ‘diagonaal’
+vierkant in een vierkant met zijde 2 (door gebruik te maken van de formule voor
+de oppervlakte van een vierkant). Een ander voorbeeld van een irrationaal getal is
+het getal π.
+Wenk: Je kan gebruik maken van de terminologie en symboliek van verzamelingenleer
+die de leerlingen in de eerste graad A-stroom al aangeleerd kregen.
+LPD 6 De leerlingen ordenen reële getallen.
+1ste graad: Ordenen van rationale getallen (I-Wis-a LPD 8)
+Wenk: Je kan reële getallen ordenen door gebruik te maken van symbolen en door ze
+voor te stellen op een getallenas.
+LPD 7 De leerlingen rekenen met reële getallen.
+ Optelling, aftrekking, vermenigvuldiging, deling, machtsverheffing met gehele exponenten,
+vierkantsworteltrekking met rekenregels en eigenschappen met symbolen
+Schatting van grootteorde en afronding
+1ste graad: Rekenen met rationale getallen (I-Wis-a LPD 11, 12, 14, 15, 16)
+Wenk: Je kan bij vierkantswortels de volgende opbouw gebruiken om het concept in te
+voeren: eerst de definitie van een wortel van een reëel getal geven, daarna de
+leerlingen laten onderzoeken hoeveel wortels een getal heeft, dan het 
+Wiskunde B+S’’ (versie oktober 2024) 15
+D/2024/13.758/351 II-WisS’’-d
+onderscheid maken tussen de positieve en de negatieve vierkantswortels als het
+reëel getal positief is en tenslotte de wortelnotatie invoeren. Je kan de
+grootteorde van een vierkantswortel laten schatten zonder ICT en een rationale
+benadering laten berekenen met ICT.
+Wenk: Berekeningen zonder ICT zijn beperkt in omvang en complexiteit.
+Wenk: Je kan als een toepassing van machten met gehele exponenten de
+wetenschappelijke schrijfwijze aan bod laten komen.
+Wenk: Wat betreft vierkantswortels kan je de volgende rekenregels aan bod laten
+komen: vereenvoudigen van vierkantswortels, vereenvoudigen van som of
+verschil van gelijksoortige vierkantswortels en het product en quotiënt van
+vierkantswortels. Het vereenvoudigen van vierkantswortels staat i.f.v. de
+bewerkingen. Gekunstelde oefeningen worden best vermeden.
+Wenk: Je kan de noemer van een breuk wortelvrij laten maken.
+Extra: Je kan naast vierkantswortels ook derdemachtswortels van reële getallen
+invoeren.
+4.3 Meetkunde
+4.3.1 Gelijkvormigheid
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 8 De leerlingen bepalen het effect van schaalverandering op vorm, lengte, oppervlakte
+en volume.
+ Gelijkvormigheidsfactor
+Wenk: In dit leerplandoel wordt het verband gelegd tussen gelijkvormigheid en schaal. Je
+kan de gelijkvormigheidsfactor bij vlakke en ruimtelijke figuren berekenen.
+Extra: Je kan gelijkvormigheid beschrijven met behulp van samenstellingen van
+transformaties, in het bijzonder homothetieën. Indien het vlak voorzien is van een
+assenstelsel kan je de coördinaten van het beeldpunt onder een homothetie
+bepalen vanuit de coördinaten van het origineel (m.b.v. rekenen met vectoren).
+LPD 9 De leerlingen passen gelijkvormigheidskenmerken van driehoeken toe om
+meetkundige problemen op te lossen.
+1ste graad: Congruentiekenmerken van driehoeken (I-Wis-a LPD 24)
+Wenk: Je kan de leerlingen eerst kenmerken laten onderzoeken, daarna laten formuleren
+en tenslotte laten toepassen.
+Wenk: Je kan metrische betrekkingen in een rechthoekige driehoek verklaren d.m.v.
+gelijkvormigheidskenmerken.
+Wenk: Je kan de stelling van Thales aan bod laten komen. 
+16 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+4.3.2 De stelling van Pythagoras en driehoeksmeting in rechthoekige driehoeken
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 10 De leerlingen passen de stelling van Pythagoras toe om vlakke en ruimtelijke
+problemen op te lossen.
+Wenk: Je kan de leerlingen eerst de stelling laten onderzoeken, daarna laten formuleren
+en tenslotte laten toepassen. Bij het formuleren van de stelling van Pythagoras
+heeft een formulering in woorden de voorkeur op een formulering via een
+formule, omdat die formule nadien vaak fout wordt toegepast.
+Wenk: Je kan de stelling van Pythagoras gebruiken om bepaalde irrationale lengtes te
+construeren (bv. √2 of √5).
+Wenk: Als een ruimtelijke toepassing kan je leerlingen de lengte van een ruimtediagonaal
+van een balk of de hoogte van een piramide laten berekenen. Daarbij moeten ze
+tweemaal het geschikte vlak kiezen.
+Wenk: Je kan de analytische uitdrukking voor de afstand tussen twee punten in het vlak
+gebruiken.
+Wenk: Je kan ook de omgekeerde stelling van Pythagoras aan bod laten komen.
+LPD 11 De leerlingen gebruiken de goniometrische getallen sinus, cosinus en tangens in
+rechthoekige driehoeken om meetkundige problemen op te lossen.
+ Grondformule van de goniometrie
+Wenk: Je kan de sinus, cosinus en tangens van een scherpe hoek invoeren als een
+verhouding van zijden in een rechthoekige driehoek. De tangens van een scherpe
+hoek kan je ook definiëren als de verhouding van de sinus met de cosinus van die
+hoek.
+Wenk: Je kan ICT laten gebruiken bij het bepalen van goniometrische getallen van een
+gegeven scherpe hoek.
+Wenk: Bij sommige meetkundige problemen moet een scherpe hoek in een rechthoekige
+driehoek worden bepaald vanuit de lengtes van twee zijdes en zullen de
+leerlingen dus de grootte van een scherpe hoek moeten bepalen vanuit de sinus,
+cosinus of tangens van die hoek. Daarbij kan ICT worden ingezet. Je kan duiden
+dat voor scherpe hoeken de kennis van één van de goniometrische getallen de
+hoek ondubbelzinnig bepaalt. Het is echter niet nodig om de cyclometrische
+functies in te voeren.
+Wenk: Bij berekeningen met hoeken kan de hoekgrootte worden geschreven als een
+aantal graden in decimale vorm, maar ook met behulp van het zestigtallig stelsel
+met graden, minuten en seconden. Bij de omzetting wordt best ICT ingezet. De
+schrijfwijze in het zestigtallig stelsel heeft als voordeel dat er minder verwarring
+mogelijk is tussen de hoek en een goniometrisch getal bij die hoek.
+Wiskunde B+S’’ (versie oktober 2024) 17
+D/2024/13.758/351 II-WisS’’-d
+4.3.3 Ruimtemeetkunde
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 12 De leerlingen bepalen de onderlinge ligging van twee rechten, twee vlakken en een
+rechte en een vlak in ruimtelijke situaties.
+1ste graad: Ruimtefiguren (I-Wis-a LPD 26)
+Wenk: Je kan aangeven dat evenwijdige rechten ofwel strikt evenwijdig ofwel
+samenvallend zijn. Analoog zijn samenvallende vlakken evenwijdig en is een
+rechte in een vlak evenwijdig met dat vlak.
+Wenk: De loodrechte stand wordt beschouwd als een onderdeel van de onderlinge
+ligging. Loodrechte kruisende rechten kan je visualiseren door gebruik te maken
+van een concrete figuur zoals een kubus. Het is niet nodig om de hoek tussen
+twee kruisende rechten te definiëren.
+Wenk: Je kan het snijpunt van twee rechten of van een rechte en een vlak laten bepalen.
+Je kan de snijlijn van twee vlakken laten bepalen.
+Extra: Je kan een ruimtelijke situatie laten voorstellen op een tweedimensionale manier.
+Je kan de onderlinge ligging laten visualiseren en de doorsnede van een vlak met
+een balk of kubus laten bepalen.
+4.3.4 Vectoren
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 13 De leerlingen tekenen in het vlak de som van vectoren en de scalaire
+vermenigvuldiging van een vector met een getal.
+Samenhang tweede graad: Resulterende kracht (II-Nat’-d LPD 3F; II-NatS-d LPD 3F, 7F; II-TeWed LPD 7, 15, 21)
+1ste graad: Translatie over een vector (I-Wis-a LPD 23)
+Wenk: Je kan aandacht schenken aan de nulvector als een speciaal geval van een vector
+en aan de tegengestelde vector van een vector (bv. bij het verschil van vectoren of
+bij een scalaire vermenigvuldiging met een negatief getal).
+Wenk: Het vectormodel wordt gebruikt om bepaalde grootheden voor te stellen zoals
+kracht, verplaatsing en snelheid. Het is niet de bedoeling om een aparte studie
+van de fysische grootheden te doen. Vectoren worden in andere vakgebieden
+soms anders genoteerd; soms is ook het aangrijpingspunt van belang.
+LPD 14 De leerlingen rekenen met vectoren in het vlak.
+ Bewerkingen: optelling en scalaire vermenigvuldiging
+Norm van een vector en ontbinding van een vector in zijn componenten
+Wenk: Je gebruikt coördinaten in een orthonormaal assenstelsel bij het rekenen met
+vectoren. 
+18 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+Wenk: Je kan meetkundige objecten beschrijven door gebruik te maken van vectoren.
+Voorbeelden: het midden van een lijnstuk en het zwaartepunt van een driehoek.
+4.3.5 Goniometrie
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 15 + De leerlingen bepalen goniometrische getallen van georiënteerde hoeken met behulp
+van de goniometrische cirkel.
+Wenk: Je kan de stelling van Pythagoras gebruiken om de grondformule van de
+goniometrie uit te breiden naar de goniometrische cirkel.
+Wenk: Je kan naast de goniometrische getallen sinus en cosinus ook de tangens en
+cotangens aan bod laten komen. Je kan de link leggen tussen de
+richtingscoëfficiënt van een rechte en de tangens van de bijbehorende
+hellingshoek.
+Wenk: Een punt op de goniometrische cirkel komt overeen met een goniometrische
+hoek. Zo’n hoek heeft oneindig veel hoekwaardes, die kunnen worden genoteerd
+door 𝛼 + 𝑘. 360° met 𝑘 een geheel getal. Je kan kiezen om steeds te werken met
+een representant in het interval [0°, 360°[ of in ] − 180°, 180°].
+LPD 16 De leerlingen gebruiken goniometrische formules om uitdrukkingen te
+vereenvoudigen.
+ Formules: verbanden tussen goniometrische getallen van verwante hoeken
+Wenk: Je kan de verbanden tussen de goniometrische getallen van verwante hoeken
+laten onderzoeken aan de hand van de goniometrische cirkel. Het is niet de
+bedoeling dat de leerlingen de verbanden van buiten leren.
+Wenk: Je kan andere goniometrische formules aan bod laten komen, bv. de
+grondformule of de formules die direct volgen uit de grondformule. De afgeleide
+formules moeten door de leerlingen niet vanbuiten worden geleerd. Je kan d.m.v.
+formules vanuit een gegeven goniometrisch getal de andere goniometrische
+getallen laten bepalen zonder de hoeken zelf te berekenen.
+LPD 17 De leerlingen gebruiken de sinus- en cosinusregel om meetkundige problemen op te
+lossen.
+Wenk: Je kan aangeven dat de cosinusregel een veralgemening is van de stelling van
+Pythagoras voor willekeurige driehoeken.
+Wenk: Als je enkel de sinusregel gebruikt voor het oplossen van een driehoek kan je twee
+mogelijkheden uitkomen. Je kan daar aandacht aan schenken, bv. door leerlingen
+eerst een tekening te laten maken of door de link te leggen met de
+congruentiekenmerken of met verwante hoeken.
+Wenk: Je kan ook ruimtelijke problemen aan bod laten komen.
+Extra: Je kan de formule van Heron voor de oppervlakte van een driehoek aantonen
+door gebruik te maken van de cosinusregel. 
+Wiskunde B+S’’ (versie oktober 2024) 19
+D/2024/13.758/351 II-WisS’’-d
+4.3.6 Analytische meetkunde in het vlak
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD B2 De leerlingen berekenen het inproduct van vectoren in het vlak.
+Wenk: Bij het inproduct kan je gebruik maken van de twee formules, nl. in termen van
+norm van vectoren en ingesloten hoek (grafische betekenis) en met behulp van
+coördinaten.
+LPD B3 De leerlingen stellen vectoriële, parametrische en cartesische vergelijkingen van
+rechten in het vlak op.
+Wenk: Parametrische en vectoriële vergelijkingen van een rechte zijn verwant en
+verschillen in feite enkel van elkaar in schrijfwijze. Parametrische en vectoriële
+vergelijkingen van een rechte zijn niet uniek omdat zowel de ‘startpositie’ als de
+richtingsvector van een rechte niet uniek bepaald zijn.
+Wenk: De coëfficiëntenvector (𝑢, 𝑣) bij de variabelen x en y van een cartesische
+vergelijking 𝑢𝑥 + 𝑣𝑦 + 𝑤 = 0 van een rechte is een normaalvector van de rechte.
+Een vector die daarop loodrecht staat, bijvoorbeeld (𝑣, −𝑢), geeft dus een
+richtingsvector van de rechte. Je kan dat gebruiken om een cartesische
+vergelijking om te zetten naar een vectorvergelijking en omgekeerd. Bij
+toepassingen kan je aandacht schenken aan de meest geschikte vorm van de
+vergelijking.
+Wenk: Je kan de vergelijking van een zwaartelijn in een driehoek opstellen.
+Extra: Je kan de vergelijking van de raaklijn in een punt van een cirkel laten opstellen.
+Extra: Je kan de vergelijking van een cirkel met gegeven middelpunt en straal laten
+opstellen. Je kan ook vanuit de algemene vergelijking van een cirkel het
+middelpunt en de straal laten bepalen.
+LPD B4 De leerlingen bepalen de onderlinge ligging van twee rechten in het vlak met behulp
+van vergelijkingen.
+Wenk: Bij de onderlinge ligging van rechten kan je samenvallende rechten bekijken als
+een speciaal geval van evenwijdige rechten. Voor de evenwijdigheid van rechten
+in het vlak te onderzoeken kan je gebruik maken van richtingsvectoren of
+-getallen.
+Wenk: De loodrechte stand wordt beschouwd als een onderdeel van de onderlinge
+ligging. Je kan de loodrechte stand van rechten onderzoeken door na te gaan of
+het product van richtingscoëfficiënten bij de rechten gelijk aan -1 is. Je kan ook
+nagaan of het inproduct van twee richtingsvectoren of van twee normaalvectoren
+gelijk is aan nul.
+Wenk: Je kan de vergelijking van een rechte laten opstellen die loodrecht staat op een
+andere rechte, bijvoorbeeld van een middelloodlijn of een hoogtelijn in een
+driehoek.
+Extra: Je kan de onderlinge ligging van een cirkel met een rechte of van twee cirkels 
+20 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+bepalen (via een afstandsformule) en eventuele snijpunten bepalen (via
+vergelijkingen).
+LPD B5 De leerlingen berekenen de afstand tussen een punt en een rechte en de hoek tussen
+twee snijdende rechten in het vlak.
+Wenk: Je kan de afstand van een punt tot een rechte bepalen a.d.h.v. de afstandsformule
+als de cartesische vergelijking van de rechte gegeven is.
+Wenk: Je kan de hoek tussen twee snijdende rechten bepalen via het inproduct van twee
+richtingsvectoren.
+Wenk: Je kan als toepassing de vergelijkingen van de bissectrices van twee snijdende
+rechten laten opstellen.
+Extra: Je kan de vergelijkingen van de raaklijnen uit een punt aan een cirkel laten
+opstellen.
+4.3.7 De cirkel (keuzedeel)
+LPD K1 De leerlingen gebruiken eigenschappen van de cirkel om meetkundige problemen op
+te lossen.
+Wenk: Voorbeelden van eigenschappen:
+− door drie niet-collineaire punten gaat juist één cirkel;
+− eigenschappen van apothema, straal en koorde;
+− eigenschap van raaklijn aan de cirkel;
+− eigenschappen van middelpuntshoeken en omtrekshoeken;
+− eigenschap van raaklijnen uit een punt aan de cirkel.
+Wenk: Je kan de eigenschappen eerst laten onderzoeken, daarna laten formuleren (en
+eventueel bewijzen) en tenslotte laten toepassen.
+Wenk: Je kan eigenschappen gebruiken bij constructies met passer en liniaal, bv. van de
+raaklijn in een punt van de cirkel of van raaklijnen uit een punt aan de cirkel.
+Extra: Je kan het begrip macht van een punt t.o.v. een cirkel invoeren en de bijhorende
+eigenschap aantonen.
+Extra: Je kan de constructie van de gemeenschappelijke (inwendige en uitwendige)
+raaklijnen aan twee cirkels behandelen.
+4.4 Algebra en functieleer
+4.4.1 Eerstegraadsvergelijkingen, -ongelijkheden en omvormen van formules
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 18 De leerlingen lossen eerstegraadsvergelijkingen in één onbekende algebraïsch op in
+ℝ. 
+Wiskunde B+S’’ (versie oktober 2024) 21
+D/2024/13.758/351 II-WisS’’-d
+1ste graad: Eerstegraadsvergelijkingen (I-Wis-a LPD 33)
+Wenk: Je kan de balansmethode gebruiken om eigenschappen van gelijkheden te duiden.
+Na automatisatie van die eigenschappen door de leerlingen hoeft er niet steeds
+meer worden teruggegrepen naar de balansmethode.
+Wenk: Je kan ervoor kiezen om dit doel samen met het grafisch oplossen van
+eerstegraadsvergelijkingen (LPD 25) aan te brengen.
+Wenk: Je kan vergelijkingen met één parameter laten bespreken.
+LPD 19 De leerlingen lossen eerstegraadsongelijkheden in één onbekende algebraïsch op in
+ℝ.
+Wenk: Je kan de oplossingenverzameling van een eerstegraadsongelijkheid grafisch laten
+voorstellen op een getallenas of weergeven via de intervalnotatie.
+Wenk: Je kan ervoor kiezen om dit doel samen met het grafisch oplossen van
+eerstegraadsongelijkheden (LPD 25) aan te brengen.
+Wenk: Je kan stelsels van eerstegraadsongelijkheden in één onbekende aan bod laten
+komen.
+Wenk: Je kan ongelijkheden met één parameter laten bespreken.
+LPD 20 De leerlingen drukken bij een formule één variabele uit in functie van een andere.
+Samenhang tweede graad: Formules gebruiken bij fysische problemen (II-Nat’-d LPD 1F; IINatS-d LPD 1F; II-TeWe-d LPD 1)
+1ste graad: Getalwaarde van een algebraïsche uitdrukking (I-Wis-a LPD 30)
+Wenk: Je kan lineaire en zuiver kwadratische verbanden aan bod laten komen. Je kan
+formules gebruiken die voorkomen in de eerste graad A-stroom of tweede graad
+D-finaliteit. Voorbeelden van wiskundige formules: formules voor oppervlakte,
+goniometrische getallen als verhoudingen, stelling van Pythagoras …
+Wenk: Je kan dit doel als een apart gegeven aanleren. Het is daarnaast opportuun om
+het omvormen van formules ook op andere momenten (wanneer er een formule
+aangeleerd wordt) aan bod te laten komen.
+4.4.2 Inleiding tot reële functies
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 21 De leerlingen leggen uit wat een functie is en leggen het verband tussen verschillende
+representaties van een functie, met name tussen verwoording, tabel, grafiek en
+voorschrift.
+1ste graad: Recht en omgekeerd evenredige verbanden (I-Wis-a LPD 34)
+Wenk: Je kan het input-outputmodel gebruiken om functies in te voeren en het verschil
+aangeven tussen de onafhankelijke en afhankelijke variabele.
+Wenk: Een verwoording van een functie beschrijft de betekenis die de functie heeft. Het 
+22 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+verband tussen variabelen wordt uitgelegd.
+Wenk: Je kan aangeven dat in veel concrete situaties er geen expliciet functievoorschrift
+voorhanden is.
+4.4.3 Eerstegraadsfuncties
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 22 De leerlingen bepalen de richtingscoëfficiënt bij eerstegraadsfuncties.
+Wenk: Je kan de richtingscoëfficiënt bij eerstegraadsfuncties laten bepalen vanuit het
+voorschrift, een tabel met functiewaarden, twee gegeven punten of een grafiek.
+De richtingscoëfficiënt kan grafisch worden afgelezen vanuit een grafiek als de
+toename (of afname) van de afhankelijke variabele als de onafhankelijke variabele
+met één toeneemt.
+Wenk: Je kan bij eerstegraadsfuncties starten met de functies met voorschrift van de
+vorm 𝑓(𝑥) = 𝑎𝑥 en zo de link leggen met recht evenredige grootheden en de
+evenredigheidsconstante. De grafieken van zulke functies zijn rechten door de
+oorsprong, waarbij het stijgen/dalen wordt bepaald door de richtingscoëfficiënt.
+Wenk: Je kan aangeven dat de grafiek van een eerstegraadsfunctie met voorschrift
+𝑓(𝑥) = 𝑎𝑥 + 𝑏 verkregen wordt door een verticale verschuiving van de grafiek
+van de functie met voorschrift 𝑓(𝑥) = 𝑎𝑥. Zo kan je ook tonen dat rechten met
+dezelfde richtingscoëfficiënt evenwijdig zijn.
+Wenk: Je kan ook constante functies aan bod laten komen, waarbij de
+richtingscoëfficiënt gelijk aan nul is.
+LPD 23 De leerlingen bepalen het voorschrift, een grafiek, een tabel van functiewaarden en
+een verwoording van een eerstegraadsfunctie als één van de andere representaties
+gegeven is.
+ Snijpunt met 𝑦-as
+1ste graad: Recht evenredige verbanden (I-Wis-a LPD 34)
+Wenk: Je kan grafieken zowel zonder als met ICT laten tekenen.
+Wenk: Je kan bij het opstellen van een voorschrift van een eerstegraadsfunctie door
+twee gegeven punten eerst de richtingscoëfficiënt laten berekenen (LPD 22) en
+dan gebruik maken van de techniek van het opstellen van het voorschrift door een
+gegeven punt en met gegeven richtingscoëfficiënt.
+Wenk: Je kan aangeven dat er bij het bepalen van een representatie van een
+eerstegraadsfunctie vanuit een tabel van functiewaarden kan worden gewerkt
+met eender welke twee punten. Kenmerkend voor zo’n tabel is dat bij een gelijke
+toename van de onafhankelijke variabele een gelijke toename of afname van de
+afhankelijke variabele hoort. Je kan leerlingen ook laten beslissen of een tabel van
+functiewaarden bij een eerstegraadsfunctie hoort.
+Wiskunde B+S’’ (versie oktober 2024) 23
+D/2024/13.758/351 II-WisS’’-d
+LPD 24 De leerlingen analyseren kenmerken van eerstegraadsfuncties: domein, bereik,
+nulwaarde, tekenverloop en stijgen/dalen.
+Samenhang tweede graad: Eenparig rechtlijnige beweging (II-Nat’-d LPD 2F; II-NatS-d LPD 2F;
+II-TeWe-d LPD 17); optimaal keuzegedrag producent (II-Eco-d LPD 6); prijsvorming (II-Eco-d LPD
+8)
+Wenk: Je kan het tekenverloop grafisch weergeven via een tekentabel of -schema. Ook
+het stijgen/dalen kan je weergeven in een tabel of schema.
+Wenk: Je kan de nulwaarde van een eerstegraadsfunctie linken aan het snijpunt met de
+𝑥-as. Je kan hier ook het snijpunt met de 𝑦-as aan bod laten komen.
+LPD 25 De leerlingen lossen eerstegraadsvergelijkingen en -ongelijkheden in één onbekende
+grafisch op.
+Wenk: In veel toepassingen zijn vergelijkingen van de vorm 𝑓(𝑥) = 𝑔(𝑥), waarbij de
+functies 𝑓 en 𝑔 op zich een duidelijke betekenis hebben. Omdat de verschilfunctie
+𝑓 − 𝑔 vaak niet zo’n duidelijke betekenis heeft, is het aangewezen om de
+grafieken van beide functies te tekenen en de vergelijking op te lossen door de
+snijpunten te zoeken.
+Wenk: Bij het werken zonder ICT kan je de grafieken laten tekenen, maar ook de
+grafieken ter beschikking stellen. Sowieso wordt de complexiteit van de opgave
+best beperkt, zodat het mogelijk is om de oplossing grafisch af te lezen. Dit is
+zeker het geval als de grafieken zelf moeten worden getekend.
+4.4.4 Stelsels van eerstegraadsvergelijkingen
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 26 De leerlingen lossen stelsels van twee eerstegraadsvergelijkingen in twee
+onbekenden grafisch op.
+Wenk: Bij het grafisch oplossen wordt het verband tussen de algemene vergelijking van
+een rechte en het functievoorschrift van de verwante eerstegraadsfunctie
+gebruikt. Je kan met concrete voorbeelden aangeven dat niet alle algemene
+vergelijkingen van rechten overeenkomen met de grafieken van
+eerstegraadsfuncties, want er zijn ook verticale rechten (die niet overeenkomen
+met een functie) en horizontale rechten (die overeenkomen met constante
+functies).
+Wenk: ICT kan worden ingezet om de grafieken van eerstegraadsfuncties te tekenen.
+LPD 27 De leerlingen lossen stelsels van twee eerstegraadsvergelijkingen in twee
+onbekenden algebraïsch op.
+Wenk: Je kan oplossingsmethodes zoals de substitutiemethode, de
+gelijkstellingsmethode of de combinatiemethode aan bod laten komen. Je kan
+aandacht schenken aan de meest efficiënte methode bij het oplossen van stelsels.
+Wenk: Je kan ook tijdens het algebraïsch oplossen teruggrijpen naar het grafisch 
+24 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+oplossen, bijvoorbeeld om het antwoord te controleren. Je kan ook het effect van
+een algebraïsche methode grafisch illustreren: de bijbehorende rechten kunnen
+veranderen, maar hun snijpunt blijft gelijk.
+4.4.5 Functies met voorschrift 𝒇(𝒙) = 𝒄/𝒙
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 28 De leerlingen leggen het verband tussen de grafiek van de functie 𝒇(𝒙) = 𝒄/𝒙 en haar
+kenmerken.
+1ste graad: Omgekeerd evenredige verbanden (I-Wis-a LPD 34)
+Wenk: Je kan grafieken zowel zonder als met ICT laten tekenen.
+Wenk: Voorbeelden van kenmerken: domein, bereik, tekenverloop, stijgen/dalen,
+toenemende/afnemende stijging/daling, symmetrie t.o.v. de oorsprong, gedrag
+op oneindig, gedrag in de buurt van 0.
+Extra: Je kan de grafiek van functies met voorschrift 𝑘 ⋅ 𝑓(𝑥), 𝑓(𝑥) + 𝑘 of 𝑓(𝑥 − 𝑘)
+opbouwen vanuit de grafiek van 𝑓(𝑥) = 1/𝑥 en de invloed op de horizontale en
+verticale asymptoot bespreken.
+4.4.6 Tweedegraadsfuncties
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 29 De leerlingen tekenen de grafiek van een tweedegraadsfunctie vanuit het voorschrift.
+ Voorschriften 𝑓(𝑥) = 𝑎(𝑥 − 𝑝)² + 𝑞 en 𝑓(𝑥) = 𝑎𝑥² + 𝑏𝑥 + 𝑐
+Wenk: Je kan via de topvergelijking de grafiek van een tweedegraadsfunctie opbouwen
+vanuit de grafiek van 𝑓(𝑥) = 𝑥². Je kan grafieken zowel zonder als met ICT laten
+tekenen.
+Wenk: Je kan aan de hand van voorbeelden laten inzien dat een functievoorschrift van de
+vorm 𝑓(𝑥) = 𝑎𝑥² + 𝑏𝑥 + 𝑐 kan worden omgezet in een voorschrift van de vorm
+𝑓(𝑥) = 𝑎(𝑥 − 𝑝)² + 𝑞. Dat kan op twee manieren: je kan het voorschrift
+omvormen door een kwadraat van een eerstegraadsveelterm af te zonderen,
+maar je kan ook de tweede vorm uitrekenen en vergelijken met de eerste vorm
+om zo de parameters 𝑝 en 𝑞 te bepalen. Op die manier kan je ook de formule 𝑝 =
+−𝑏/2𝑎 voor de 𝑥-coördinaat van de top verantwoorden.
+LPD 30 De leerlingen stellen het voorschrift op van een tweedegraadsfunctie vanuit een
+grafiek.
+Wenk: Je kan vertrekken vanuit een grafiek waarop de coördinaten van de top en één
+extra punt afleesbaar zijn.
+Wenk: Je kan de parameter 𝑎 in het voorschrift bepalen als de verandering van de
+functiewaarde als je de 𝑥-coördinaat van de top met één laat toenemen of
+afnemen. 
+Wiskunde B+S’’ (versie oktober 2024) 25
+D/2024/13.758/351 II-WisS’’-d
+Wenk: Je kan het voorschrift laten bepalen vanuit drie punten op de grafiek waaronder
+het snijpunt met de 𝑦-as.
+Wenk: Je kan het voorschrift van een tweedegraadsfunctie laten bepalen vanuit een
+grafiek waarop de snijpunten met de 𝑥-as (of algemener, twee punten met zelfde
+𝑦-waarde) afleesbaar zijn en één extra punt. Door gebruik te maken van
+symmetrie kan je de 𝑥-coördinaat van de top vinden. Je kan het voorschrift ook
+bepalen via de vorm 𝑓(𝑥) = 𝑎(𝑥 − 𝑥1)(𝑥 − 𝑥2).
+LPD 31 De leerlingen analyseren kenmerken van tweedegraadsfuncties: domein, bereik,
+nulwaarden, tekenverloop, stijgen/dalen, extremum, toenemende/afnemende
+stijging/daling en symmetrie ten opzichte van een verticale rechte.
+Samenhang tweede graad: Eenparig veranderlijke rechtlijnige beweging (II-TeWe-d LPD 19);
+optimaal keuzegedrag producent (II-Eco-d LPD 6)
+Wenk: Je kan de nulwaarden van een tweedegraadsfunctie linken aan de snijpunten met
+de 𝑥-as. Je kan ook het snijpunt met de 𝑦-as aan bod laten komen.
+Wenk: Je kan leerlingen de kenmerken van een tweedegraadsfunctie laten analyseren
+die hoort bij een betekenisvolle context om zo vragen te beantwoorden.
+Voorbeelden: hoogte en breedte van een brug of tunnel bepalen, hoogste punt
+van een geworpen voorwerp bepalen en bepalen welke horizontale afstand het
+voorwerp aflegt.
+Extra: Je kan kenmerken analyseren van tweedegraadsfuncties met één parameter in
+het voorschrift.
+LPD 32 + De leerlingen lossen tweedegraadsvergelijkingen en -ongelijkheden in één
+onbekende grafisch op.
+Wenk: Je kan ICT laten gebruiken om de grafieken van tweedegraadsfuncties te tekenen.
+Je kan de grafieken ook ter beschikking stellen.
+Wenk: Je kan bij ongelijkheden de oplossingenverzameling grafisch laten aanduiden op
+de getallenas of noteren via de intervalnotatie.
+LPD 33 De leerlingen lossen tweedegraadsvergelijkingen in één onbekende algebraïsch op in
+ℝ.
+ Ontbinden in factoren
+Discriminant
+1ste graad: Merkwaardige producten (I-Wis-a LPD 32)
+Wenk: Je kan verschillende technieken voor het ontbinden in factoren van veeltermen
+aan bod laten komen. Minstens het afzonderen van een gemeenschappelijke
+factor en het toepassen van merkwaardige producten komt aan bod.
+Bij onvolledige en bepaalde volledige tweedegraadsvergelijkingen is het
+ontbinden in factoren handig om snel de nulpunten te bepalen.
+Wenk: Als er voor het oplossen van een probleem of vraagstuk in een bepaalde context
+een tweedegraadsvergelijking moet worden opgelost, dan kan het zijn dat niet 
+26 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+allebei de oplossingen van de vergelijking aanleiding geven tot een oplossing van
+het probleem. Je kan leerlingen de oplossingen kritisch leren controleren.
+Wenk: Je kan vanuit een tweedegraadsvergelijking de som en het product van de wortels
+aflezen en zo de vergelijking oplossen. Dat is een efficiënte methode als
+bijvoorbeeld 1 of -1 een oplossing is. Je kan via die methode ook tot de
+discriminantformule komen.
+Extra: Je kan het aantal oplossingen laten bespreken van een tweedegraadsvergelijking
+met één parameter. Als toepassing kan je de raaklijn of raaklijnen bepalen aan
+een parabool door een gegeven punt (al dan niet op de parabool).
+Extra: Je kan hogeregraadsvergelijkingen laten oplossen die via substitutie te herleiden
+zijn naar tweedegraadsvergelijkingen (bv. bikwadratische of wederkerige
+vergelijkingen).
+LPD 34 De leerlingen lossen tweedegraadsongelijkheden in één onbekende algebraïsch op.
+Wenk: Je kan een tekentabel of -schema van de bijbehorende tweedegraadsfunctie laten
+opstellen. Daarbij kan je gebruik maken van het verband tussen het teken van de
+coëfficiënt 𝑎 en de vorm van de grafiek.
+Wenk: Je kan het antwoord grafisch laten controleren.
+4.4.7 Deelbaarheid bij veeltermen
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD B6 De leerlingen analyseren deelbaarheid bij veeltermen met reële coëfficiënten in één
+variabele.
+ Euclidische deling, reststelling
+1ste graad: Rekenen met algebraïsche uitdrukkingen (I-Wis-a LPD 32)
+Wenk: Om de Euclidische deling in te leiden kan je illustreren dat twee veeltermen elkaar
+niet steeds delen in de verzameling van de veeltermen, net zoals dat het geval is
+bij de deling van natuurlijke of gehele getallen. De analogie kan worden
+doorgetrokken, want de formulering van de eigenschap van de Euclidische deling
+is analoog (deze keer met behulp van het begrip graad van een veelterm). De
+eigenschap kan worden verklaard: het bestaan van quotiënt en rest door bv. de
+staartdeling als algoritme uit te leggen; de uniciteit eventueel via een bewijs uit
+het ongerijmde.
+Wenk: De reststelling kan worden bekeken als toepassing van de Euclidische deling door
+een tweeterm van de vorm 𝑥 − 𝑎. Een gevolg ervan is dat een veelterm deelbaar
+is door 𝑥 − 𝑎 als en slechts als a een oplossing is van de bijhorende
+veeltermvergelijking. Het quotiënt (en de rest) bij deling door 𝑥 − 𝑎 kan worden
+bepaald door middel van de staartdeling, maar ook de regel van Horner kan als
+verkorte vorm worden gebruikt.
+Wenk: Je kan de reststelling toepassen.
+Voorbeeld: je kan de rest bij deling van een veelterm 𝐷 door (𝑥 − 𝑎)(𝑥 − 𝑏)
+Wiskunde B+S’’ (versie oktober 2024) 27
+D/2024/13.758/351 II-WisS’’-d
+bepalen door gebruik te maken van de resten bij deling door 𝑥 − 𝑎 en door 𝑥 − 𝑏,
+m.a.w. de waardes 𝐷(𝑎) en 𝐷(𝑏).
+Voorbeeld: je kan merkwaardige producten aan bod laten komen, bv. de
+tweetermen 𝑎³ − 𝑏³ en 𝑎³ + 𝑏³ ontbinden in factoren.
+4.5 Discrete wiskunde en logica
+4.5.1 Telproblemen
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 35 De leerlingen lossen telproblemen op met behulp van boomdiagrammen en
+venndiagrammen.
+ Somregel, productregel en complementregel
+1ste graad: Bewerkingen met twee verzamelingen (I-Wis-a LPD 7)
+Wenk: De moeilijkheid bij het oplossen van een telprobleem ligt bij het maken van een
+gepaste grafische voorstelling. Daarna kan de oplossing voor het probleem
+gemakkelijk worden afgelezen.
+Wenk: Je kan ook andere grafische voorstellingen aan bod laten komen zoals
+wegendiagrammen en roosterdiagrammen.
+4.5.2 Waarheidstabellen
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 36 De leerlingen bepalen de waarheidswaarde van logische uitspraken met behulp van
+waarheidstabellen.
+ Tautologie, contradictie
+1ste graad: Implicatie en equivalentie (I-Wis-a LPD 6)
+Wenk: Je kan met behulp van waarheidstabellen aantonen dat bijvoorbeeld de logische
+uitspraak 𝐴 ⇒ B niet equivalent is met ¬𝐴 ⇒ ¬B, maar wel met de logische
+uitspraken ¬𝐵 ⇒ ¬A en ¬𝐴 ∨ B.
+Wenk: Een ‘of’ wordt in de omgangstaal vaak gebruikt als een exclusieve disjunctie.
+Voorbeeld: “Wil je koffie of thee drinken?”. Een ‘als … dan …’ wordt in de
+omgangstaal vaak geïnterpreteerd als een ‘... als en slechts als …’. Je kan
+leerlingen de verschillen duidelijk maken om hen erover te laten nadenken.
+Wenk: Je kan de link leggen met logische poorten of schakelingen.
+4.5.3 Grafen (keuzedeel)
+LPD K2 De leerlingen interpreteren een graaf als een model van een concrete situatie.
+28 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+Wenk: Grafen worden gebruikt als model of schematische voorstelling voor bv. sociale
+netwerken, transportnetwerken, stambomen, boom- en wegendiagrammen …
+Wenk: In een concrete situatie die door een graaf beschreven wordt kan je leerlingen de
+betekenis van de knopen en de bogen, de buren of het aantal buren (vaak de
+graad genoemd) van een knoop en het al dan niet samenhangend zijn laten
+uitleggen.
+Wenk: Je kan de begrippen wandeling en pad in een graaf duiden via
+transportnetwerken.
+Wenk: Je kan de graaf horende bij een concrete situatie ook laten opstellen.
+LPD K3 De leerlingen gebruiken grafen om problemen op te lossen.
+Wenk: Als het probleem te maken heeft met wandelingen op grafen kan je de
+terminologie van spoor, circuit, pad en cykel gebruiken voor de soorten
+wandelingen. Bij sporen en circuits worden de bogen maximaal één keer
+doorlopen; bij paden en cykels worden de knopen maximaal één keer doorlopen.
+Wenk: Je beperkt best het aantal types van problemen die je aan bod laat komen. Een
+aantal mogelijkheden waaruit gekozen kan worden:
+− problemen i.v.m. (aantal) buren en eigenschappen zoals ‘aantal knopen met
+oneven graad is even’;
+− het bestaan en opsporen van wandelingen die alle bogen juist één keer
+doorlopen en de 7 bruggen van Königsberg (terminologie: Eulerspoor, -circuit
+en -graaf);
+− minimaal opspannende bomen op gewogen grafen en de algoritmes van
+Kruskal of Prim;
+− kortste pad bepalen op gewogen grafen en algoritme van Dijkstra;
+− kleuringen van landkaarten, knoopkleuringen van (vlakke) grafen en de
+vierkleurenstelling;
+− het bestaan en opsporen van wandelingen die alle knopen juist één keer
+doorlopen en eventueel link met Handelsreizigersprobleem (terminologie:
+Hamiltonpad, -cykel en -graaf);
+− problemen over speciale types van grafen zoals bomen en
+tweedelingsgrafen.
+4.6 Data en onzekerheid
+4.6.1 Beschrijvende statistiek
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 37 De leerlingen stellen statistische gegevens voor aan de hand van passende
+voorstellingswijzen: absolute en relatieve frequentietabel, staafdiagram,
+cirkeldiagram, lijndiagram, histogram en boxplot.
+1ste graad: Absolute frequentietabel, staafdiagram, cirkeldiagram en lijndiagram (I-Wis-a LPD
+36)
+Wiskunde B+S’’ (versie oktober 2024) 29
+D/2024/13.758/351 II-WisS’’-d
+Wenk: ICT kan worden gebruikt om gegevens te groeperen en om de voorstellingswijzen
+te maken.
+Wenk: Je kan best gegevens gebruiken die vanuit een betekenisvolle context komen. Je
+kan de leerlingen ook zelf gegevens laten verzamelen, bijvoorbeeld a.d.h.v. een
+enquête of bevraging in de klas of de school.
+Wenk: De leerlingen kiezen zelf welke voorstellingswijze het meest geschikt is.
+Wenk: In staafdiagrammen en histogrammen worden absolute of relatieve frequenties
+weergegeven door rechthoekjes of balkjes. Bij staafdiagrammen gaat het over
+discrete gegevens (bv. geslacht, vervoersmogelijkheden) terwijl het bij
+histogrammen gaat over gegroepeerde continue gegevens (bv. klassen van
+leeftijden, afstanden, lengtes …).
+Wenk: Je kan bij gegroepeerde gegevens de klassenbreedte aanpassen en de invloed op
+de voorstellingswijze illustreren. Zo kan worden aangetoond dat samenvatten
+gepaard gaat met een verlies van informatie.
+Wenk: Je kan ook andere voorstellingswijzen aan bod laten komen zoals de cumulatieve
+frequentietabel en het ogief.
+LPD 38 De leerlingen bepalen centrum- en spreidingsmaten: rekenkundig gemiddelde,
+mediaan, modus, variatiebreedte, interkwartielafstand en standaardafwijking.
+1ste graad: Rekenkundig gemiddelde, mediaan, modus en variatiebreedte (I-Wis-a LPD 36)
+Wenk: Het is in eerste instantie de bedoeling dat een volledige populatie wordt
+onderzocht, m.a.w. er wordt geen echte steekproef genomen. De noemer in de
+formule voor de variantie is dan de populatiegrootte 𝑁.
+Wenk: Je kan best gegevens gebruiken die vanuit een betekenisvolle context komen,
+zodat de bekomen centrum- en spreidingsmaten een concrete betekenis hebben.
+Wenk: Je kan de maten eerst aanbrengen zonder ICT en met een beperkt aantal
+gegevens om inzicht te verwerven in de verschillende maten. In een verdere fase
+gebruik je ICT.
+Wenk: Dit leerplandoel is te lezen in samenhang met LPD 37. Bij een boxplot moeten
+bijvoorbeeld de mediaan en de kwartielen worden bepaald.
+Wenk: Je kan de spreidingsmaten vergelijken voor verschillende reeksen gegevens met
+dezelfde centrummaten. Dat kan meer betekenis geven aan de spreidingsmaten.
+Wenk: Je kan aangeven dat bepaalde centrum- of spreidingsmaten meer gevoelig zijn
+voor uitschieters dan andere.
+LPD 39 De leerlingen analyseren statistische gegevens aan de hand van voorstellingswijzen,
+centrum- en spreidingsmaten.
+ Misleidingen
+Wenk: Voorbeelden van misleidingen: het foutief interpreteren van percentages, het
+ongepast schalen van assen, het gebruik van de mediaan versus het rekenkundig
+gemiddelde, informatie weglaten bij grafische voorstellingen … Leerlingen moeten
+hier kritisch mee leren omgaan. 
+30 Wiskunde B+S’’ (versie oktober 2024)
+II-WisS’’-d D/2024/13.758/351
+Wenk: Bij numerieke gegevens kan je aandacht hebben voor de verdeling van de
+gegevens. Vaak liggen de meeste gegevens in de buurt van de centrummaten (bv.
+mediaan). De vorm van de verdeling kan dan klokvorming (symmetrisch) zijn,
+maar ze kan ook aan één zijde een langere staart hebben (scheef).
+Wenk: Je kan aandacht schenken aan uitschieters tijdens het analyseren van gegevens.
+4.6.2 Spreidingsdiagrammen
+Minimumdoelen, cesuurdoelen, differentiële doelen of doelen die leiden naar BK
+LPD 40 De leerlingen analyseren het verband tussen twee numerieke grootheden in een
+dataset met behulp van een spreidingsdiagram.
+ Trendlijn
+Correlatiecoëfficiënt
+Wenk: ICT kan worden gebruikt om spreidingsdiagrammen en trendlijnen te tekenen.
+Een informeel begrip van trendlijn is voldoende. Inzicht in het algoritme dat de
+trendlijn bepaalt is dus niet nodig.
+Wenk: De correlatiecoëfficiënt geeft een maat voor de sterkte van de lineaire samenhang
+tussen de twee grootheden en ligt tussen -1 en 1. Als de coëfficiënt dicht bij -1
+ligt, dan is er een negatieve lineaire correlatie; als ze in de buurt van 0 ligt, dan is
+er geen correlatie (maar kan er nog steeds een ander verband zijn); als ze dicht bij
+1 ligt, dan is er een positieve lineaire correlatie. Het is niet nodig om de definitie
+van de coëfficiënt zelf te bestuderen, maar wel om in concrete situaties de
+waarde te bepalen met ICT en te interpreteren.
+Wenk: Je kan dit leerplandoel in samenhang bekijken met de rubriek functieleer waarin
+verschillende functietypes worden bestudeerd: eerstegraadsfuncties (deelrubriek
+4.4.3), functies van de vorm 𝑓(𝑥) = 𝑐/𝑥 (deelrubriek 4.4.5) en
+tweedegraadsfuncties (deelrubriek 4.4.6). Je kan het bij de studie van elk
+functietype laten terugkeren.

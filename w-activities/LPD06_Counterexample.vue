@@ -181,13 +181,13 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-slate-100">
-    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/50 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-slate-800">
 
       <header class="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700 shrink-0 shadow-sm z-50">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue/20">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-500/20">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-500" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-100">{{ title }}</h2>
@@ -196,12 +196,12 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-600'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-amber-500' : 'bg-slate-600'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-400 transition-colors rounded-full hover:bg-slate-700 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -214,13 +214,13 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-900 border-t border-slate-700 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-900/50 text-emerald-300 border border-emerald-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-blue-900/50 text-blue-300 border border-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-amber-900/50 text-amber-300 border border-amber-800': feedback.type === 'success', 'bg-red-900/50 text-red-300 border border-red-800': feedback.type === 'error', 'bg-slate-900/50 text-slate-300 border border-slate-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-emerald-400 hover:bg-emerald-300 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-400 bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:text-white shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-slate-900 transition-all rounded-lg shadow-md bg-amber-500 hover:bg-amber-400 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -240,8 +240,8 @@ onUnmounted(() => {
 
                   <!-- Shatter lines when rule is broken -->
                   <div v-if="ruleShattered" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <div class="absolute w-[120%] h-1 bg-math-blue rotate-12 transform scale-150 animate-slash"></div>
-                      <div class="absolute w-[120%] h-1 bg-math-blue -rotate-6 transform scale-150 animate-slash" style="animation-delay: 0.1s"></div>
+                      <div class="absolute w-[120%] h-1 bg-amber-500 rotate-12 transform scale-150 animate-slash"></div>
+                      <div class="absolute w-[120%] h-1 bg-amber-500 -rotate-6 transform scale-150 animate-slash" style="animation-delay: 0.1s"></div>
                   </div>
               </div>
 
@@ -249,15 +249,15 @@ onUnmounted(() => {
               <div class="grid grid-cols-5 gap-4 md:gap-4 p-6 bg-slate-800/80 backdrop-blur rounded-xl border border-slate-700 shadow-md z-10 transition-opacity" :class="ruleShattered ? 'opacity-50 pointer-events-none' : 'opacity-100'">
                   <button v-for="num in numbers" :key="num"
                           @click="selectNumber(num)"
-                          class="w-12 h-12 md:w-16 md:h-16 rounded-xl font-bold text-xl md:text-2xl flex items-center justify-center transition-all border-b-4 active:border-b-0 active:translate-y-1 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
+                          class="w-12 h-12 md:w-16 md:h-16 rounded-xl font-bold text-xl md:text-2xl flex items-center justify-center transition-all border-b-4 active:border-b-0 active:translate-y-1 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
                           :class="selectedNumber === num ?
-                                    (isCorrect ? 'bg-emerald-500 border-emerald-700 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)]' : 'bg-red-500 border-red-700 text-white animate-shake')
-                                    : 'bg-slate-700 border-slate-900 text-slate-200 hover:bg-math-blue hover:text-math-blue hover:border-math-blue'">
+                                    (isCorrect ? 'bg-amber-500 border-amber-700 text-white shadow-[0_0_20px_rgba(251,191,36,0.6)]' : 'bg-red-500 border-red-700 text-white animate-shake')
+                                    : 'bg-slate-700 border-slate-900 text-slate-200 hover:bg-amber-500 hover:text-amber-500 hover:border-math-blue'">
                       {{ num }}
                   </button>
               </div>
 
-              <p v-if="ruleShattered" class="mt-8 text-xl font-bold text-math-blue animate-fadeIn text-center">
+              <p v-if="ruleShattered" class="mt-8 text-xl font-bold text-amber-500 animate-fadeIn text-center">
                   Regel vernietigd door tegenvoorbeeld: {{ selectedNumber }}
               </p>
 

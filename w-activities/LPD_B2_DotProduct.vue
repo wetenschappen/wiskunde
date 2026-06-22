@@ -6,7 +6,9 @@ import {
   PhWarningCircle,
   PhArrowRight,
   PhArrowsOut,
-  PhArrowClockwise
+  PhArrowClockwise,
+  PhLightbulb,
+  PhQuestion
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
@@ -30,7 +32,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
-const shouldPulse = ref(false)
 
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
@@ -64,13 +65,11 @@ function generateLevel(lvl) {
   }
 
   let vecA, vecB_x, correctB_y
-  // Rejection sampling: find values that produce an integer answer
   for (let attempt = 0; attempt < 50; attempt++) {
     const ax = randInt(aRange[0], aRange[1])
     const ay = randInt(aRange[0], aRange[1])
     const bx = randInt(bxRange[0], bxRange[1])
     if (ay === 0 || bx === 0) continue
-    // dot = ax*bx + ay*by = 0  =>  by = -(ax*bx)/ay
     if ((-(ax * bx)) % ay !== 0) continue
     const by = -(ax * bx) / ay
     if (by < sliderRange[0] || by > sliderRange[1]) continue
@@ -79,7 +78,6 @@ function generateLevel(lvl) {
     correctB_y = by
     break
   }
-  // Fallback: if no valid random, use a known-good pair
   if (!vecA) {
     const fallbacks = [
       { a: { x: 2, y: 1 }, bx: -2, by: 4, sr: [-4, 6] },
@@ -92,15 +90,7 @@ function generateLevel(lvl) {
     correctB_y = f.by
   }
 
-  // Default slider position: slightly off the correct value
   const defaultB_y = correctB_y + (randInt(1, 2) * (Math.random() > 0.5 ? 1 : -1))
-
-  const insLvl =
-    lvl === 0
-      ? 'Level 1: Start met een eenvoudig voorbeeld.<br/><br/>Vector a = (' + vecA.x + ', ' + vecA.y + ') en vector b = (' + vecB_x + ', ?). Pas de y-coördinaat van b aan zodat a en b loodrecht op elkaar staan.'
-      : lvl === 1
-        ? 'Level 2: Pas de y-coördinaat van vector b aan met de slider zodat vector a en vector b loodrecht op elkaar staan. Tip: Twee vectoren staan loodrecht als hun inproduct gelijk is aan 0.'
-        : 'Level 3: Grotere getallen, zelfde principe.<br/><br/>Vector a = (' + vecA.x + ', ' + vecA.y + ') en vector b = (' + vecB_x + ', ?). Vind de juiste y-coördinaat zodat het inproduct 0 wordt.'
 
   return {
     vecA,
@@ -109,13 +99,7 @@ function generateLevel(lvl) {
     correctB_y,
     sliderMin: sliderRange[0],
     sliderMax: sliderRange[1],
-    instruction: insLvl,
-    successFeedback:
-      lvl === 0
-        ? 'Perfect! Het inproduct is 0, de vectoren staan loodrecht. Klaar voor level 2?'
-        : lvl === 1
-          ? 'Perfect! Het inproduct is 0, de vectoren staan loodrecht.'
-          : 'Uitstekend! Je begrijpt het inproduct van vectoren volledig.'
+    targetProduct: 0
   }
 }
 
@@ -129,7 +113,6 @@ function generateLevels() {
 
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
-// Activity State — derived from current level
 const vecA = computed(() => currentLevelData.value.vecA)
 const vecB_x = computed(() => currentLevelData.value.vecB_x)
 const vecB_y = ref(0)
@@ -138,84 +121,124 @@ const dotProduct = computed(() => {
   return vecA.value.x * vecB_x.value + vecA.value.y * vecB_y.value
 })
 
+// --- 8-element additions ---
+const showPrediction = ref(true)
+const predictAns = ref(null)
+const predictionDone = ref(false)
+const showReflection = ref(false)
+const reflectAns = ref('')
+const reflectDone = ref(false)
+
+function submitPrediction() {
+  if (predictAns.value === null) return
+  showPrediction.value = false
+  predictionDone.value = true
+  const data = currentLevelData.value
+  const exact = data.vecA.x * data.vecB_x + data.vecA.y * data.correctB_y
+  if (predictAns.value === exact) {
+    feedback.value = { type: 'info', text: `Goed! Het inproduct moet 0 zijn voor loodrechte vectoren. Laten we controleren of de slider dat bevestigt.` }
+  } else {
+    feedback.value = { type: 'info', text: `Jij denkt dat het inproduct ${predictAns.value} is. Laten we de slider aanpassen tot het inproduct 0 wordt.` }
+  }
+}
+
+function submitReflection() {
+  if (reflectAns.value.trim().length > 0) {
+    reflectDone.value = true
+  }
+}
+
 function getHint() {
   const c = attemptCount.value
-  if (c === 1) return 'Hint: Het inproduct moet 0 zijn. Gebruik de formule: x1*x2 + y1*y2 = 0.'
-  if (c === 2) return 'Hint: a = (' + vecA.value.x + ', ' + vecA.value.y + '), b.x = ' + vecB_x.value + '. Bereken welke y dit nul maakt: (' + vecA.value.x + ' * ' + vecB_x.value + ') + (' + vecA.value.y + ' * y) = 0.'
-  return 'Hint: Los op: ' + vecA.value.y + ' * y = ' + (-(vecA.value.x * vecB_x.value)) + ', dus y = ' + (-(vecA.value.x * vecB_x.value)) + ' / ' + vecA.value.y + ' = ?'
+  const data = currentLevelData.value
+  if (c === 1) return 'Hint: Het inproduct moet 0 zijn. Gebruik de formule: x1·x2 + y1·y2 = 0.'
+  if (c === 2) return `Hint: a = (${data.vecA.x}, ${data.vecA.y}), b.x = ${data.vecB_x}. Bereken welke y dit nul maakt: (${data.vecA.x} × ${data.vecB_x}) + (${data.vecA.y} × y) = 0.`
+  return `Hint: Los op: ${data.vecA.y} × y = ${-(data.vecA.x * data.vecB_x)}, dus y = ${-(data.vecA.x * data.vecB_x)} / ${data.vecA.y} = ?`
+}
+
+function getErrorAnalysis(userProduct) {
+  const data = currentLevelData.value
+  const expected = 0
+
+  // Check common error: wrong formula (e.g. x1·y1 + x2·y2)
+  const wrongFormula1 = data.vecA.x * data.vecA.y + data.vecB_x * data.vecB_y.value
+  if (userProduct === wrongFormula1) {
+    return 'Je hebt x1·y1 + x2·y2 gebruikt. Denk aan de juiste formule: het inproduct is x1·x2 + y1·y2. Je moet de x-coördinaten met elkaar combineren en de y-coördinaten met elkaar.'
+  }
+
+  // Check sign errors
+  if (userProduct === -(data.vecA.x * data.vecB_x + data.vecA.y * data.vecB_y.value)) {
+    return 'Je hebt het juiste getal maar met het verkeerde teken. Controleer of je de tekens van beide coördinaten correct hebt meegenomen.'
+  }
+
+  return ''
 }
 
 function resetActivityState() {
   generateLevels()
   attemptCount.value = 0
-  isCorrect.value = false;
-celebrationDone.value = false
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: '' };
-  vecB_y.value = currentLevelData.value.defaultB_y;
+  isCorrect.value = false
+  celebrationDone.value = false
+  isChecked.value = false
+  feedback.value = { type: 'info', text: '' }
+  vecB_y.value = currentLevelData.value.defaultB_y
+  showPrediction.value = true
+  predictAns.value = null
+  predictionDone.value = false
+  showReflection.value = false
+  reflectAns.value = ''
+  reflectDone.value = false
 }
 
 function nextLevel() {
-    currentInternalLevel.value++
-    resetActivityState()
-    nextTick(() => mainArea.value?.focus())
-}
-
-function handleLevelComplete() {
     if (currentInternalLevel.value < totalInternalLevels - 1) {
-        nextLevel()
+      currentInternalLevel.value++
+      resetActivityState()
+      nextTick(() => mainArea.value?.focus())
     } else {
-        goToNextStep()
+      goToNextStep()
     }
 }
 
 function checkAnswer() {
-  isChecked.value = true;
+  isChecked.value = true
   if (dotProduct.value === 0) {
     isCorrect.value = true
+    const data = currentLevelData.value
+    const whyText = `<br><br><strong>Waarom werkt dit?</strong> De formule a·b = x₁·x₂ + y₁·y₂ meet hoezeer twee vectoren in dezelfde richting wijzen. Als a·b = 0, staan ze loodrecht — ze hebben geen component in elkaars richting. Visueel: de projectie van de ene vector op de andere is nul. Daarom gebruik je deze formule om orthogonaliteit te testen.`
     feedback.value = {
       type: 'success',
-      text: currentLevelData.value.successFeedback
+      text: `Perfect! Het inproduct is 0, de vectoren staan loodrecht.` + whyText
     }
+    showReflection.value = true
   } else {
     attemptCount.value++
     isCorrect.value = false
+    const errorMsg = getErrorAnalysis(dotProduct.value)
     feedback.value = {
       type: 'error',
-      text: 'Niet helemaal. Het inproduct is nu ' + dotProduct.value + '. Het moet 0 zijn.<br/><br/>' + getHint()
+      text: `Niet helemaal. Het inproduct is nu ${dotProduct.value}. Het moet 0 zijn.` +
+        (errorMsg ? `<br><br>${errorMsg}` : `<br><br>${getHint()}`)
     }
   }
 }
 
 function goToNextStep() {
     if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
+        emit('update:currentStep', props.currentStep + 1)
     } else {
-        emit('complete');
+        emit('complete')
     }
 }
 
 watch(() => props.isOpen, (val) => {
   if (val) {
     currentInternalLevel.value = 0
-    resetActivityState();
+    resetActivityState()
     nextTick(() => mainArea.value?.focus())
     window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) {
-      nextTick(() => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {})
-        }
-      })
-    }
-    nextTick(() => {
-        shouldPulse.value = true
-        setTimeout(() => { shouldPulse.value = false }, 3000)
-    })
   } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
     window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
   }
 }, { immediate: true })
 
@@ -225,31 +248,22 @@ function handleKeydown(e) {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('fullscreenchange', () => {
-    if (props.isOpen && props.fullscreen && !document.fullscreenElement) {
-      emit('close')
-    }
-  })
-})
-
+onMounted(() => {})
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
 })
-// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
 
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -260,7 +274,7 @@ onUnmounted(() => {
                 <div class="flex items-center gap-1">
                   <span v-for="lvl in totalInternalLevels" :key="lvl"
                         class="w-2 h-2 rounded-full transition-all duration-300"
-                        :class="lvl - 1 <= currentInternalLevel ? 'bg-math-blue' : 'bg-slate-300'">
+                        :class="lvl - 1 <= currentInternalLevel ? 'bg-amber-500' : 'bg-slate-300'">
                   </span>
                 </div>
               </div>
@@ -268,8 +282,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                :class="{ 'ring-pulse-amber': shouldPulse }">
+                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -279,18 +292,74 @@ onUnmounted(() => {
         <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
           <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="currentLevelData.instruction" class="mb-6 prose prose-sm text-slate-600" />
+            <p class="mb-6 text-sm text-slate-600">
+              Level {{ currentInternalLevel + 1 }}: Vind de y-coördinaat zodat a en b loodrecht staan.
+            </p>
+
+            <!-- PREDICTION GATE -->
+            <div v-if="showPrediction" class="p-5 border-2 border-amber-300 bg-amber-50 rounded-xl mb-4 animate-fadeIn">
+              <div class="flex items-center gap-2 mb-3">
+                <PhQuestion weight="fill" class="w-5 h-5 text-amber-600" />
+                <span class="font-bold text-amber-800">Voorspel eerst!</span>
+              </div>
+              <p class="text-sm text-amber-800 mb-3">
+                Gegeven a = ({{ vecA.x }}, {{ vecA.y }}) en b = ({{ vecB_x }}, ?).<br>
+                Wat moet het inproduct a·b zijn als de vectoren <strong>loodrecht</strong> staan?
+              </p>
+              <div class="flex items-center gap-2">
+                <input type="number" v-model.number="predictAns" placeholder="?"
+                       class="w-20 p-2 text-lg font-bold text-center border-2 border-amber-300 rounded-lg bg-white focus:border-amber-500 focus:outline-none" />
+                <button @click="submitPrediction" :disabled="predictAns === null"
+                        class="px-4 py-2 font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-500 disabled:opacity-50 active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
+                  Voorspel
+                </button>
+              </div>
+            </div>
+
+            <!-- WORKED EXAMPLE -->
+            <div v-if="predictionDone && !showPrediction && !showReflection && !isCorrect" class="p-4 border border-amber-200 bg-amber-50 rounded-xl mb-4 animate-fadeIn">
+              <div class="flex items-center gap-2 mb-2">
+                <PhLightbulb weight="fill" class="w-5 h-5 text-amber-500" />
+                <span class="font-bold text-amber-700 text-sm">Voorbeeld</span>
+              </div>
+              <p class="text-xs text-amber-700 leading-relaxed">
+                Stel a = (3, 2) en b = (-2, ?). We willen a·b = 0.<br>
+                a·b = 3·(-2) + 2·y = 0<br>
+                -6 + 2y = 0<br>
+                2y = 6<br>
+                y = 3<br>
+                <span class="font-bold">Dus b = (-2, 3). Controle: 3·(-2) + 2·3 = -6 + 6 = 0.</span>
+              </p>
+            </div>
+
+            <!-- REFLECTION -->
+            <div v-if="showReflection && !reflectDone" class="p-5 border-2 border-amber-300 bg-amber-50 rounded-xl mb-4 animate-fadeIn">
+              <div class="flex items-center gap-2 mb-3">
+                <PhQuestion weight="fill" class="w-5 h-5 text-amber-600" />
+                <span class="font-bold text-amber-800">Waarom?</span>
+              </div>
+              <p class="text-sm text-amber-800 mb-3">
+                Waarom is het inproduct 0 als vectoren loodrecht staan?<br>
+                <span class="text-xs text-slate-500">Denk aan de projectie van de ene vector op de andere.</span>
+              </p>
+              <textarea v-model="reflectAns" rows="2"
+                        class="w-full p-3 text-sm border-2 border-amber-300 rounded-lg bg-white focus:border-amber-500 focus:outline-none resize-none"
+                        placeholder="Omdat loodrecht betekent dat de ene vector geen..."></textarea>
+              <button @click="submitReflection" :disabled="reflectAns.trim().length === 0"
+                      class="mt-2 px-4 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-500 disabled:opacity-50 transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
+                Bevestig
+              </button>
+            </div>
 
             <div class="p-6 mt-6 border-t border-slate-200 bg-slate-50 rounded-xl space-y-6">
-
               <div class="font-mono text-sm space-y-2">
-                <p><span class="text-blue-600 font-bold">a</span> = ({{ vecA.x }}, {{ vecA.y }})</p>
-                <p><span class="text-emerald-600 font-bold">b</span> = ({{ vecB_x }}, {{ vecB_y }})</p>
+                <p><span class="text-slate-700 font-bold">a</span> = ({{ vecA.x }}, {{ vecA.y }})</p>
+                <p><span class="text-amber-700 font-bold">b</span> = ({{ vecB_x }}, {{ vecB_y }})</p>
               </div>
 
               <div>
                 <label class="block mb-2 text-sm font-bold text-slate-700">Pas y-coördinaat van b aan:</label>
-                <input type="range" v-model.number="vecB_y" :min="currentLevelData.sliderMin" :max="currentLevelData.sliderMax" step="1" class="w-full accent-emerald-600">
+                <input type="range" v-model.number="vecB_y" :min="currentLevelData.sliderMin" :max="currentLevelData.sliderMax" step="1" class="w-full accent-amber-500">
                 <div class="flex justify-between mt-1 text-xs text-slate-400">
                   <span>{{ currentLevelData.sliderMin }}</span><span>{{ currentLevelData.sliderMax }}</span>
                 </div>
@@ -308,29 +377,30 @@ onUnmounted(() => {
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
             <div v-if="feedback.text"
                  class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-                 role="status" aria-live="polite" aria-atomic="true" :class="{
-                   'bg-emerald-100 text-emerald-800': feedback.type === 'success',
+                 role="status" aria-live="polite" aria-atomic="true"
+                 :class="{
+                   'bg-amber-100 text-amber-800': feedback.type === 'success',
                    'bg-red-100 text-red-800': feedback.type === 'error',
-                   'bg-blue-100 text-blue-800': feedback.type === 'info',
+                   'bg-amber-50 text-amber-700': feedback.type === 'info',
                  }">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug" v-html="feedback.text"></span>
             </div>
 
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                  <PhArrowClockwise />
               </button>
 
-              <!-- Slider + check button: keep Controleer for number/slider interaction -->
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button v-if="!isCorrect && !showPrediction" @click="checkAnswer" :disabled="isChecked && !isCorrect" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 Controleer
               </button>
 
-              <button v-else @click="handleLevelComplete" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button v-else-if="isCorrect" @click="nextLevel" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
+              <div v-else class="flex-1"></div>
             </div>
           </div>
         </div>
@@ -341,32 +411,27 @@ onUnmounted(() => {
             <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
 
               <div class="relative w-80 h-80 flex items-center justify-center">
-                <!-- SVG Vector Grid -->
                 <svg width="320" height="320" viewBox="-160 -160 320 320" class="overflow-visible bg-white/50 rounded-lg shadow-sm border border-slate-300">
                   <defs>
                     <marker id="head-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
                     </marker>
                     <marker id="head-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669" />
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" />
                     </marker>
                   </defs>
 
-                  <!-- Axes -->
                   <line x1="-160" y1="0" x2="160" y2="0" stroke="#cbd5e1" stroke-width="2" />
                   <line x1="0" y1="-160" x2="0" y2="160" stroke="#cbd5e1" stroke-width="2" />
 
-                  <!-- Vector A -->
-                  <line x1="0" y1="0" :x2="vecA.x * 20" :y2="-vecA.y * 20" stroke="#2563eb" stroke-width="3" marker-end="url(#head-a)" />
-                  <text :x="(vecA.x * 20) + 10" :y="(-vecA.y * 20) + 5" fill="#2563eb" font-weight="bold">a</text>
+                  <line x1="0" y1="0" :x2="vecA.x * 20" :y2="-vecA.y * 20" stroke="#475569" stroke-width="3" marker-end="url(#head-a)" />
+                  <text :x="(vecA.x * 20) + 10" :y="(-vecA.y * 20) + 5" fill="#475569" font-weight="bold">a</text>
 
-                  <!-- Vector B -->
-                  <line x1="0" y1="0" :x2="vecB_x * 20" :y2="-vecB_y * 20" stroke="#059669" stroke-width="3" marker-end="url(#head-b)" />
-                  <text :x="(vecB_x * 20) - 20" :y="(-vecB_y * 20) - 5" fill="#059669" font-weight="bold">b</text>
+                  <line x1="0" y1="0" :x2="vecB_x * 20" :y2="-vecB_y * 20" stroke="#d97706" stroke-width="3" marker-end="url(#head-b)" />
+                  <text :x="(vecB_x * 20) - 20" :y="(-vecB_y * 20) - 5" fill="#d97706" font-weight="bold">b</text>
 
-                  <!-- Right Angle indicator when dotProduct === 0 -->
                   <g v-if="dotProduct === 0">
-                    <path d="M 12 -6 L 18 6 L 6 12" fill="none" stroke="#ef4444" stroke-width="2" />
+                    <path d="M 12 -6 L 18 6 L 6 12" fill="none" stroke="#d97706" stroke-width="2" />
                   </g>
                 </svg>
               </div>
@@ -384,7 +449,6 @@ onUnmounted(() => {
 
 <style scoped>
 :root { font-family: 'Inter', sans-serif; }
-
 .shadow-inner-light { box-shadow: inset -5px 0 15px -10px rgba(0,0,0,0.1); }
 .pattern-grid {
     background-image:
@@ -393,13 +457,6 @@ onUnmounted(() => {
     background-size: 20px 20px;
     background-position: center center;
 }
-
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-
-.ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
-@keyframes ring-pulse-amber {
-    0% { box-shadow: 0 0 0 0 #fbbf24; }
-    70% { box-shadow: 0 0 0 20px rgba(251, 191, 36, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>

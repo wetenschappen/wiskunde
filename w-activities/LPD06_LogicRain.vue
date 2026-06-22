@@ -32,7 +32,9 @@ const attemptCount = ref(0)
 
 // Level Logic
 const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
+const totalInternalLevels = 4
+const reflectionAnswer = ref('')
+const showReflection = ref(false)
 
 function shuffle(arr) {
   const a = [...arr];
@@ -67,16 +69,6 @@ const scenarioPool = [
   }
 ]
 
-function generateLevel() {
-  // Return all 3 scenarios; they are conceptually a progression (Modus Ponens, Modus Tollens, Denkval)
-  // Shuffle the goal text phrasing slightly for freshness
-  return scenarioPool.map((s, i) => ({
-    ...s,
-    // Keep original goalText with potentially slightly different phrasing each time
-    goalText: s.goalText
-  }))
-}
-
 const levels = ref([])
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 const userAnswer = ref(null)
@@ -87,18 +79,47 @@ const streetState = ref('dry') // 'dry', 'rain', 'truck', 'wet'
 function triggerRain() { streetState.value = 'rain' }
 function triggerTruck() { streetState.value = 'truck' }
 
+function generateLevel() {
+  return scenarioPool.map((s, i) => ({ ...s, goalText: s.goalText }))
+}
+
+function checkReflection() {
+  if (!reflectionAnswer.value.trim()) return
+  const text = reflectionAnswer.value.toLowerCase()
+  const hasImplicatie = text.includes('implicatie') || text.includes('als') && text.includes('dan')
+  const hasEquivalentie = text.includes('equivalentie') || text.includes('als en slechts') || text.includes('beide kanten') || text.includes('omgekeerd')
+  if (hasImplicatie && hasEquivalentie && text.length > 20) {
+    isCorrect.value = true; isChecked.value = true
+    feedback.value = { type: 'success', text: '👍 Uitstekende uitleg!<br/><br/><strong>Waarom dit belangrijk is:</strong> Een implicatie (A→B) werkt één richting: ALS A DAN B. Maar B kan ook zonder A gebeuren (sproeiwagen!). Een equivalentie (A↔B) werkt twee richtingen: A geldt alleen als B geldt én vice versa.<br/><br/>Regen→nat, maar nat↛regen → dus implicatie, geen equivalentie!<br/><br/>✏️ <strong>LPD-doel:</strong> Je herkent het verschil tussen een implicatie (één richting) en een equivalentie (twee richtingen), en je kunt in een concrete context bepalen welke logische relatie geldt.' }
+  } else {
+    attemptCount.value++
+    const hints = [
+      'Probeer deze zinnen: "Een implicatie is ... Een equivalentie is ..."',
+      'Denk aan de straat: regen⇒nat. Geldt nat⇒regen ook altijd?',
+      'Implicatie = één richting (ALS...DAN). Equivalentie = twee richtingen (ALS EN SLECHTS ALS).' ]
+    feedback.value = { type: 'error', text: hints[Math.min(attemptCount.value - 1, 2)] }
+  }
+}
+
 function resetActivityState() {
-    levels.value = generateLevel();
-    isCorrect.value = false;
-celebrationDone.value = false
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Experimenteer met de simulatie en beantwoord de vraag.' };
+    levels.value = generateLevel()
+    reflectionAnswer.value = ''
+    showReflection.value = (currentInternalLevel.value === 3)
+    isCorrect.value = false; celebrationDone.value = false
+    isChecked.value = false
+    if (currentInternalLevel.value === 3) {
+      feedback.value = { type: 'info', text: 'Schrijf in je eigen woorden: wat is het verschil tussen een implicatie en een equivalentie?' }
+      streetState.value = 'wet'
+    } else {
+      feedback.value = { type: 'info', text: 'Experimenteer met de simulatie en beantwoord de vraag.' }
+      streetState.value = currentLevelData.value?.simStart || 'dry'
+    }
     attemptCount.value = 0;
-    streetState.value = currentLevelData.value?.simStart || 'dry';
     userAnswer.value = null;
 }
 
 function checkAnswer() {
+  if (currentInternalLevel.value === 3) { checkReflection(); return }
   isChecked.value = true;
 
   if (userAnswer.value === currentLevelData.value.targetAns) {
@@ -171,13 +192,13 @@ onUnmounted(() => {
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
+    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
     <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
 
       <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <div class="flex items-center justify-center p-2 rounded-lg bg-amber-600-bg">
+            <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
@@ -186,12 +207,12 @@ onUnmounted(() => {
               <div class="flex gap-1">
                 <div v-for="i in totalInternalLevels" :key="i"
                      class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
+                     :class="i <= currentInternalLevel + 1 ? 'bg-amber-600' : 'bg-slate-200'"></div>
               </div>
             </div>
           </div>
         </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
+        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
           <PhX class="w-6 h-6" />
         </button>
       </header>
@@ -202,13 +223,24 @@ onUnmounted(() => {
             <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
             <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
 
-            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner">
-               <label class="block text-sm font-bold text-math-blue mb-3">{{ currentLevelData.goalText }}</label>
+            <!-- Level 4: Reflection -->
+            <div v-if="showReflection">
+              <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-sm mb-4">
+                <p class="font-bold text-amber-800 mb-3">Fase 4: Reflectie</p>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Wat is het verschil tussen een <strong>implicatie</strong> (A→B) en een <strong>equivalentie</strong> (A↔B)? Schrijf in je eigen woorden.</label>
+                <textarea v-model="reflectionAnswer" :disabled="isCorrect"
+                  class="w-full p-3 border-2 border-slate-300 rounded-lg text-sm bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
+                  rows="4" placeholder="Een implicatie is... terwijl een equivalentie..."></textarea>
+              </div>
+            </div>
+
+            <div v-if="!showReflection" class="p-4 mt-6 border border-amber-200 bg-amber-50 rounded-xl shadow-inner">
+               <label class="block text-sm font-bold text-amber-600 mb-3">{{ currentLevelData.goalText }}</label>
                <div class="flex flex-col gap-2">
                     <button v-for="opt in currentLevelData.options" :key="opt"
                             @click="if(!isCorrect) { userAnswer = opt; isChecked = false; }"
-                            class="w-full py-2 rounded-lg font-bold transition-colors border-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                           :class="userAnswer === opt ? 'bg-math-blue border-math-blue text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
+                            class="w-full py-2 rounded-lg font-bold transition-colors border-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"
+                           :class="userAnswer === opt ? 'bg-amber-600 border-amber-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
                        {{ opt }}
                    </button>
                </div>
@@ -216,14 +248,14 @@ onUnmounted(() => {
           </div>
 
           <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-amber-50 text-amber-800': feedback.type === 'success', 'bg-red-50 text-red-800': feedback.type === 'error', 'bg-slate-100 text-slate-800': feedback.type === 'info'}">
                <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
                <span class="leading-snug">{{ feedback.text }}</span>
             </div>
             <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !userAnswer" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
+              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none"><PhArrowClockwise /></button>
+              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || (showReflection ? !reflectionAnswer.trim() : !userAnswer)" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">Controleer</button>
+              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-amber-600 hover:bg-amber-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none">
                 <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
                 <PhArrowRight weight="bold" />
               </button>
@@ -236,22 +268,22 @@ onUnmounted(() => {
 
               <!-- Interactive Visual Controls -->
               <div class="absolute top-6 left-1/2 -translate-x-1/2 flex gap-4 bg-white p-2 rounded-xl shadow-md border border-slate-200 z-20">
-                  <button @click="triggerRain" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="streetState === 'rain' ? 'bg-blue-100 text-blue-700 border-blue-300' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhCloudRain weight="bold" /> Laat het regenen</button>
-                  <button @click="triggerTruck" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="streetState === 'truck' ? 'bg-math-blue-bg text-math-blue border-surface-200' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhTruck weight="bold" /> Laat sproeiwagen passeren</button>
+                  <button @click="triggerRain" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none" :class="streetState === 'rain' ? 'bg-amber-50 text-amber-700 border-amber-300' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhCloudRain weight="bold" /> Laat het regenen</button>
+                  <button @click="triggerTruck" class="px-4 py-2 font-bold rounded-lg transition-colors text-sm flex items-center gap-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none" :class="streetState === 'truck' ? 'bg-amber-600-bg text-amber-600 border-surface-200' : 'text-slate-500 hover:bg-slate-100 border-transparent'"><PhTruck weight="bold" /> Laat sproeiwagen passeren</button>
               </div>
 
               <!-- The Street Scene -->
-              <div class="w-full max-w-2xl h-[400px] bg-sky-50 rounded-xl border-4 border-slate-300 shadow-md relative overflow-hidden flex flex-col">
+              <div class="w-full max-w-2xl h-[400px] bg-white rounded-xl border-4 border-slate-300 shadow-md relative overflow-hidden flex flex-col">
 
                   <!-- Sky/Clouds -->
-                  <div class="h-1/2 w-full relative transition-colors duration-1000" :class="streetState === 'rain' ? 'bg-slate-400' : 'bg-sky-100'">
+                  <div class="h-1/2 w-full relative transition-colors duration-1000" :class="streetState === 'rain' ? 'bg-slate-400' : 'bg-slate-50'">
                       <!-- Clouds -->
                       <div class="absolute top-10 left-20 w-32 h-16 bg-white rounded-full mix-blend-overlay opacity-80 filter blur-sm transition-all" :class="streetState === 'rain' ? 'bg-slate-600 scale-110' : ''"></div>
                       <div class="absolute top-4 right-32 w-48 h-20 bg-white rounded-full mix-blend-overlay opacity-90 filter blur-md transition-all" :class="streetState === 'rain' ? 'bg-slate-700 scale-110' : ''"></div>
 
                       <!-- Rain Animation -->
                       <div v-if="streetState === 'rain'" class="absolute inset-0 overflow-hidden opacity-60">
-                          <div v-for="i in 50" :key="i" class="absolute w-0.5 h-6 bg-blue-300 rounded-lg"
+                          <div v-for="i in 50" :key="i" class="absolute w-0.5 h-6 bg-amber-400 rounded-lg"
                                :style="{
                                   left: `${Math.random() * 100}%`,
                                   top: `${Math.random() * 100}%`,
@@ -270,20 +302,20 @@ onUnmounted(() => {
 
                       <!-- Puddles / Wetness -->
                       <div v-if="streetState !== 'dry'" class="absolute inset-0 animate-fadeIn opacity-40">
-                          <div class="absolute top-10 left-20 w-40 h-8 bg-blue-900 rounded-full filter blur-sm transform scale-y-50"></div>
-                          <div class="absolute bottom-10 right-32 w-64 h-12 bg-blue-900 rounded-full filter blur-sm transform scale-y-50"></div>
-                          <div class="absolute top-5 right-10 w-24 h-6 bg-blue-900 rounded-full filter blur-sm transform scale-y-50"></div>
+                          <div class="absolute top-10 left-20 w-40 h-8 bg-slate-900 rounded-full filter blur-sm transform scale-y-50"></div>
+                          <div class="absolute bottom-10 right-32 w-64 h-12 bg-slate-900 rounded-full filter blur-sm transform scale-y-50"></div>
+                          <div class="absolute top-5 right-10 w-24 h-6 bg-slate-900 rounded-full filter blur-sm transform scale-y-50"></div>
                       </div>
 
                       <!-- Truck Animation -->
                       <div v-if="streetState === 'truck'" class="absolute top-4 -left-32 animate-driveRight">
                           <div class="relative w-48 h-24">
-                              <div class="absolute bottom-0 w-32 h-16 bg-math-blue rounded-l-lg border-2 border-math-blue z-10"></div>
+                              <div class="absolute bottom-0 w-32 h-16 bg-amber-600 rounded-l-lg border-2 border-amber-500 z-10"></div>
                               <div class="absolute bottom-0 right-0 w-16 h-12 bg-slate-200 rounded-r-lg border-2 border-slate-400 z-10"></div>
                               <div class="absolute -bottom-2 left-4 w-8 h-8 bg-slate-800 rounded-full border-2 border-slate-400 z-20"></div>
                               <div class="absolute -bottom-2 right-4 w-8 h-8 bg-slate-800 rounded-full border-2 border-slate-400 z-20"></div>
                               <!-- Water spray -->
-                              <div class="absolute bottom-2 -left-16 w-20 h-10 bg-blue-300/50 rounded-full filter blur-md origin-right transform scale-x-150 animate-pulse"></div>
+                              <div class="absolute bottom-2 -left-16 w-20 h-10 bg-amber-400/50 rounded-full filter blur-md origin-right transform scale-x-150 animate-pulse"></div>
                           </div>
                       </div>
 
@@ -294,7 +326,7 @@ onUnmounted(() => {
               <div class="mt-8 bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm w-full max-w-2xl text-center">
                   <div class="font-mono font-bold text-xl flex items-center justify-center gap-4 text-slate-700">
                       <span>Regen</span>
-                      <span class="text-blue-500 font-black">=></span>
+                      <span class="text-amber-500 font-black">=></span>
                       <span>Straat Nat</span>
                   </div>
               </div>
