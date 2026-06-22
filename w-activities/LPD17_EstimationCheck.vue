@@ -1,375 +1,319 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCalculator, PhArrowClockwise
-} from '@phosphor-icons/vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCalculator, PhArrowClockwise, PhLightbulb, PhQuestion } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Schatten: De Kapotte Rekenmachine' },
-  instruction: {
-    type: String,
-    default: 'Een rekenmachine kan kapot zijn, of je kan zélf per ongeluk een getal verkeerd intypen. Schatten helpt je om <strong>onzin-antwoorden</strong> eruit te filteren!<br/><br/><strong>Opdracht:</strong> Rond de getallen af naar makkelijke tientallen om snel te schatten. Beoordeel daarna of het antwoord van de rekenmachine klopt of pure onzin is.'
-  },
+  instruction: { type: String, default: 'Rond af naar makkelijke getallen om te schatten of het rekenmachine-antwoord klopt.' },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
-  fullscreen: { type: Boolean, default: true },
+  fullscreen: { type: Boolean, default: false },
   icon: { type: Object, default: () => PhCalculator }
 })
-
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
-
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Rond eerst de getallen af en beslis dan of de rekenmachine de waarheid spreekt.' })
-
-// Level Logic
+const attemptCount = ref(0)
+const hintLevel = ref(0)
+const showHints = ref(false)
+const feedback = ref({ type: 'info', text: 'Rond de getallen af en beoordeel het antwoord.' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const showWhy = ref(false)
+const showReflection = ref(false)
+const reflectionAnswers = ref(['', '', ''])
+const showLPD = ref(false)
+const lpdAnswer = ref('')
+const lpdDone = ref(false)
 
-const attemptCount = ref(0)
+const predictionMade = ref(false)
+const predictionChoice = ref(null)
+const predictionOptions = computed(() => [
+  { id: 'correct', text: 'De rekenmachine heeft waarschijnlijk gelijk' },
+  { id: 'wrong', text: 'De rekenmachine heeft waarschijnlijk ongelijk' },
+  { id: 'unsure', text: 'Ik moet eerst een schatting maken om te oordelen' }
+])
+const reflectionQuestions = computed(() => [
+  'Waarom is afronden naar een tiental een goede strategie om te schatten?',
+  'Waarom kun je niet blind vertrouwen op een rekenmachine?',
+  'Waarom is schatten een vaardigheid die je ook buiten wiskunde nodig hebt?'
+])
+
 const levels = ref([])
 
 function generateLevel() {
-  // Level 1: Addition — compute actual sum, decide if nonsense
+  const nl = []
   const ops = ['+', '-', '×']
-  const op1 = ops[Math.floor(Math.random() * 3)]
-  const n1a = 20 + Math.floor(Math.random() * 60)   // 20-79
-  const n1b = 10 + Math.floor(Math.random() * 40)   // 10-49
-  const real1 = op1 === '+' ? n1a + n1b : op1 === '-' ? n1a - n1b : n1a * n1b
-  const wrong1 = op1 === '+' ? n1a * 10 + n1b : op1 === '-' ? n1a - n1b * 10 : n1a * n1b * 10
-  const isNonsense1 = Math.random() > 0.5
-  const calcAns1 = isNonsense1 ? wrong1 : real1
-
-  const round1a = Math.round(n1a / 10) * 10
-  const round1b = Math.round(n1b / 10) * 10
-
-  // Level 2: Subtraction
-  const n2a = 80 + Math.floor(Math.random() * 121)  // 80-200
-  const n2b = 20 + Math.floor(Math.random() * 60)   // 20-79
-  const op2 = '-'
-  const real2 = n2a - n2b
-  const wrong2 = n2a + n2b
-  const isNonsense2 = Math.random() > 0.5
-  const calcAns2 = isNonsense2 ? wrong2 : real2
-
-  const round2a = Math.round(n2a / 10) * 10
-  const round2b = Math.round(n2b / 10) * 10
-
-  // Level 3: Multiplication
-  const n3a = 10 + Math.floor(Math.random() * 20)   // 10-29
-  const n3b = 3 + Math.floor(Math.random() * 8)     // 3-10
-  const op3 = '×'
-  const real3 = n3a * n3b
-  const wrong3 = n3a * n3b * 10
-  const isNonsense3 = Math.random() > 0.5
-  const calcAns3 = isNonsense3 ? wrong3 : real3
-
-  const round3a = Math.round(n3a / 5) * 5 > 0 ? Math.round(n3a / 5) * 5 : n3a
-  const round3b = Math.round(n3b / 1) * 1 // round to nearest integer
-
-  levels.value = [
-    {
-      goalText: `Opdracht 1: ${op1 === '+' ? 'Optellen' : op1 === '-' ? 'Aftrekken' : 'Vermenigvuldigen'}`,
-      num1: n1a, num2: n1b,
-      op: op1 === '+' ? '+' : op1 === '-' ? '−' : '×',
-      calcAns: isNonsense1 ? wrong1 : real1,
-      targetRound1: round1a, targetRound2: round1b,
-      targetVerdict: isNonsense1 ? 'nonsense' : 'correct',
-      successMsg: isNonsense1
-        ? `Geweldig! ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} ≈ ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Het antwoord ${wrong1} is zware ONZIN!`
-        : `Goed zo! ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} ≈ ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Het antwoord ${real1} is correct.`,
-      hints: [
-        `Rond ${n1a} af naar een mooi tiental.`,
-        `Rond ${n1b} af naar een mooi tiental.`,
-        isNonsense1
-          ? `Je schatting is ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} = ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Is ${wrong1} realistisch?`
-          : `Je schatting is ${round1a} ${op1 === '+' ? '+' : op1 === '-' ? '−' : '×'} ${round1b} = ${op1 === '+' ? round1a + round1b : op1 === '-' ? round1a - round1b : round1a * round1b}. Ligt ${real1} in de buurt?`
-      ]
-    },
-    {
-      goalText: 'Opdracht 2: Aftrekken',
-      num1: n2a, num2: n2b,
-      op: '−',
-      calcAns: isNonsense2 ? wrong2 : real2,
-      targetRound1: round2a, targetRound2: round2b,
-      targetVerdict: isNonsense2 ? 'nonsense' : 'correct',
-      successMsg: isNonsense2
-        ? `Geweldig! ${round2a} − ${round2b} ≈ ${round2a - round2b}. Het antwoord ${wrong2} is ONZIN (veel te groot)!`
-        : `Goed zo! ${round2a} − ${round2b} ≈ ${round2a - round2b}. Het antwoord ${real2} is correct.`,
-      hints: [
-        `Rond ${n2a} af naar het dichtstbijzijnde tiental.`,
-        `Rond ${n2b} af naar een mooi tiental.`,
-        isNonsense2
-          ? `${round2a} − ${round2b} ≈ ${round2a - round2b}. Het rekenmachine-antwoord ${wrong2} is veel te groot!`
-          : `${round2a} − ${round2b} ≈ ${round2a - round2b}. Ligt ${real2} dicht bij je schatting?`
-      ]
-    },
-    {
-      goalText: 'Opdracht 3: Vermenigvuldigen',
-      num1: n3a, num2: n3b,
-      op: '×',
-      calcAns: isNonsense3 ? wrong3 : real3,
-      targetRound1: round3a, targetRound2: round3b,
-      targetVerdict: isNonsense3 ? 'nonsense' : 'correct',
-      successMsg: isNonsense3
-        ? `Perfect! ${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${wrong3} is veel te groot (kommafout?). ONZIN dus!`
-        : `Goed zo! ${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${real3} is correct.`,
-      hints: [
-        `Rond ${n3a} af naar een mooi rond getal.`,
-        `Rond ${n3b} af naar het dichtstbijzijnde gehele getal.`,
-        isNonsense3
-          ? `${round3a} × ${round3b} ≈ ${round3a * round3b}. Het antwoord ${wrong3} is véél te groot!`
-          : `${round3a} × ${round3b} ≈ ${round3a * round3b}. Ligt ${real3} in de buurt?`
-      ]
+  for (let i = 0; i < 3; i++) {
+    let n1, n2, op, real, wrong, isNonsense, round1, round2
+    if (i === 0) {
+      n1 = 20 + Math.floor(Math.random() * 60); n2 = 10 + Math.floor(Math.random() * 40)
+      op = ops[Math.floor(Math.random() * 3)]
+      real = op === '+' ? n1 + n2 : op === '-' ? n1 - n2 : n1 * n2
+      wrong = op === '+' ? n1 + n2 + 100 : op === '-' ? n1 + n2 : n1 * n2 * 10
+      isNonsense = Math.random() > 0.5
+      round1 = Math.round(n1 / 10) * 10; round2 = Math.round(n2 / 5) * 5; if (round2 === 0) round2 = n2
+    } else if (i === 1) {
+      n1 = 80 + Math.floor(Math.random() * 121); n2 = 20 + Math.floor(Math.random() * 60)
+      op = '−'; real = n1 - n2; wrong = n1 + n2
+      isNonsense = Math.random() > 0.5
+      round1 = Math.round(n1 / 10) * 10; round2 = Math.round(n2 / 10) * 10
+    } else {
+      n1 = 10 + Math.floor(Math.random() * 20); n2 = 3 + Math.floor(Math.random() * 8)
+      op = '×'; real = n1 * n2; wrong = n1 * n2 * 10
+      isNonsense = Math.random() > 0.5
+      round1 = Math.round(n1 / 5) * 5; if (round1 === 0) round1 = n1; round2 = n2
     }
-  ]
+    const calcAns = isNonsense ? wrong : real
+    nl.push({
+      goalText: `Opdracht ${i+1}: ${op === '+' ? 'Optellen' : op === '-' ? 'Aftrekken' : 'Vermenigvuldigen'}`,
+      num1: n1, num2: n2, op: op === '+' ? '+' : op === '-' ? '−' : '×',
+      calcAns, targetRound1: round1, targetRound2: round2,
+      targetVerdict: isNonsense ? 'nonsense' : 'correct',
+      realAns: real
+    })
+  }
+  return nl
 }
 
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
-
-// Domain Logic
 const userRound1 = ref(null)
 const userRound2 = ref(null)
-const userVerdict = ref('') // 'correct', 'nonsense'
+const userVerdict = ref('')
 
-function resetActivityState() {
-    isCorrect.value = false;
-celebrationDone.value = false
-    isChecked.value = false;
-    attemptCount.value = 0;
-    feedback.value = { type: 'info', text: 'Rond eerst de getallen af en beslis dan of de rekenmachine de waarheid spreekt.' };
-    userRound1.value = null;
-    userRound2.value = null;
-    userVerdict.value = '';
-    generateLevel();
+const hintTexts = computed(() => {
+  const d = currentLevelData.value
+  if (!d) return ['', '', '']
+  return [
+    `Tip 1: Rond ${d.num1} af naar het dichtstbijzijnde tiental.`,
+    `Tip 2: ${d.targetRound1} ${d.op} ${d.targetRound2} ≈ ${d.op === '+' ? d.targetRound1 + d.targetRound2 : d.op === '−' ? d.targetRound1 - d.targetRound2 : d.targetRound1 * d.targetRound2}. Ligt ${d.calcAns} in de buurt?`,
+    `Tip 3: De schatting is ... (vul in). Vergelijk dit met ${d.calcAns}. Klopt het of is het onzin?`
+  ]
+})
+
+function cycleHint() {
+  if (!showHints) { showHints.value = true; hintLevel.value = 0; return }
+  if (hintLevel.value < 2) hintLevel.value++
+  else { showHints.value = false; hintLevel.value = 0 }
+}
+
+function confirmPrediction() { if (predictionChoice.value) predictionMade.value = true }
+function resetPrediction() { predictionMade.value = false; predictionChoice.value = null }
+
+function detectError(v1, v2, verdict) {
+  const d = currentLevelData.value
+  if (!d) return null
+  if (v1 === d.num1 || v2 === d.num2) return 'Let op! Je moet de getallen AFronden, niet de originele waarden gebruiken. Rond naar een makkelijk tiental.'
+  if (verdict !== '' && v1 === d.targetRound1 && v2 === d.targetRound2 && verdict !== d.targetVerdict) {
+    return d.realAns === d.calcAns
+      ? 'Let op! Het antwoord lijkt misschien vreemd, maar de rekenmachine heeft gelijk! De schatting ligt in de buurt.'
+      : 'Let op! Het antwoord is veel te groot/klein vergeleken met je schatting. Dat is ONZIN!'
+  }
+  return null
 }
 
 function checkAnswer() {
-  isChecked.value = true;
-  attemptCount.value++;
-
-  const data = currentLevelData.value;
-
-  if (userRound1.value === data.targetRound1 && userRound2.value === data.targetRound2 && userVerdict.value === data.targetVerdict) {
-    isCorrect.value = true
-    feedback.value = { type: 'success', text: data.successMsg }
+  isChecked.value = true; attemptCount.value++
+  const d = currentLevelData.value
+  const specific = detectError(userRound1.value, userRound2.value, userVerdict.value)
+  if (userRound1.value === d.targetRound1 && userRound2.value === d.targetRound2 && userVerdict.value === d.targetVerdict) {
+    isCorrect.value = true; showWhy.value = true
+    feedback.value = { type: 'success', text: d.targetVerdict === 'nonsense' ? `Geweldig! ${d.targetRound1} ${d.op} ${d.targetRound2} ≈ ${d.op === '+' ? d.targetRound1 + d.targetRound2 : d.op === '−' ? d.targetRound1 - d.targetRound2 : d.targetRound1 * d.targetRound2}. ${d.calcAns} is ONZIN!` : `Goed zo! Schatting klopt met het echte antwoord ${d.calcAns}.` }
   } else {
     isCorrect.value = false
-
-    const hints = data.hints
-    const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
-
-    if (userRound1.value !== data.targetRound1) {
-        feedback.value = { type: 'error', text: hints[0] }
-    } else if (userRound2.value !== data.targetRound2) {
-        feedback.value = { type: 'error', text: hints[1] }
-    } else if (userVerdict.value === '') {
-        feedback.value = { type: 'error', text: 'Niet helemaal... Vergeet niet je eindoordeel te geven over de rekenmachine (KLOPT / ONZIN).'}
-    } else {
-        feedback.value = { type: 'error', text: hints[hintIdx] }
-    }
+    if (specific) feedback.value = { type: 'error', text: specific }
+    else if (userRound1.value !== d.targetRound1) feedback.value = { type: 'error', text: `Rond ${d.num1} af naar een tiental.` }
+    else if (userRound2.value !== d.targetRound2) feedback.value = { type: 'error', text: `Rond ${d.num2} af naar een mooi getal.` }
+    else feedback.value = { type: 'error', text: 'Beoordeel het rekenmachine-antwoord: KLOPT of ONZIN?' }
   }
 }
+
+function resetActivityState() {
+  levels.value = generateLevel()
+  isCorrect.value = false; celebrationDone.value = false; isChecked.value = false
+  attemptCount.value = 0; hintLevel.value = 0; showHints.value = false; showWhy.value = false
+  showReflection.value = false; showLPD.value = false; lpdDone.value = false
+  resetPrediction()
+  feedback.value = { type: 'info', text: 'Rond de getallen af en beoordeel.' }
+  userRound1.value = null; userRound2.value = null; userVerdict.value = ''
+}
+
+const allReflectionsDone = computed(() => reflectionAnswers.value.every(a => a.length >= 10))
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
-    currentInternalLevel.value++;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-  } else {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+  if (isCorrect.value && !showReflection.value) { showReflection.value = true }
+  else if (showReflection.value && allReflectionsDone.value) { submitReflection() }
+}
+
+function submitReflection() {
+  if (allReflectionsDone.value) {
+    showReflection.value = false; reflectionAnswers.value = ['', '', '']
+    if (currentInternalLevel.value < totalInternalLevels - 1) { currentInternalLevel.value++; resetActivityState(); nextTick(() => mainArea.value?.focus()) }
+    else { showLPD.value = true }
   }
 }
 
-// Lifecycle
-watch(() => props.isOpen, (val) => {
-  if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
-    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
-}, { immediate: true })
+function submitLPD() { if (lpdAnswer.value.length >= 20) { lpdDone.value = true; emit('complete') } }
 
-function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
-const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
-onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+const whyText = computed(() => [
+  'Door getallen af te ronden naar tientallen worden berekeningen eenvoudig genoeg voor hoofdrekenen.',
+  'Een snelle schatting vertelt je of een rekenmachine-antwoord realistisch is of onzin.'
+])
+
+watch(() => props.isOpen, (val) => {
+  if (val) { currentInternalLevel.value = 0; resetActivityState()
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && props.isOpen) emit('close') })
+    nextTick(() => mainArea.value?.focus()); nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else { shouldPulse.value = false }
 })
-// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+  <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+  <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
+          <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+          <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+        </div>
+      </div>
+      <button @click="emit('close')" class="p-2 text-slate-500 rounded-full hover:bg-slate-100"><PhX class="w-6 h-6" /></button>
+    </header>
+    <main class="flex flex-1 overflow-hidden">
+      <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 md:flex z-10">
+        <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
+          <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+          <MathText :content="instruction" class="mb-4 prose prose-sm text-slate-600" />
 
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <details class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-4">
+            <summary class="font-bold text-amber-800 cursor-pointer text-sm">Voorbeeld — Stap voor Stap</summary>
+            <div class="mt-3 text-sm space-y-2">
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Rekenmachine zegt: 72 × 8 = 5760. Klopt dat?</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Rond af: 72 ≈ 70, 8 blijft 8. Schatting: 70 × 8 = 560.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> 5760 is véél groter dan 560. ONZIN! Het juiste antwoord is 576.</p>
+            </div>
+          </details>
+
+          <div v-if="!predictionMade" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 mb-4">
+            <h4 class="font-bold text-indigo-800 text-sm mb-2 flex items-center gap-2"><PhQuestion weight="bold" class="w-4 h-4" /> Voorspel!</h4>
+            <p class="text-xs text-indigo-600 mb-3">Wat denk je van het rekenmachine-antwoord?</p>
+            <div class="space-y-2">
+              <label v-for="opt in predictionOptions" :key="opt.id" class="flex items-center gap-2 p-2 rounded-lg bg-white border cursor-pointer text-xs"
+                :class="predictionChoice === opt.id ? 'border-indigo-500 bg-indigo-100' : 'border-slate-200'">
+                <input type="radio" :value="opt.id" v-model="predictionChoice" class="accent-indigo-600" /> {{ opt.text }}
+              </label>
+            </div>
+            <button @click="confirmPrediction" :disabled="!predictionChoice" class="mt-3 w-full py-2 bg-indigo-600 text-white font-bold rounded-lg text-sm disabled:opacity-50">Bevestig Voorspelling</button>
           </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
+
+          <div v-if="predictionMade" class="space-y-4">
+            <div class="bg-amber-50 p-4 border border-amber-200 rounded-xl">
+              <p class="font-bold text-amber-800 text-sm">{{ currentLevelData.goalText }}</p>
+            </div>
+            <div class="p-4 border border-amber-200 bg-amber-50 rounded-xl space-y-3">
+              <div>
+                <label class="text-sm font-bold text-amber-700">Stap 1: Schatting</label>
+                <div class="flex items-center gap-2 mt-1">
+                  <input type="number" v-model.number="userRound1" :placeholder="`${currentLevelData.num1}`" :disabled="isCorrect"
+                    class="w-full font-bold text-lg p-2 border border-amber-300 rounded-lg text-center bg-white tabular-nums" />
+                  <span class="font-black text-slate-400">{{ currentLevelData.op }}</span>
+                  <input type="number" v-model.number="userRound2" :placeholder="`${currentLevelData.num2}`" :disabled="isCorrect"
+                    class="w-full font-bold text-lg p-2 border border-amber-300 rounded-lg text-center bg-white tabular-nums" />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-bold text-amber-700">Stap 2: Beoordeling</label>
+                <div class="flex gap-2 mt-1">
+                  <button @click="userVerdict = 'correct'" :disabled="isCorrect"
+                    class="flex-1 py-2 rounded-lg font-bold border-2 text-xs"
+                    :class="userVerdict === 'correct' ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-white border-slate-300 text-slate-600'">KLOPT</button>
+                  <button @click="userVerdict = 'nonsense'" :disabled="isCorrect"
+                    class="flex-1 py-2 rounded-lg font-bold border-2 text-xs"
+                    :class="userVerdict === 'nonsense' ? 'bg-red-500 border-red-600 text-white' : 'bg-white border-slate-300 text-slate-600'">ONZIN</button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
-      </header>
-
-      <main class="flex flex-1 overflow-hidden">
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
-
-            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
-            </div>
-
-            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner flex flex-col gap-4">
-
-               <div class="flex flex-col gap-2">
-                   <label class="text-sm font-bold text-math-blue">Stap 1: Schatting maken</label>
-                   <div class="flex items-center gap-2">
-                       <input type="number" v-model.number="userRound1" :placeholder="`${currentLevelData.num1}`" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
-                       <span class="font-black text-slate-400">{{ currentLevelData.op }}</span>
-                       <input type="number" v-model.number="userRound2" :placeholder="`${currentLevelData.num2}`" :disabled="isCorrect"
-                              class="w-full font-bold text-lg p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue text-center" />
-                   </div>
-               </div>
-
-               <div class="flex flex-col gap-2 border-t border-surface-200 pt-4">
-                   <label class="text-sm font-bold text-math-blue">Stap 2: Beoordeling Rekenmachine</label>
-                   <div class="flex gap-2">
-                       <button @click="userVerdict = 'correct'" :disabled="isCorrect"
-                               class="flex-1 py-2 rounded-lg font-bold transition-colors border-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                               :class="userVerdict === 'correct' ? 'bg-emerald-500 border-emerald-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
-                           KLOPT
-                       </button>
-                       <button @click="userVerdict = 'nonsense'" :disabled="isCorrect"
-                               class="flex-1 py-2 rounded-lg font-bold transition-colors border-2 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                               :class="userVerdict === 'nonsense' ? 'bg-red-500 border-red-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'">
-                           ONZIN
-                       </button>
-                   </div>
-               </div>
-
-            </div>
-          </div>
-
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
-            </div>
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (userRound1 === null || userRound2 === null || userVerdict === '')" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
-              </button>
+            <div v-if="showWhy" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 animate-fadeIn">
+              <h4 class="font-bold text-indigo-800 text-sm mb-2">Waarom werkt dit?</h4>
+              <p v-for="(l, i) in whyText" :key="i" class="text-xs text-indigo-700 mb-1">{{ l }}</p>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+        <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+          <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-3 text-sm rounded-lg animate-fadeIn"
+            :class="{'bg-emerald-100': feedback.type === 'success', 'bg-red-100': feedback.type === 'error', 'bg-blue-100': feedback.type === 'info'}">
+            <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+            <span>{{ feedback.text }}</span>
+          </div>
 
-              <!-- Calculator Visual -->
-              <div class="w-72 bg-slate-800 rounded-xl p-6 shadow-md border-b-8 border-slate-900 flex flex-col relative" :class="isCorrect && userVerdict === 'nonsense' ? 'animate-shake' : ''">
+          <div v-if="!predictionMade">
+            <button @click="emit('close')" class="w-full py-3 font-bold text-slate-500 bg-white border border-slate-200 rounded-lg">Sluiten</button>
+          </div>
+          <div v-else-if="!showReflection && !showLPD" class="flex items-center gap-3">
+            <button @click="resetActivityState" class="p-3 text-slate-500 bg-white border border-slate-200 rounded-lg shrink-0"><PhArrowClockwise /></button>
+            <button @click="cycleHint" class="p-3 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg shrink-0"><PhLightbulb weight="fill" /></button>
+            <div v-if="showHints" class="bg-amber-100 p-2 rounded-lg text-xs text-amber-800 animate-fadeIn flex-1">{{ hintTexts[hintLevel] }}</div>
+            <button v-if="!isCorrect" @click="checkAnswer" :disabled="userRound1 === null || userRound2 === null || userVerdict === ''"
+              class="flex-1 py-3 font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50">Controleer</button>
+            <button v-else @click="handleNext" class="flex-1 py-3 font-bold text-white rounded-lg bg-emerald-600 hover:bg-emerald-500">Reflecteer <PhArrowRight weight="bold" class="inline" /></button>
+          </div>
 
-                  <div v-if="isCorrect && userVerdict === 'nonsense'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500 text-white font-black px-6 py-2 rounded-full shadow-sm border-4 border-white rotate-12 z-20 whitespace-nowrap text-xl">
-                      GEBUISD!
-                  </div>
+          <div v-if="showReflection" class="space-y-3">
+            <h4 class="font-bold text-indigo-800 text-sm">Reflectie</h4>
+            <div v-for="(q, i) in reflectionQuestions" :key="i" class="space-y-1">
+              <label class="text-xs font-medium text-slate-700">{{ q }}</label>
+              <textarea v-model="reflectionAnswers[i]" rows="2" class="w-full text-sm p-2 border border-indigo-200 rounded-lg bg-white resize-none" placeholder="Min 10 tekens..."></textarea>
+            </div>
+            <button @click="submitReflection" :disabled="!allReflectionsDone" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">
+              {{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Naar Bewijs van LPD' }}
+            </button>
+          </div>
 
-                  <div v-if="isCorrect && userVerdict === 'correct'" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-black px-6 py-2 rounded-full shadow-sm border-4 border-white -rotate-6 z-20 whitespace-nowrap text-xl">
-                      GOEDGEKEURD!
-                  </div>
-
-                  <!-- Screen -->
-                  <div class="h-28 bg-[#a3c2b8] rounded-xl border-4 border-slate-700 shadow-inner flex flex-col p-4 mb-6 relative overflow-hidden">
-                      <div class="absolute inset-0 opacity-10 bg-stripes pointer-events-none"></div>
-                      <span class="text-[10px] font-mono text-slate-600 font-bold">MATH</span>
-                      <span class="text-right text-base font-mono text-slate-600 mb-1" :key="currentInternalLevel + 'eq'">{{ currentLevelData.num1 }} {{ currentLevelData.op }} {{ currentLevelData.num2 }}</span>
-                      <span class="text-right text-4xl font-mono text-slate-800 font-black mt-auto tracking-widest" :key="currentInternalLevel + 'ans'">{{ currentLevelData.calcAns }}</span>
-                  </div>
-
-                  <!-- Buttons Grid -->
-                  <div class="grid grid-cols-4 gap-4">
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-slate-600 rounded-lg shadow-sm border-b-4 border-slate-700"></div>
-                      <div class="w-full aspect-square bg-math-blue rounded-lg shadow-sm border-b-4 border-math-blue"></div>
-
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow-sm border-b-4 border-blue-600"></div>
-
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-blue-500 rounded-lg shadow-sm border-b-4 border-blue-600"></div>
-
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-300 rounded-lg shadow-sm border-b-4 border-slate-400"></div>
-                      <div class="w-full aspect-square bg-slate-700 rounded-lg shadow-sm border-b-4 border-slate-900 flex items-center justify-center font-black text-white text-2xl">=</div>
-                  </div>
-
-              </div>
-
+          <div v-if="showLPD && !lpdDone" class="space-y-3">
+            <h4 class="font-bold text-amber-800 text-sm flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-amber-600" /> Bewijs van LPD 17</h4>
+            <p class="text-xs text-amber-700">LPD 17: Hoofdrekenen en schatten van bewerkingen.</p>
+            <textarea v-model="lpdAnswer" rows="3" class="w-full text-sm p-2 border border-amber-200 rounded-lg bg-white resize-none" placeholder="Schrijf een zin die bewijst dat je dit leerplandoel bereikt hebt..."></textarea>
+            <button @click="submitLPD" :disabled="lpdAnswer.length < 20" class="w-full py-2 bg-amber-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">Bevestig LPD 17</button>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+        <div class="flex flex-1 p-6 items-center justify-center relative pattern-grid">
+          <div class="w-72 bg-slate-800 rounded-xl p-6 shadow-md border-b-8 border-slate-900 flex flex-col">
+            <div class="h-28 bg-[#a3c2b8] rounded-xl border-4 border-slate-700 shadow-inner flex flex-col p-4 mb-6 overflow-hidden">
+              <span class="text-[10px] font-mono text-slate-600 font-bold">MATH</span>
+              <span class="text-right text-base font-mono text-slate-600 mb-1">{{ currentLevelData.num1 }} {{ currentLevelData.op }} {{ currentLevelData.num2 }}</span>
+              <span class="text-right text-3xl font-mono text-slate-800 font-black mt-auto tracking-widest tabular-nums">{{ currentLevelData.calcAns }}</span>
+            </div>
+            <div class="grid grid-cols-4 gap-3">
+              <div v-for="k in 16" :key="k" class="w-full aspect-square rounded-lg shadow-sm border-b-4"
+                :class="k % 4 === 0 ? 'bg-amber-500 border-amber-600' : (k <= 4 ? 'bg-slate-600 border-slate-700' : 'bg-slate-300 border-slate-400')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
+</div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="currentInternalLevel === totalInternalLevels - 1" />
 </template>
 
 <style scoped>
-:root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
-.bg-stripes { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px); }
-.animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-
-.animate-shake {
-    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-}
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0) rotate(-2deg); }
-  20%, 80% { transform: translate3d(2px, 0, 0) rotate(2deg); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0) rotate(-4deg); }
-  40%, 60% { transform: translate3d(4px, 0, 0) rotate(4deg); }
-}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 </style>

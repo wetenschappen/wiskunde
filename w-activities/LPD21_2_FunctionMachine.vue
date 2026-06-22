@@ -223,14 +223,59 @@ function checkAnswer() {
   } else {
     attemptCount.value++
     if (userA.value !== targetA) {
+      // Specific error analysis
+      if (history.value.length >= 2) {
+        const dx = history.value[1].in - history.value[0].in
+        const dy = history.value[1].out - history.value[0].out
+        if (dx !== 0) {
+          const actualSlope = dy / dx
+          if (Math.abs(actualSlope) > 0) {
+            if (Math.abs(actualSlope - targetA) > 0.01 && userA.value === Math.round(actualSlope * 100) / 100) {
+              feedback.value = {
+                type: 'error',
+                text: `Let op! Je hebt a = ${userA.value} ingevuld, maar dat is de helling tussen de twee eerste punten. Klopt die helling voor ALLE paren? Soms is er meer data nodig om het patroon te zien — probeer een derde getal in de machine.`
+              }
+              return
+            }
+          }
+          // Confusing output with a
+          if (history.value[1].out === userA.value) {
+            feedback.value = {
+              type: 'error',
+              text: `Let op! a = ${userA.value} is een output, niet de richtingscoëfficiënt. a is het VERSCHIL tussen opeenvolgende outputs als x met 1 toeneemt. Outputs zijn: ${history.value.map(h => h.out).join(', ')}. Wat is het verschil tussen deze outputs?`
+            }
+            return
+          }
+        }
+      }
       feedback.value = {
         type: 'error',
-        text: `De richtingsco\u00ebffici\u00ebnt (a) klopt niet. Het verschil tussen outputs is ${targetA}, niet ${userA.value}. Deel Δy door Δx.`
+        text: `Let op! De richtingscoëfficiënt (a) klopt niet. Het verschil tussen outputs per stap is ${targetA}, niet ${userA.value}. Deel Δy door Δx.`
       }
     } else {
+      // a correct but b wrong
+      if (history.value.length > 0) {
+        const firstInput = history.value[0]
+        // Check if they confused b with output at x=0
+        const calculatedB = firstInput.out - targetA * firstInput.in
+        if (userB.value === firstInput.out) {
+          feedback.value = {
+            type: 'error',
+            text: `Let op! Je hebt een output (f(${firstInput.in}) = ${firstInput.out}) ingevuld voor b, maar b = f(0), niet f(${firstInput.in}). b is de output wanneer x = 0, niet de eerste output die je ziet.`
+          }
+          return
+        }
+        if (userB.value === Math.round(calculatedB * 100) / 100) {
+          feedback.value = {
+            type: 'error',
+            text: `Let op! b = ${userB.value} is correct voor x = ${firstInput.in}, maar controleer of je de formule f(x) = ${targetA}x + b correct hebt gebruikt.`
+          }
+          return
+        }
+      }
       feedback.value = {
         type: 'error',
-        text: `De toename per eenheid (a = ${targetA}) is juist, maar je startwaarde (b) klopt niet. Wat is de output als x = 0?`
+        text: `Let op! De toename per eenheid (a = ${targetA}) is juist, maar je startwaarde (b) klopt niet. Wat is de output als x = 0? Gebruik: b = f(x) - ax voor een bekend punt.`
       }
     }
   }

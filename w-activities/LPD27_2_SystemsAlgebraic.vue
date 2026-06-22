@@ -304,24 +304,36 @@ function checkAnswer() {
     const hint = getHint()
     // Error analysis: detect common mistakes
     const d = currentLevelData.value
-    const commonMistakes = []
+    const specificErrors = []
+
+    // Not checking the substitution back (forgetting to verify)
+    if (parsed !== 0 && d.otherVal !== undefined && Math.abs(d.answer) > 0) {
+      if (parsed === d.answer + 1 || parsed === d.answer - 1) {
+        specificErrors.push('Bijna! Je zit er 1 naast. Controleer of je de bewerkingen in de juiste volgorde hebt uitgevoerd (eerst vermenigvuldigen, dan optellen/aftrekken).')
+      }
+    }
 
     // Did they forget parentheses? Check if answer is off by sign or operation
     if (d.eq1Left === 'y' && d.questionVar === 'x') {
       const withoutParens = (d.m1 !== undefined && d.m1 !== null) ? (d.c_const - d.b1) / d.a_coeff : null
       if (withoutParens !== null && Math.abs(parsed - withoutParens) < 0.01) {
-        commonMistakes.push('Je hebt de haakjes vergeten! De uitdrukking moet tussen haakjes bij substitutie.')
+        specificErrors.push('Let op! Je hebt de haakjes vergeten bij de substitutie. De uitdrukking "' + d.eq1Right + '" moet tussen haakjes wanneer je ze invult. De haakjes zijn essentieel om het teken correct te houden. Bijvoorbeeld: 2x + (3x + 2) = 12, niet 2x + 3x + 2 = 12.')
       }
+    }
+
+    // Error: confusing x and y answer
+    if (d.otherVal !== undefined && parsed === d.otherVal) {
+      specificErrors.push(`Let op! Je hebt de waarde voor ${d.otherVar} ingevuld in plaats van voor ${d.questionVar}. ${d.questionVar} = ${d.answer} en ${d.otherVar} = ${d.otherVal}. Verwar de variabelen niet!`)
     }
 
     // Sign error check
     if (parsed === -d.answer) {
-      commonMistakes.push('Bijna, maar controleer het teken. Heb je een minteken over het hoofd gezien?')
+      specificErrors.push('Let op! Je antwoord heeft het verkeerde teken. Controleer of je de mintekens correct hebt overgenomen bij het oplossen. Vaak gaat het mis bij: negatief getal min iets, of bij het overbrengen naar de andere kant van het = teken.')
     }
 
-    const errorMsg = commonMistakes.length > 0
-      ? commonMistakes[0]
-      : hint
+    const errorMsg = specificErrors.length > 0
+      ? specificErrors[0]
+      : `Let op! Dit klopt niet. ${hint}`
 
     feedback.value = { type: 'error', text: errorMsg }
   }

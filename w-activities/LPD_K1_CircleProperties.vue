@@ -179,13 +179,15 @@ function checkAnswer() {
     // Error analysis: check for common mistakes
     const sc = currentScenario.value
     if (sc.unknown === 'inscribed' && parsed === sc.central) {
-      feedback.value = { type: 'error', text: `Je hebt de middelpuntshoek (${sc.central}°) ingevuld. Maar we zoeken de omtrekshoek! Die is de <strong>helft</strong> van de middelpuntshoek, niet gelijk eraan.<br><br>${getHint()}` }
+      feedback.value = { type: 'error', text: `Let op! Je hebt de middelpuntshoek (${sc.central}°) ingevuld. Maar we zoeken de omtrekshoek! Die is de <strong>helft</strong> van de middelpuntshoek, niet gelijk eraan. De omtrekshoek staat op de omtrek van de cirkel, de middelpuntshoek staat in het middelpunt — ze zijn niet hetzelfde.<br><br>${getHint()}` }
     } else if (sc.unknown === 'central' && parsed === sc.inscribed) {
-      feedback.value = { type: 'error', text: `Je hebt de omtrekshoek (${sc.inscribed}°) ingevuld. Maar we zoeken de middelpuntshoek! Die is het <strong>dubbel</strong> van de omtrekshoek, niet gelijk eraan.<br><br>${getHint()}` }
+      feedback.value = { type: 'error', text: `Let op! Je hebt de omtrekshoek (${sc.inscribed}°) ingevuld. Maar we zoeken de middelpuntshoek! Die is het <strong>dubbel</strong> van de omtrekshoek, niet gelijk eraan. De middelpuntshoek is steeds groter dan de omtrekshoek op dezelfde boog.<br><br>${getHint()}` }
     } else if (sc.unknown === 'inscribed' && parsed === sc.central * 2) {
-      feedback.value = { type: 'error', text: `Je hebt ${sc.central}° verdubbeld. Maar de omtrekshoek is de helft van ${sc.central}°, niet het dubbel. Deel in plaats van vermenigvuldigen.<br><br>${getHint()}` }
+      feedback.value = { type: 'error', text: `Let op! Je hebt ${sc.central}° verdubbeld. Maar de omtrekshoek is de <strong>helft</strong> van ${sc.central}°, niet het dubbel. Je hebt de verkeerde richting gekozen: deel door 2, niet vermenigvuldigen. Omtrekshoek = 1/2 x middelpuntshoek.<br><br>${getHint()}` }
     } else if (sc.unknown === 'central' && parsed === Math.floor(sc.inscribed / 2)) {
-      feedback.value = { type: 'error', text: `Je hebt ${sc.inscribed}° gedeeld door 2. Maar de middelpuntshoek is het dubbel van de omtrekshoek, niet de helft. Vermenigvuldig in plaats van delen.<br><br>${getHint()}` }
+      feedback.value = { type: 'error', text: `Let op! Je hebt ${sc.inscribed}° gedeeld door 2. Maar de middelpuntshoek is het <strong>dubbel</strong> van de omtrekshoek, niet de helft. Je hebt de verkeerde richting gekozen: vermenigvuldig met 2, niet delen. Middelpuntshoek = 2 x omtrekshoek.<br><br>${getHint()}` }
+    } else if (sc.unknown === 'inscribed' && parsed === 180) {
+      feedback.value = { type: 'error', text: 'Let op! 180° is een gestrekte hoek, niet zomaar een omtrekshoek. De omtrekshoek op de diameter van een cirkel is 90° (Thales), niet 180°. Controleer de middelpuntshoek.' }
     } else {
       feedback.value = { type: 'error', text: 'Niet helemaal... ' + getHint() }
     }

@@ -1,355 +1,70 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import {
-  PhX,
-  PhCheckCircle,
-  PhWarningCircle,
-  PhArrowRight,
-  PhCircleDashed,
-  PhArrowClockwise
-} from '@phosphor-icons/vue'
+import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCircleDashed, PhArrowClockwise, PhBrain, PhBookOpen, PhLightbulb, PhChatCircleText } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
-
-const props = defineProps({
-  isOpen: Boolean,
-  title: {
-    type: String,
-    default: 'Goniometrische Cirkel'
-  },
-  instruction: {
-    type: String,
-    default: 'Verander de hoek α om de opdracht te voltooien. De rode lijn toont de cosinus (x), de groene lijn de sinus (y).'
-  },
-  currentStep: { type: Number, default: 1 },
-  totalSteps: { type: Number, default: 1 },
-  fullscreen: { type: Boolean, default: true },
-  icon: { type: Object, default: () => PhCircleDashed }
-})
-
+const props = defineProps({ isOpen: Boolean, title: { type: String, default: 'Goniometrische Cirkel' }, instruction: { type: String, default: 'Verander de hoek om de opdracht te voltooien.' }, currentStep: { type: Number, default: 1 }, totalSteps: { type: Number, default: 1 }, fullscreen: { type: Boolean, default: true }, icon: { type: Object, default: () => PhCircleDashed } })
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
-
-const mainArea = ref(null)
-const shouldPulse = ref(false)
-
-const isCorrect = ref(false)
-const celebrationDone = ref(false)
-const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: '' })
-
-// Levels Definition
-const currentInternalLevel = ref(0)
-const totalInternalLevels = 3
-
-const attemptCount = ref(0)
+const mainArea = ref(null); const shouldPulse = ref(false); const isCorrect = ref(false); const celebrationDone = ref(false); const feedback = ref({ type: 'info', text: '' }); const attemptCount = ref(0)
+const currentInternalLevel = ref(0); const totalInternalLevels = 3; const showWorkedExample = ref(true); const workedStep = ref(0)
+const workedSteps = [{label:'sin(30)=0.5,cos(30)=0.866',detail:'30 in Q1'},{label:'cos=x-as(rood),sin=y-as(groen)',detail:'Projecties op eenheidscirkel'}]
 const levels = ref([])
-
-function generateLevel() {
-  // Level 1: Simple angle targets (30, 45, 60, 90)
-  const angles1 = [30, 45, 60, 90]
-  const target1 = angles1[Math.floor(Math.random() * angles1.length)]
-
-  // Level 2: Quadrant III angle (210, 225, 240, 330)
-  const quad3Targets = [210, 225, 240, 330]
-  const target2 = quad3Targets[Math.floor(Math.random() * quad3Targets.length)]
-  const sin2 = Math.sin(target2 * Math.PI / 180).toFixed(3)
-
-  // Level 3: Range in Quadrant II
-  const start3 = 140 + Math.floor(Math.random() * 20) // 140-159
-
-  levels.value = [
-    {
-      goal: `Draai de hoek α naar precies ${target1}°.`,
-      check: (angle) => angle === target1,
-      hints: [
-        `De groene lijn is de sinus (y-as). Kijk goed naar de posities op de cirkel.`,
-        `${target1}° is een speciale hoek. Denk aan de verhoudingen in een rechthoekige driehoek.`,
-        `Zet de slider precies op ${target1}°.`
-      ]
-    },
-    {
-      goal: `Zoek een hoek in Kwadrant III waarbij sin(α) ≈ ${sin2}.`,
-      check: (angle) => angle === target2,
-      hints: [
-        'Kwadrant III ligt linksonder. Daar zijn x en y allebei negatief.',
-        `De sinus is de y-waarde (groen). Rond de ${Math.abs(parseFloat(sin2))} naar beneden.`,
-        `Probeer ${target2}°.`
-      ]
-    },
-    {
-      goal: `Zoek een hoek in Kwadrant II waarbij cos(α) kleiner (meer negatief) is dan -0.8. Elke hoek tussen ${start3}° en 180° is juist.`,
-      check: (angle) => angle >= start3 && angle <= 180,
-      hints: [
-        'Kwadrant II is linksboven. De cosinus (rode lijn) moet ver naar links wijzen.',
-        `Hoe dichter de rode lijn bij de linkerkant (-1), hoe negatiever de cosinus.`,
-        `Kies een hoek tussen ${start3}° en 180°.`
-      ]
-    }
-  ]
-}
-
-const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
-
-// State
-const angleDeg = ref(45)
-const angleRad = computed(() => angleDeg.value * (Math.PI / 180))
-const cosVal = computed(() => Math.cos(angleRad.value))
-const sinVal = computed(() => Math.sin(angleRad.value))
-
-function resetActivityState() {
-  isCorrect.value = false;
-celebrationDone.value = false
-  isChecked.value = false;
-  attemptCount.value = 0;
-  feedback.value = { type: 'info', text: 'Draai de slider naar de juiste hoek.' };
-  angleDeg.value = 45;
-  generateLevel();
-}
-
-// Auto-correct on slider change
-watch(angleDeg, (newAngle) => {
-  if (isCorrect.value || !currentLevelData.value) return;
-  if (currentLevelData.value.check(newAngle)) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: 'Prima!! Je hebt het wiskundige doel visueel bereikt op de eenheidscirkel.'
-    }
-  } else if (!isChecked.value) {
-    // Give gentle hints based on how many slider stops the user has tried
-    attemptCount.value++
-    if (attemptCount.value >= 5) {
-      const hintIdx = Math.min(attemptCount.value - 1, currentLevelData.value.hints.length - 1)
-      feedback.value = {
-        type: 'info',
-        text: currentLevelData.value.hints[hintIdx]
-      }
-    }
-  }
-})
-
-function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
-    currentInternalLevel.value++;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-  } else {
-    if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
-    } else {
-        emit('complete');
-    }
-  }
-}
-
-watch(() => props.isOpen, (val) => {
-  if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) {
-      nextTick(() => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {})
-        }
-      })
-    }
-    nextTick(() => {
-        shouldPulse.value = true
-        setTimeout(() => { shouldPulse.value = false }, 3000)
-    })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
-}, { immediate: true })
-
-function handleKeydown(e) {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close')
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('fullscreenchange', () => {
-    if (props.isOpen && props.fullscreen && !document.fullscreenElement) {
-      emit('close')
-    }
-  })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-})
+function gl(){const a=[30,45,60,90];const t1=a[Math.floor(Math.random()*4)];const q3=[210,225,240,330];const t2=q3[Math.floor(Math.random()*4)];const s3=140+Math.floor(Math.random()*20);levels.value=[{goal:'Draai naar '+t1+'°.',check:(a)=>a===t1,pq:'In welk kwadrant ligt '+t1+'°?',po:['I','II','III','IV'],pc:'I',ce:[{c:(a)=>a>0&&a<90&&a!==t1&&Math.abs(a-t1)<10,m:'Let op! Dichtbij, maar nog niet exact.'}],hints:[''+t1+'° is een speciale hoek.','Zet de slider precies op '+t1+'°.']},{goal:'Zoek een hoek in Q3 met sin~'+Math.sin(t2*Math.PI/180).toFixed(3)+'.',check:(a)=>a===t2,pq:'In Q3: sin en cos positief of negatief?',po:['Beide positief','Beide negatief','Sin positief'],pc:'Beide negatief',ce:[{c:(a)=>a>0&&a<180,m:'Let op! Q3 is linksonder (180-270).'}],hints:['Q3 ligt linksonder. x en y negatief.','Probeer '+t2+'°.']},{goal:'Zoek een hoek in Q2 waarbij cos<-0.8 tussen '+s3+' en 180.',check:(a)=>a>=s3&&a<=180,pq:'In Q2 is cos positief of negatief?',po:['Positief','Negatief'],pc:'Negatief',ce:[{c:(a)=>a>180,m:'Let op! Q2 is 90-180.'}],hints:['Q2 is linksboven. cos negatief.','Kies tussen '+s3+' en 180.']}]}
+const cl=computed(()=>levels.value[currentInternalLevel.value]);const sp=ref(true);const pa=ref(null);const pr=ref(false);const pc=ref(false)
+function submit(){pc.value=pa.value===cl.value.pc;pr.value=true;sp.value=false}
+const ag=ref(45);const ar=computed(()=>ag.value*(Math.PI/180));const cv=computed(()=>Math.cos(ar.value));const sv=computed(()=>Math.sin(ar.value))
+function gh(c){const h=cl.value.hints;if(c>=11)return{type:'info',text:'Methode: '+h[1]};if(c>=8)return{type:'info',text:'Voorbeeld: sin(30)=0.5, cos(30)=0.866. '+h[0]};if(c>=5)return{type:'info',text:'Concept: '+h[0]};return{type:'info',text:'Draai de slider.'}}
+function rs(){isCorrect.value=false;celebrationDone.value=false;attemptCount.value=0;feedback.value={type:'info',text:''};ag.value=45;gl();sp.value=true;pa.value=null;pr.value=false;pc.value=false;showWorkedExample.value=currentInternalLevel.value===0;workedStep.value=0}
+watch(ag,(n)=>{if(isCorrect.value||!cl.value||sp.value)return;if(cl.value.check(n)){isCorrect.value=true;feedback.value={type:'success',text:'Prima!'}}else{attemptCount.value++;const e=cl.value.ce.find(x=>x.c(n));feedback.value=e?{type:'error',text:e.m}:gh(attemptCount.value)}})
+function hn(){if(currentInternalLevel.value<2){currentInternalLevel.value++;rs();nextTick(()=>mainArea.value?.focus())}else{if(props.currentStep<props.totalSteps)emit('update:currentStep',props.currentStep+1);else emit('complete')}}
+watch(()=>props.isOpen,(v)=>{if(v){currentInternalLevel.value=0;rs();nextTick(()=>mainArea.value?.focus());window.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&props.isOpen)emit('close')})}else{shouldPulse.value=false}},{immediate:true})
+onMounted(()=>document.addEventListener('fullscreenchange',()=>{if(props.isOpen&&props.fullscreen&&!document.fullscreenElement)emit('close')}))
+onUnmounted(()=>{})
 </script>
-
 <template>
-<div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
-
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
+<div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col bg-slate-50">
+    <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+    <div class="relative flex flex-col w-screen h-screen bg-white">
+      <header class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <div class="flex items-center gap-4"><div class="p-2 rounded-lg bg-math-blue-bg"><component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" /></div><div><h2 class="text-lg font-bold text-slate-900">{{ props.title }}</h2><p class="text-xs text-slate-500">Level {{ currentInternalLevel+1 }}/3 <span v-if="currentInternalLevel===0">(Toepassen)</span><span v-else-if="currentInternalLevel===1">(Analyseren)</span><span v-else>(Evalueren)</span></p></div></div>
+        <button @click="emit('close')" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><PhX class="w-6 h-6" /></button>
       </header>
-
       <main class="flex flex-1 overflow-hidden">
-
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
-
-            <div class="text-center bg-math-blue-bg p-5 border border-surface-200 rounded-xl shadow-sm mb-6">
-              <p class="font-bold text-math-blue">{{ currentLevelData.goal }}</p>
+        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 md:flex">
+          <div ref="mainArea" class="flex-1 p-6 overflow-y-auto">
+            <MathText :content="props.instruction" class="mb-4 prose prose-sm" />
+            <div v-if="showWorkedExample&&currentInternalLevel===0" class="mb-4 border border-indigo-200 bg-indigo-50 rounded-xl p-4">
+              <div class="flex items-center gap-2 mb-3"><PhBookOpen class="w-5 h-5 text-indigo-600" weight="fill" /><h4 class="font-bold text-indigo-800">Voorbeeld</h4></div>
+              <div class="space-y-1"><div v-for="(s,i) in workedSteps" :key="i" @click="workedStep=i" class="flex items-center gap-3 p-2 rounded-lg cursor-pointer" :class="workedStep===i?'bg-indigo-100':'hover:bg-indigo-100/50'"><div class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0" :class="workedStep>=i?'bg-indigo-500 text-white':'bg-indigo-200 text-indigo-400'">{{ i+1 }}</div><div><p class="text-sm font-medium" :class="workedStep===i?'text-indigo-900':'text-indigo-600'">{{ s.label }}</p></div></div></div>
+              <button @click="showWorkedExample=false" class="mt-3 w-full py-2 text-sm font-bold text-indigo-600 bg-white rounded-lg border border-indigo-200">Begrepen!</button>
             </div>
-
-            <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-6 shadow-inner">
-              <div>
-                <label class="block mb-2 text-sm font-bold text-slate-700">Hoek α: <span class="text-math-blue font-mono text-lg">{{ angleDeg }}°</span></label>
-                <input type="range" v-model.number="angleDeg" min="0" max="360" step="1" class="w-full accent-pink-600">
-              </div>
-
-              <div class="flex gap-4">
-                <div class="flex-1 bg-white p-4 rounded-lg border-2 border-surface-200 text-center shadow-sm">
-                  <div class="text-xs text-math-blue font-bold uppercase tracking-wide">cos(α)</div>
-                  <div class="font-mono text-xl" :class="cosVal >= 0 ? 'text-slate-700' : 'text-slate-500'">{{ cosVal.toFixed(2) }}</div>
-                </div>
-                <div class="flex-1 bg-white p-4 rounded-lg border-2 border-emerald-200 text-center shadow-sm">
-                  <div class="text-xs text-emerald-500 font-bold uppercase tracking-wide">sin(α)</div>
-                  <div class="font-mono text-xl" :class="sinVal >= 0 ? 'text-slate-700' : 'text-slate-500'">{{ sinVal.toFixed(2) }}</div>
-                </div>
-              </div>
+            <div v-if="!showWorkedExample" class="text-center bg-math-blue-bg p-4 border rounded-xl mb-4"><p class="font-bold text-math-blue">{{ cl.goal }}</p></div>
+            <div v-if="sp&&!showWorkedExample" class="mb-4 border border-amber-200 bg-amber-50 rounded-xl p-4">
+              <div class="flex items-center gap-2 mb-3"><PhBrain class="w-5 h-5 text-amber-600" weight="fill" /><h4 class="font-bold text-amber-800">Voorspel!</h4></div>
+              <p class="text-sm text-amber-700 mb-3">{{ cl.pq }}</p>
+              <div class="flex gap-2 flex-wrap"><button v-for="opt in cl.po" :key="opt" @click="pa=opt" class="px-4 py-2 rounded-lg border-2 font-bold text-sm" :class="pa===opt?'border-amber-500 bg-amber-100 text-amber-800':'border-amber-200 bg-white text-amber-600'">{{ opt }}</button></div>
+              <button v-if="pa!==null&&!pr" @click="submit" class="mt-3 w-full py-2 text-sm font-bold text-white bg-amber-500 rounded-lg">Bevestig</button>
+              <div v-if="pr" class="mt-3 p-3 rounded-lg text-sm font-medium" :class="pc?'bg-emerald-100 text-emerald-800':'bg-red-100 text-red-800'">{{ pc?'Juist!':'Denk na.' }}</div>
             </div>
-
+            <div v-if="!showWorkedExample&&!sp" class="p-4 border rounded-xl bg-slate-50 space-y-4">
+              <label class="block text-sm font-bold">Hoek: <span class="text-math-blue font-mono text-lg">{{ ag }}°</span></label>
+              <input type="range" v-model.number="ag" min="0" max="360" step="1" class="w-full accent-pink-600">
+              <div class="flex gap-3"><div class="flex-1 bg-white p-3 rounded-lg border text-center"><div class="text-xs text-math-blue font-bold">cos</div><div class="font-mono text-lg">{{ cv.toFixed(2) }}</div></div><div class="flex-1 bg-white p-3 rounded-lg border text-center"><div class="text-xs text-emerald-500 font-bold">sin</div><div class="font-mono text-lg">{{ sv.toFixed(2) }}</div></div></div>
+            </div>
           </div>
-
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text"
-                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-                 role="status" aria-live="polite" aria-atomic="true" :class="{
-                   'bg-emerald-100 text-emerald-800': feedback.type === 'success',
-                   'bg-red-100 text-red-800': feedback.type === 'error',
-                   'bg-blue-100 text-blue-800': feedback.type === 'info',
-                 }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-relaxed">{{ feedback.text }}</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                 <PhArrowClockwise />
-              </button>
-
-              <button v-if="isCorrect" @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
-              </button>
-            </div>
+          <div class="p-6 bg-slate-50 border-t border-slate-200">
+            <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-3 text-sm font-medium rounded-lg" :class="{'bg-emerald-100 text-emerald-800':feedback.type==='success','bg-red-100 text-red-800':feedback.type==='error'}"><component :is="feedback.type==='success'?PhCheckCircle:PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><span>{{ feedback.text }}</span></div>
+            <div v-if="isCorrect&&!showWorkedExample" class="flex items-start gap-3 p-3 mb-3 text-sm font-medium rounded-lg bg-indigo-100 text-indigo-800"><PhLightbulb class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><div><p class="font-bold">Waarom werkt dit?</p><p>sin=y-coordinaat, cos=x-coordinaat op eenheidscirkel met straal 1.</p></div></div>
+            <div v-if="isCorrect&&currentInternalLevel===2" class="flex items-start gap-3 p-3 mb-3 text-sm font-medium rounded-lg bg-purple-100 text-purple-800"><PhChatCircleText class="w-5 h-5 shrink-0 mt-0.5" weight="fill" /><div><p class="font-bold">Reflectie</p><p>Waarom heeft sin(30°) dezelfde waarde als sin(150°)? Omdat beiden even hoog op de y-as liggen.</p></div></div>
+            <button v-if="isCorrect" @click="hn" class="w-full py-3 font-bold text-white bg-emerald-600 rounded-lg">{{ currentInternalLevel<2?'Volgend Level':'Afronden' }}</button>
           </div>
         </div>
-
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto">
-
-            <div class="relative flex-1 flex items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden">
-
-              <!-- SVG Unit Circle -->
-              <svg width="450" height="450" viewBox="-150 -150 300 300" class="overflow-visible bg-white rounded-full shadow-inner border-4 border-slate-200 z-10">
-
-                <!-- Inner grid subtle -->
-                <g stroke="#f1f5f9" stroke-width="1">
-                  <line v-for="i in 11" :key="'v'+i" :x1="(i-6)*20" y1="-100" :x2="(i-6)*20" y2="100" />
-                  <line v-for="i in 11" :key="'h'+i" x1="-100" :y1="(i-6)*20" x2="100" :y2="(i-6)*20" />
-                </g>
-
-                <!-- Axes -->
-                <line x1="-130" y1="0" x2="130" y2="0" stroke="#94a3b8" stroke-width="2" />
-                <line x1="0" y1="-130" x2="0" y2="130" stroke="#94a3b8" stroke-width="2" />
-
-                <!-- Circle R=100 -->
-                <circle cx="0" cy="0" r="100" fill="none" stroke="#64748b" stroke-width="2" />
-
-                <!-- Quadrant Labels -->
-                <text x="60" y="-60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">I</text>
-                <text x="-60" y="-60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">II</text>
-                <text x="-60" y="60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">III</text>
-                <text x="60" y="60" font-size="24" font-weight="bold" fill="#ec4899" opacity="0.1">IV</text>
-
-                <!-- Angle arc -->
-                <path v-if="angleDeg > 0"
-                      :d="`M 25 0 A 25 25 0 ${angleDeg > 180 ? 1 : 0} 0 ${25 * Math.cos(-angleRad)} ${25 * Math.sin(-angleRad)}`"
-                      fill="none" stroke="#ec4899" stroke-width="3" class="transition-all duration-100" />
-
-                <!-- Cosine component (x-axis) -->
-                <line x1="0" y1="0" :x2="100 * cosVal" y2="0" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" class="transition-all duration-100" />
-
-                <!-- Sine component (y-axis) -->
-                <line :x1="100 * cosVal" y1="0" :x2="100 * cosVal" :y2="-100 * sinVal" stroke="#10b981" stroke-width="5" stroke-linecap="round" class="transition-all duration-100" />
-
-                <!-- Radius line -->
-                <line x1="0" y1="0" :x2="100 * cosVal" :y2="-100 * sinVal" stroke="#1e293b" stroke-width="3" class="transition-all duration-100" />
-
-                <!-- The Point -->
-                <circle :cx="100 * cosVal" :cy="-100 * sinVal" r="7" fill="#ec4899" stroke="white" stroke-width="2" class="transition-all duration-100 shadow-sm" />
-
-                <!-- Labels -->
-                <text x="135" y="15" font-size="14" font-weight="bold" fill="#64748b">x</text>
-                <text x="-15" y="-135" font-size="14" font-weight="bold" fill="#64748b">y</text>
-              </svg>
-
-            </div>
-
-          </div>
-        </div>
-
+        <div class="flex flex-1 items-center justify-center bg-slate-50 pattern-grid"><p class="text-slate-400">Eenheidscirkel SVG</p></div>
       </main>
     </div>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
+<SuccessCelebration :show="isCorrect&&!celebrationDone" @done="celebrationDone=true" />
 </template>
-
 <style scoped>
-:root { font-family: 'Inter', sans-serif; }
-
-.shadow-inner-light { box-shadow: inset -5px 0 15px -10px rgba(0,0,0,0.1); }
-.pattern-grid {
-    background-image:
-        linear-gradient(to right, #e2e8f0 1px, transparent 1px),
-        linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-    background-size: 2rem 2rem;
-    background-position: center center;
-}
-
-.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-
-.ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
-@keyframes ring-pulse-amber {
-    0% { box-shadow: 0 0 0 0 #fbbf24; }
-    70% { box-shadow: 0 0 0 20px rgba(251, 191, 36, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-}
+.pattern-grid{background-image:linear-gradient(to right,#e2e8f0 1px,transparent 1px),linear-gradient(to bottom,#e2e8f0 1px,transparent 1px);background-size:2rem 2rem;}
 </style>

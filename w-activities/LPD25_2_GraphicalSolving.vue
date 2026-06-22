@@ -269,22 +269,39 @@ function checkAnswer() {
     const guessX = scanX.value
     const guessY_f = lvl.f(guessX)
     const guessY_g = lvl.g(guessX)
+    const guessedProduct = guessY_f * guessY_g
 
     if (lvl.errorType === 'fx_c') {
       // For f(x) = c, check if they found where f(x)=0 instead
       if (Math.abs(guessY_f) < Math.abs(guessY_f - lvl.g(0))) {
-        feedback.value = { type: 'error', text: `Je hebt de NULWAARDE gevonden (waar f(x)=0), maar we zoeken waar f(x) = ${lvl.g(0)}.` }
+        feedback.value = { type: 'error', text: `Let op! Je hebt de NULWAARDE gevonden (waar f(x)=0), maar we zoeken waar f(x) = ${lvl.g(0)}. De nulwaarde is het snijpunt met de x-as, niet met de horizontale lijn.` }
       } else if (Math.abs(guessY_g) < 0.5 && guessX !== lvl.intersectionX) {
-        // Finding where g(x) = 0? g is horizontal...
+        // Finding where g(x) = 0? g is horizontal... but this is for equation case
       }
     }
 
+    // Common error: finding x-intercept (zero) of one function instead of the intersection
+    if (Math.abs(guessY_f) < 0.3 && lvl.intersectionX !== guessX) {
+      feedback.value = { type: 'error', text: `Let op! Je hebt de nulwaarde van f gevonden (x = ${guessX}, waar f(x) = 0). Maar we zoeken waar f(x) = g(x). Die x is ${lvl.intersectionX}, niet waar f nul is.` }
+      return
+    }
+    if (Math.abs(guessY_g) < 0.3 && lvl.intersectionX !== guessX && lvl.g_str !== `${lvl.g(0)}`) {
+      feedback.value = { type: 'error', text: `Let op! Je hebt de nulwaarde van g gevonden (x = ${guessX}, waar g(x) = 0). Maar we zoeken waar f(x) = g(x), niet waar g(x) = 0.` }
+      return
+    }
+
+    // Common error: confusing inequality direction
+    if (lvl.isInequality && fAtScan.value < gAtScan.value === lvl.targetAbove) {
+      feedback.value = { type: 'error', text: 'Let op! Bij een ongelijkheid moet je niet alleen het snijpunt vinden, maar ook bepalen aan welke kant van het snijpunt de ongelijkheid klopt. Kijk of f boven of onder g ligt.' }
+      return
+    }
+
     if (attemptCount.value >= 3) {
-      feedback.value = { type: 'info', text: `Het snijpunt is bij x = ${lvl.intersectionX}. Zet de scanner op ${lvl.intersectionX}.` }
+      feedback.value = { type: 'info', text: `Het snijpunt is bij x = ${lvl.intersectionX}. Verifieer door in te vullen: f(${lvl.intersectionX}) = ${lvl.f(lvl.intersectionX)} en g(${lvl.intersectionX}) = ${lvl.g(lvl.intersectionX)}. Zet de scanner op ${lvl.intersectionX}.` }
     } else if (distVal.value < 1) {
       feedback.value = { type: 'error', text: `Heel warm! De stippen zijn bijna samen (verschil ${distVal.value.toFixed(2)}). Nog een klein beetje verder.` }
     } else {
-      feedback.value = { type: 'error', text: `Bij x = ${guessX} is f(x) = ${guessY_f} en g(x) = ${guessY_g} (verschil ${distVal.value.toFixed(1)}). Je zoekt naar verschil 0.` }
+      feedback.value = { type: 'error', text: `Bij x = ${guessX} is f(x) = ${guessY_f} en g(x) = ${guessY_g} (verschil ${distVal.value.toFixed(1)}). Je zoekt naar verschil 0 — waar f en g elkaar snijden.` }
     }
   }
 }

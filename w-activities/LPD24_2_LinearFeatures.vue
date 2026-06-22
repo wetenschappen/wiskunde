@@ -154,10 +154,13 @@ function checkPrediction() {
   } else {
     const zeroX = (predictedRoot.value !== null && predictedRoot.value !== '') ? Number(predictedRoot.value) : null
     if (zeroX !== null && Math.abs(-lvl.a * zeroX - lvl.b) < 0.01) {
-      // They found the right answer but as f(x) = 0... no this would be if they input f(x) value
-      feedback.value = { type: 'error', text: 'De nulwaarde is een x-waarde, geen y-waarde. Los f(x) = 0 op naar x.' }
+      feedback.value = { type: 'error', text: 'Let op! De nulwaarde is een x-waarde, geen y-waarde. Los f(x) = 0 op naar x. Je zoekt waar de grafiek de x-as snijdt, niet de y-waarde die eruit komt.' }
+    } else if (zeroX !== null && zeroX === lvl.b) {
+      feedback.value = { type: 'error', text: `Let op! Je hebt de constante term (b = ${lvl.b}) ingevuld. De nulwaarde is niet hetzelfde als b. Je moet f(x) = 0 oplossen: ${lvl.f_str} = 0.` }
+    } else if (zeroX !== null && Math.abs(zeroX) === Math.abs(lvl.root) && zeroX !== lvl.root) {
+      feedback.value = { type: 'error', text: `Let op! Je hebt het juiste getal maar met het verkeerde teken. De nulwaarde is x = ${lvl.root}, niet x = ${zeroX}. Controleer of je het minteken correct hebt overgebracht bij het oplossen van ${lvl.f_str} = 0.` }
     } else {
-      feedback.value = { type: 'error', text: `Dat is niet de nulwaarde. Los ${lvl.f_str} = 0 op.` }
+      feedback.value = { type: 'error', text: `Let op! Dat is niet de nulwaarde. Los ${lvl.f_str} = 0 op door x te isoleren.` }
     }
   }
 }

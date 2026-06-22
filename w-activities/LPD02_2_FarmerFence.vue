@@ -1,7 +1,8 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquaresFour, PhArrowClockwise, PhArrowsLeftRight
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhSquaresFour,
+  PhArrowClockwise, PhLightbulb, PhQuestion, PhArrowsLeftRight
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
@@ -9,319 +10,347 @@ import SuccessCelebration from './SuccessCelebration.vue'
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Heuristieken: De Boer en de Rivier' },
-  instruction: {
-    type: String,
-    default: 'Soms moet je in wiskunde geen direct antwoord berekenen, maar een probleem oplossen door eerst wat te proberen. Schuif het hek heen en weer om de <strong>maximale oppervlakte</strong> te vinden!'
-  },
+  instruction: { type: String, default: 'Schuif het hek om de maximale oppervlakte te vinden!' },
   currentStep: { type: Number, default: 2 },
   totalSteps: { type: Number, default: 2 },
-  fullscreen: { type: Boolean, default: true },
+  fullscreen: { type: Boolean, default: false },
   icon: { type: Object, default: () => PhSquaresFour }
 })
-
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
-
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
 const attemptCount = ref(0)
-const feedback = ref({ type: 'info', text: 'Beweeg de slider om te testen. Vul daarna je maximale oppervlakte in.' })
-
-// Levels Definition
+const hintLevel = ref(0)
+const showHints = ref(false)
+const feedback = ref({ type: 'info', text: 'Beweeg de slider om te testen.' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const showWhy = ref(false)
+const showReflection = ref(false)
+const reflectionAnswers = ref(['', '', ''])
+const showLPD = ref(false)
+const lpdAnswer = ref('')
+const lpdDone = ref(false)
+
+// Prediction
+const predictionMade = ref(false)
+const predictionChoice = ref(null)
+const predictionOptions = computed(() => {
+  if (currentInternalLevel.value === 0) return [
+    { id: 'guess', text: 'Ik gok de maximale oppervlakte' },
+    { id: 'slide', text: 'Ik schuif de slider heen en weer tot ik het maximum zie' },
+    { id: 'formula', text: 'Ik bereken het exacte maximum met een formule' }
+  ]
+  if (currentInternalLevel.value === 1) return [
+    { id: 'double', text: 'Het maximum wordt ongeveer het dubbele' },
+    { id: 'same', text: 'Het maximum blijft ongeveer hetzelfde' },
+    { id: 'quadruple', text: 'Het maximum wordt vier keer zo groot' }
+  ]
+  return [
+    { id: 'smaller', text: 'Zonder rivier wordt het maximum kleiner' },
+    { id: 'bigger', text: 'Zonder rivier wordt het maximum groter' },
+    { id: 'same2', text: 'Het maakt niet uit of er een rivier is' }
+  ]
+})
+
+const reflectionQuestions = computed(() => [
+  'Waarom is de maximale oppervlakte niet gewoon de grootste breedte keer de grootste lengte?',
+  'Waarom verandert de optimale breedte als de totale hoeveelheid hek verandert?',
+  'Waarom is het maximum zonder rivier kleiner dan met rivier bij dezelfde hoeveelheid hek?'
+])
 
 function generateLevel(index) {
   let totalFence, hasRiver, maxArea, minX, maxX
   switch (index) {
     case 0:
-      totalFence = Math.floor(Math.random() * 7) * 2 + 16 // 16, 18, 20, 22, 24, 26, 28
+      totalFence = Math.floor(Math.random() * 7) * 2 + 16
       hasRiver = true
-      // For river: area = x * (total - 2x). Max at x = total/4.
-      // maxArea = (total/4) * (total - total/2) = total/4 * total/2 = total^2/8
       maxArea = Math.round(totalFence * totalFence / 8)
-      minX = 1
-      maxX = Math.floor(totalFence / 2) - 1
-      return { goalText: `Opdracht 1: Een boer heeft ${totalFence}m hek. De rivier vormt 1 zijde (hij heeft dus maar 3 zijden hek nodig). Wat is de MAXIMALE oppervlakte?`, totalFence, hasRiver, maxArea, minX, maxX }
+      minX = 1; maxX = Math.floor(totalFence / 2) - 1
+      break
     case 1:
-      totalFence = Math.floor(Math.random() * 9) * 4 + 32 // 32, 36, 40, 44, 48, 52, 56, 60, 64
+      totalFence = Math.floor(Math.random() * 9) * 4 + 32
       hasRiver = true
       maxArea = Math.round(totalFence * totalFence / 8)
-      minX = 1
-      maxX = Math.floor(totalFence / 2) - 1
-      return { goalText: `Opdracht 2: De boer koopt extra hek. Hij heeft nu ${totalFence}m hek voor 3 zijden tegen de rivier. Wat is nu het maximum?`, totalFence, hasRiver, maxArea, minX, maxX }
+      minX = 1; maxX = Math.floor(totalFence / 2) - 1
+      break
     case 2:
-      totalFence = Math.floor(Math.random() * 5) * 4 + 24 // 24, 28, 32, 36, 40
+      totalFence = Math.floor(Math.random() * 5) * 4 + 24
       hasRiver = false
-      // Without river: area = x * (total - 2x)/2. Max at x = total/4.
-      // maxArea = (total/4) * (total - total/2)/2 = total/4 * total/4 = total^2/16
       maxArea = Math.round(totalFence * totalFence / 16)
-      minX = 1
-      maxX = Math.floor(totalFence / 2) - 1
-      return { goalText: `Opdracht 3: Let op! De boer bouwt nu ergens in het veld ZONDER rivier. Hij moet alle 4 de zijden omheinen met ${totalFence}m hek. Maximum?`, totalFence, hasRiver, maxArea, minX, maxX }
-    default:
-      return { goalText: 'Opdracht 1: Een boer heeft 20m hek...', totalFence: 20, hasRiver: true, maxArea: 50, minX: 1, maxX: 9 }
+      minX = 1; maxX = Math.floor(totalFence / 2) - 1
+      break
+  }
+  return {
+    goalText: `Opdracht ${index + 1}: ${hasRiver ? 'Tegen de rivier' : 'In het open veld'} — ${totalFence}m hek. Wat is de MAXIMALE oppervlakte?`,
+    totalFence, hasRiver, maxArea, minX, maxX,
+    maxX_opt: Math.round(totalFence / (hasRiver ? 4 : 4))
   }
 }
 
-const levels = ref([
-  generateLevel(0),
-  generateLevel(1),
-  generateLevel(2)
-])
-
+const levels = ref([generateLevel(0), generateLevel(1), generateLevel(2)])
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
-
 const widthX = ref(2)
 const userMaxArea = ref(null)
-
 const lengthY = computed(() => {
-  if (currentLevelData.value.hasRiver) {
-    return currentLevelData.value.totalFence - (2 * widthX.value);
-  } else {
-    return (currentLevelData.value.totalFence - (2 * widthX.value)) / 2;
-  }
+  const d = currentLevelData.value
+  return d.hasRiver ? d.totalFence - (2 * widthX.value) : (d.totalFence - (2 * widthX.value)) / 2
 })
-
 const currentArea = computed(() => widthX.value * lengthY.value)
 
-function resetActivityState() {
-    isCorrect.value = false;
-celebrationDone.value = false
-    isChecked.value = false;
-    attemptCount.value = 0;
-    feedback.value = { type: 'info', text: 'Beweeg de slider (Breedte x) om te testen. Vul daarna je maximale oppervlakte in.' };
-    widthX.value = currentLevelData.value.minX + 1;
-    userMaxArea.value = null;
-    levels.value = [
-      generateLevel(0),
-      generateLevel(1),
-      generateLevel(2)
-    ];
+const hintTexts = computed(() => {
+  const d = currentLevelData.value
+  return [
+    `Tip 1: Beweeg de slider langzaam en kijk naar de oppervlakte. Zoek de hoogste waarde.`,
+    `Tip 2: Het maximum zit ongeveer bij x = ${d.maxX_opt}. Probeer in de buurt van deze waarde.`,
+    `Tip 3: Bij x = ${d.maxX_opt} is de oppervlakte ... (vul de ontbrekende waarde in). De formule is: opp = x × (${d.totalFence} - 2x)${d.hasRiver ? '' : '/2'}.`
+  ]
+})
+
+function cycleHint() {
+  if (!showHints) { showHints.value = true; hintLevel.value = 0; return }
+  if (hintLevel.value < 2) hintLevel.value++
+  else { showHints.value = false; hintLevel.value = 0 }
+}
+
+function confirmPrediction() {
+  if (predictionChoice.value) predictionMade.value = true
+}
+
+function resetPrediction() {
+  predictionMade.value = false; predictionChoice.value = null
+}
+
+function detectError(val) {
+  if (val === currentArea.value && currentArea.value !== currentLevelData.value.maxArea) {
+    return 'Let op! Je hebt de oppervlakte bij de huidige breedte ingevuld, maar dat is niet het MAXIMUM. Blijf de slider verplaatsen tot je de hoogste waarde vindt.'
+  }
+  if (currentLevelData.value.hasRiver && val === currentLevelData.value.totalFence) {
+    return 'Let op! De maximale oppervlakte is niet hetzelfde als de totale hoeveelheid hek. Zoek naar de grootste oppervlakte in m^2.'
+  }
+  return null
 }
 
 function checkAnswer() {
-  isChecked.value = true;
-  attemptCount.value++;
-
-  if (userMaxArea.value === currentLevelData.value.maxArea) {
+  isChecked.value = true
+  attemptCount.value++
+  const d = currentLevelData.value
+  const specificError = detectError(userMaxArea.value)
+  if (userMaxArea.value === d.maxArea) {
     isCorrect.value = true
     attemptCount.value = 0
-    feedback.value = {
-      type: 'success',
-      text: 'Prima! Magistraal! Je hebt het absolute maximum gevonden door systematisch te proberen (heuristiek).'
-    }
+    showWhy.value = true
+    feedback.value = { type: 'success', text: `Prima! Je vond het maximum ${d.maxArea} m^2 door systematisch te proberen (heuristiek).` }
   } else {
     isCorrect.value = false
-
-    const hints = [
-      `Niet correct. Probeer de schuifregelaar heen en weer te bewegen en kijk wanneer de oppervlakte het grootst is.`,
-      `Kijk goed naar het getal "Oppervlakte" boven het veld. Beweeg de slider langzaam en zoek de hoogste waarde. Het antwoord is ${currentLevelData.value.maxArea} m².`,
-      `De maximale oppervlakte is ${currentLevelData.value.maxArea} m². Vul dit getal in om verder te gaan.`
-    ]
-
-    if (userMaxArea.value === null || userMaxArea.value === undefined) {
-      feedback.value = { type: 'error', text: 'Niet helemaal... Vul eerst een getal in het veld in.' }
-    } else if (userMaxArea.value === currentArea.value && currentArea.value !== currentLevelData.value.maxArea) {
-      feedback.value = { type: 'error', text: `Klopt, bij de huidige breedte is de oppervlakte ${currentArea.value}. Maar is dit écht het absolute MAXIMUM? ${hints[Math.min(attemptCount.value - 1, hints.length - 1)]}` }
-    } else {
-      const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
-      feedback.value = { type: 'error', text: hints[hintIdx] }
-    }
+    if (specificError) feedback.value = { type: 'error', text: specificError }
+    else if (userMaxArea.value === null || userMaxArea.value === undefined) feedback.value = { type: 'error', text: 'Vul eerst een getal in.' }
+    else feedback.value = { type: 'error', text: `Niet correct. Probeer de slider te verplaatsen en vind de hoogste waarde. Het maximum zit rond x = ${d.maxX_opt}.` }
   }
+}
+
+function resetActivityState() {
+  isCorrect.value = false; celebrationDone.value = false; isChecked.value = false
+  attemptCount.value = 0; hintLevel.value = 0; showHints.value = false; showWhy.value = false
+  showReflection.value = false; showLPD.value = false; lpdDone.value = false
+  resetPrediction()
+  feedback.value = { type: 'info', text: 'Beweeg de slider en vul de maximale oppervlakte in.' }
+  widthX.value = 2; userMaxArea.value = null
+  const d = currentLevelData.value
+  widthX.value = Math.min(d.minX + 1, d.maxX - 1)
+  levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
-    currentInternalLevel.value++;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-  } else {
-    if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
+  if (isCorrect.value && !showReflection.value) {
+    showReflection.value = true
+  } else if (showReflection.value && allReflectionsDone.value) {
+    submitReflection()
+  }
+}
+
+const allReflectionsDone = computed(() => reflectionAnswers.value.every(a => a.length >= 10))
+
+function submitReflection() {
+  if (allReflectionsDone.value) {
+    showReflection.value = false
+    reflectionAnswers.value = ['', '', '']
+    if (currentInternalLevel.value < totalInternalLevels - 1) {
+      currentInternalLevel.value++; resetActivityState(); nextTick(() => mainArea.value?.focus())
     } else {
-        emit('complete');
+      showLPD.value = true
     }
   }
 }
 
-// Lifecycle
+function submitLPD() {
+  if (lpdAnswer.value.length >= 20) { lpdDone.value = true; emit('complete') }
+}
+
+const whyText = computed(() => [
+  'Een rechthoekige omheining heeft een oppervlakte die eerst stijgt en dan daalt naarmate de breedte toeneemt.',
+  'Het maximum vind je door de afgeleide nul te stellen of door systematisch te proberen — dat heet een heuristische methode.'
+])
+
 watch(() => props.isOpen, (val) => {
   if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
+    currentInternalLevel.value = 0; resetActivityState()
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && props.isOpen) emit('close') })
     nextTick(() => mainArea.value?.focus())
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
     nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
-}, { immediate: true })
-
-function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
-const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
-onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+  } else { shouldPulse.value = false }
 })
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+  <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+  <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
+          <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+          <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+        </div>
+      </div>
+      <button @click="emit('close')" class="p-2 text-slate-500 rounded-full hover:bg-slate-100"><PhX class="w-6 h-6" /></button>
+    </header>
+    <main class="flex flex-1 overflow-hidden">
+      <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 md:flex z-10">
+        <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
+          <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+          <MathText :content="instruction" class="mb-4 prose prose-sm text-slate-600" />
 
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-emerald-100">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-emerald-600" />
+          <details class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-4">
+            <summary class="font-bold text-amber-800 cursor-pointer text-sm">Voorbeeld — Stap voor Stap</summary>
+            <div class="mt-3 text-sm space-y-2">
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Stel: 20m hek tegen de rivier. Formule: opp = x (20 - 2x).</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Probeer x = 4: opp = 4 x 12 = 48 m^2.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Probeer x = 5: opp = 5 x 10 = 50 m^2. Dat is al beter!</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Probeer x = 6: opp = 6 x 8 = 48 m^2. Daalt terug. Maximum = 50 m^2.</p>
+            </div>
+          </details>
+
+          <div v-if="!predictionMade" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 mb-4">
+            <h4 class="font-bold text-indigo-800 text-sm mb-2 flex items-center gap-2"><PhQuestion weight="bold" class="w-4 h-4" /> Voorspel!</h4>
+            <p class="text-xs text-indigo-600 mb-3">Hoe ga je de maximale oppervlakte vinden?</p>
+            <div class="space-y-2">
+              <label v-for="opt in predictionOptions" :key="opt.id" class="flex items-center gap-2 p-2 rounded-lg bg-white border cursor-pointer text-xs"
+                :class="predictionChoice === opt.id ? 'border-indigo-500 bg-indigo-100' : 'border-slate-200'">
+                <input type="radio" :value="opt.id" v-model="predictionChoice" class="accent-indigo-600" /> {{ opt.text }}
+              </label>
+            </div>
+            <button @click="confirmPrediction" :disabled="!predictionChoice" class="mt-3 w-full py-2 bg-indigo-600 text-white font-bold rounded-lg text-sm disabled:opacity-50">Bevestig Voorspelling</button>
           </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
+
+          <div v-if="predictionMade" class="space-y-4">
+            <div class="bg-amber-50 p-4 border border-amber-200 rounded-xl">
+              <p class="font-bold text-amber-800 text-sm">{{ currentLevelData.goalText }}</p>
+            </div>
+
+            <div class="p-4 border border-amber-200 bg-white rounded-xl">
+              <label class="block text-sm font-bold text-amber-800 mb-2">Maximale oppervlakte:</label>
+              <div class="flex items-center gap-2">
+                <input type="number" v-model.number="userMaxArea" placeholder="..." :disabled="isCorrect"
+                  class="w-full font-bold text-2xl p-4 border-2 border-amber-300 rounded-lg focus:border-amber-500 text-center tabular-nums" />
+                <span class="font-black text-xl text-slate-500">m²</span>
               </div>
             </div>
-          </div>
-        </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
-      </header>
 
-      <main class="flex flex-1 overflow-hidden">
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
-
-            <div class="text-center bg-emerald-50 p-4 border border-emerald-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-emerald-800">{{ currentLevelData.goalText }}</p>
-            </div>
-
-            <div class="p-4 mt-6 border border-emerald-200 bg-white rounded-xl shadow-sm text-center">
-               <label class="block text-sm font-bold text-emerald-900 mb-2">Conclusie: De maximale oppervlakte is:</label>
-               <div class="flex items-center gap-2">
-                   <input type="number" v-model.number="userMaxArea" placeholder="..." :disabled="isCorrect"
-                          class="w-full font-bold text-2xl p-4 border-2 border-emerald-300 rounded-lg focus:border-emerald-500 focus:ring-emerald-500 text-center" />
-                   <span class="font-black text-2xl text-slate-500">m²</span>
-               </div>
-            </div>
-          </div>
-
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
-            </div>
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && userMaxArea === null" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer Maximum</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
-              </button>
+            <div v-if="showWhy" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 animate-fadeIn">
+              <h4 class="font-bold text-indigo-800 text-sm mb-2">Waarom werkt dit?</h4>
+              <p v-for="(line, i) in whyText" :key="i" class="text-xs text-indigo-700 mb-1">{{ line }}</p>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+        <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+          <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-3 text-sm rounded-lg animate-fadeIn"
+            :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
+            <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+            <span>{{ feedback.text }}</span>
+          </div>
 
-              <div class="w-full max-w-4xl flex items-center justify-center gap-12">
+          <div v-if="!predictionMade" class="flex gap-3">
+            <button @click="emit('close')" class="flex-1 py-3 font-bold text-slate-500 bg-white border border-slate-200 rounded-lg">Sluiten</button>
+          </div>
 
-                  <div class="flex flex-col items-center w-full max-w-lg">
+          <div v-else-if="!showReflection && !showLPD" class="flex items-center gap-3">
+            <button @click="resetActivityState" class="p-3 text-slate-500 bg-white border border-slate-200 rounded-lg shrink-0"><PhArrowClockwise /></button>
+            <button @click="cycleHint" class="p-3 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg shrink-0"><PhLightbulb weight="fill" /></button>
+            <div v-if="showHints" class="bg-amber-100 p-2 rounded-lg text-xs text-amber-800 animate-fadeIn">{{ hintTexts[hintLevel] }}</div>
+            <button v-if="!isCorrect" @click="checkAnswer" :disabled="userMaxArea === null"
+              class="flex-1 py-3 font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50">Controleer Maximum</button>
+            <button v-else @click="handleNext" class="flex-1 py-3 font-bold text-white rounded-lg bg-emerald-600 hover:bg-emerald-500">Reflecteer <PhArrowRight weight="bold" class="inline" /></button>
+          </div>
 
-                      <!-- Controller -->
-                      <div class="mb-4 w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center z-20">
-                          <div class="flex w-full justify-between items-end mb-2">
-                              <label class="font-bold text-slate-500 uppercase tracking-widest text-xs flex items-center gap-2"><PhArrowsLeftRight weight="bold" /> Breedte Hek (x)</label>
-                              <span class="font-black text-xl text-emerald-600">{{ widthX }} m</span>
-                          </div>
-                          <input type="range" :min="currentLevelData.minX" :max="currentLevelData.maxX" step="1" v-model.number="widthX" :disabled="isCorrect"
-                                 class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
-                      </div>
+          <div v-if="showReflection" class="space-y-3">
+            <h4 class="font-bold text-indigo-800 text-sm">Reflectie</h4>
+            <div v-for="(q, i) in reflectionQuestions" :key="i" class="space-y-1">
+              <label class="text-xs font-medium text-slate-700">{{ q }}</label>
+              <textarea v-model="reflectionAnswers[i]" rows="2" class="w-full text-sm p-2 border border-indigo-200 rounded-lg bg-white resize-none" placeholder="Typ je antwoord (min 10 tekens)..."></textarea>
+            </div>
+            <button @click="submitReflection" :disabled="!allReflectionsDone" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">
+              {{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Naar Bewijs van LPD' }}
+            </button>
+          </div>
 
-                      <!-- Visualisation Area -->
-                      <div class="relative bg-[#f8fafc] shadow-md rounded-xl overflow-hidden border-4 border-slate-800 w-[500px] h-[400px] flex items-end justify-center">
+          <div v-if="showLPD && !lpdDone" class="space-y-3">
+            <h4 class="font-bold text-amber-800 text-sm flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-amber-600" /> Bewijs van LPD 2</h4>
+            <p class="text-xs text-amber-700">LPD 2: Problemen oplossen via heuristieken (systematisch proberen).</p>
+            <textarea v-model="lpdAnswer" rows="3" class="w-full text-sm p-2 border border-amber-200 rounded-lg bg-white resize-none" placeholder="Schrijf een zin die bewijst dat je dit leerplandoel bereikt hebt (min 20 tekens)..."></textarea>
+            <button @click="submitLPD" :disabled="lpdAnswer.length < 20" class="w-full py-2 bg-amber-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">Bevestig LPD 2</button>
+          </div>
+        </div>
+      </div>
 
-                          <!-- The River (Top) ONLY IF hasRiver is true -->
-                          <div v-if="currentLevelData.hasRiver" class="absolute top-0 inset-x-0 h-16 bg-blue-400 opacity-80 flex flex-col items-center justify-center z-0 overflow-hidden">
-                              <span class="font-black text-blue-900/30 uppercase tracking-[0.5em] text-3xl">Rivier</span>
-                              <!-- Water waves -->
-                              <div class="absolute bottom-2 left-10 w-24 h-2 rounded-full bg-blue-300 opacity-50"></div>
-                              <div class="absolute bottom-6 right-20 w-32 h-2 rounded-full bg-blue-300 opacity-50"></div>
-                          </div>
-
-                          <!-- The Field (Green) -->
-                          <div class="absolute bg-emerald-400/30 transition-all duration-300 ease-out flex items-center justify-center z-10 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.1)]"
-                               :class="currentLevelData.hasRiver ? 'border-b-4 border-x-4 border-slate-800' : 'border-4 border-slate-800 rounded-lg'"
-                               :style="{
-                                   top: currentLevelData.hasRiver ? '64px' : '50%',
-                                   transform: currentLevelData.hasRiver ? 'translateX(0)' : 'translate(-50%, -50%)',
-                                   left: currentLevelData.hasRiver ? 'auto' : '50%',
-                                   width: `${lengthY * 12}px`,
-                                   height: `${widthX * 12}px`
-                               }">
-
-                               <!-- Grass pattern -->
-                               <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#047857 2px, transparent 2px); background-size: 15px 15px;"></div>
-
-                               <!-- Internal Label -->
-                               <div class="bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow-sm border border-slate-300 flex flex-col items-center"
-                                    :class="currentArea === currentLevelData.maxArea ? 'border-emerald-500 scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : ''">
-                                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Oppervlakte</span>
-                                   <span class="font-black text-3xl" :class="currentArea === currentLevelData.maxArea ? 'text-emerald-600' : 'text-slate-700'">{{ currentArea }} m²</span>
-                               </div>
-                          </div>
-
-                      </div>
+      <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+        <div class="flex flex-col flex-1 p-6 items-center justify-center relative pattern-grid">
+          <div class="w-full max-w-4xl flex items-center justify-center gap-12">
+            <div class="flex flex-col items-center w-full max-w-lg">
+              <div class="mb-4 w-full bg-white p-4 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-end mb-2">
+                  <label class="font-bold text-slate-500 uppercase text-xs"><PhArrowsLeftRight weight="bold" /> Breedte (x)</label>
+                  <span class="font-black text-xl text-amber-600 tabular-nums">{{ widthX }} m</span>
+                </div>
+                <input type="range" :min="currentLevelData.minX" :max="currentLevelData.maxX" step="1" v-model.number="widthX" :disabled="isCorrect"
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" />
+              </div>
+              <div class="relative bg-[#f8fafc] shadow-md rounded-xl overflow-hidden border-4 border-slate-800 w-[500px] h-[400px] flex items-end justify-center">
+                <div v-if="currentLevelData.hasRiver" class="absolute top-0 inset-x-0 h-16 bg-blue-400 opacity-80 flex items-center justify-center z-0">
+                  <span class="font-black text-blue-900/30 uppercase tracking-[0.5em] text-3xl">Rivier</span>
+                </div>
+                <div class="absolute bg-emerald-400/30 transition-all duration-300 flex items-center justify-center z-10"
+                  :class="currentLevelData.hasRiver ? 'border-b-4 border-x-4 border-slate-800' : 'border-4 border-slate-800 rounded-lg'"
+                  :style="{ top: currentLevelData.hasRiver ? '64px' : '50%', transform: currentLevelData.hasRiver ? 'none' : 'translate(-50%, -50%)', left: currentLevelData.hasRiver ? 'auto' : '50%', width: `${lengthY * 12}px`, height: `${widthX * 12}px` }">
+                  <div class="bg-white/90 backdrop-blur px-4 py-2 rounded-xl border border-slate-300 flex flex-col items-center"
+                    :class="currentArea === currentLevelData.maxArea ? 'border-amber-500 scale-110' : ''">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Oppervlakte</span>
+                    <span class="font-black text-3xl tabular-nums" :class="currentArea === currentLevelData.maxArea ? 'text-amber-600' : 'text-slate-700'">{{ currentArea }} m²</span>
                   </div>
-
+                </div>
               </div>
-
+            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
+</div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="currentInternalLevel === totalInternalLevels - 1" />
 </template>
 
 <style scoped>
-:root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
-.animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 28px;
-  width: 28px;
-  border-radius: 50%;
-  background: #10b981;
-  border: 4px solid white;
-  cursor: pointer;
-  margin-top: -10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 8px;
-  cursor: pointer;
-  background: #cbd5e1;
-  border-radius: 4px;
-}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; background: #f59e0b; border: 4px solid white; cursor: pointer; margin-top: -10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #cbd5e1; border-radius: 4px; }
 </style>

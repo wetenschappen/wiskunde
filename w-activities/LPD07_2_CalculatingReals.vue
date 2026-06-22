@@ -1,401 +1,291 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import {
-  PhX,
-  PhCheckCircle,
-  PhWarningCircle,
-  PhArrowRight,
-  PhCalculator,
-  PhArrowClockwise
-} from '@phosphor-icons/vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhCalculator, PhArrowClockwise, PhLightbulb, PhQuestion } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
-  title: {
-    type: String,
-    default: 'Wortel-Kraker (Vereenvoudigen)'
-  },
-  instruction: {
-    type: String,
-    default: 'Vereenvoudig de vierkantswortel door hem op te splitsen. Zoek het GROOTSTE kwadraat (1, 4, 9, 16, 25...) dat een deler is van het getal onder de wortel.'
-  },
+  title: { type: String, default: 'Wortel-Kraker (Vereenvoudigen)' },
+  instruction: { type: String, default: 'Vereenvoudig de vierkantswortel door hem op te splitsen. Zoek het GROOTSTE kwadraat dat een deler is.' },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
-  fullscreen: { type: Boolean, default: true },
+  fullscreen: { type: Boolean, default: false },
   icon: { type: Object, default: () => PhCalculator }
 })
-
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
 const shouldPulse = ref(false)
-
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Typ de twee factoren in.' })
 const attemptCount = ref(0)
-
-// Levels Definition
+const hintLevel = ref(0)
+const showHints = ref(false)
+const feedback = ref({ type: 'info', text: 'Typ de twee factoren in.' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const showWhy = ref(false)
+const showReflection = ref(false)
+const reflectionAnswers = ref(['', '', ''])
+const showLPD = ref(false)
+const lpdAnswer = ref('')
+const lpdDone = ref(false)
 
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
+const predictionMade = ref(false)
+const predictionChoice = ref(null)
+const predictionOptions = computed(() => [
+  { id: 'factor', text: 'Ik splits het getal in een kwadraat x rest' },
+  { id: 'guess', text: 'Ik probeer willekeurige getallen' },
+  { id: 'calculator', text: 'Ik gebruik een rekenmachine om de delers te vinden' }
+])
+const reflectionQuestions = computed(() => [
+  'Waarom moet je het GROOTSTE kwadraat kiezen en niet zomaar een kwadraat?',
+  'Waarom kun je een wortel niet vereenvoudigen als het getal onder de wortel een priemgetal is?',
+  'Waarom is √(a × b) = √a × √b? Welke eigenschap van wortels gebruik je?'
+])
+
+const inputSquare = ref(null)
+const inputRemainder = ref(null)
+const step = ref(0)
 
 const rootPools = [
-  // Level 1: perfect square = 4 or 9
-  [
-    { target: 8, square: 4, remain: 2, root: 2, label: '2\u221A2' },
-    { target: 12, square: 4, remain: 3, root: 2, label: '2\u221A3' },
-    { target: 18, square: 9, remain: 2, root: 3, label: '3\u221A2' },
-    { target: 20, square: 4, remain: 5, root: 2, label: '2\u221A5' },
-    { target: 27, square: 9, remain: 3, root: 3, label: '3\u221A3' },
-    { target: 28, square: 4, remain: 7, root: 2, label: '2\u221A7' }
-  ],
-  // Level 2: perfect square up to 25
-  [
-    { target: 45, square: 9, remain: 5, root: 3, label: '3\u221A5' },
-    { target: 48, square: 16, remain: 3, root: 4, label: '4\u221A3' },
-    { target: 50, square: 25, remain: 2, root: 5, label: '5\u221A2' },
-    { target: 54, square: 9, remain: 6, root: 3, label: '3\u221A6' },
-    { target: 63, square: 9, remain: 7, root: 3, label: '3\u221A7' },
-    { target: 75, square: 25, remain: 3, root: 5, label: '5\u221A3' }
-  ],
-  // Level 3: perfect square up to 49
-  [
-    { target: 72, square: 36, remain: 2, root: 6, label: '6\u221A2' },
-    { target: 80, square: 16, remain: 5, root: 4, label: '4\u221A5' },
-    { target: 98, square: 49, remain: 2, root: 7, label: '7\u221A2' },
-    { target: 99, square: 9, remain: 11, root: 3, label: '3\u221A11' },
-    { target: 52, square: 4, remain: 13, root: 2, label: '2\u221A13' },
-    { target: 68, square: 4, remain: 17, root: 2, label: '2\u221A17' }
-  ]
+  [{target:8,square:4,remain:2,root:2},{target:12,square:4,remain:3,root:2},{target:18,square:9,remain:2,root:3},{target:20,square:4,remain:5,root:2},{target:27,square:9,remain:3,root:3},{target:28,square:4,remain:7,root:2}],
+  [{target:45,square:9,remain:5,root:3},{target:48,square:16,remain:3,root:4},{target:50,square:25,remain:2,root:5},{target:54,square:9,remain:6,root:3},{target:63,square:9,remain:7,root:3},{target:75,square:25,remain:3,root:5}],
+  [{target:72,square:36,remain:2,root:6},{target:80,square:16,remain:5,root:4},{target:98,square:49,remain:2,root:7},{target:99,square:9,remain:11,root:3},{target:52,square:4,remain:13,root:2},{target:68,square:4,remain:17,root:2}]
 ]
 
-function generateLevel() {
-  return rootPools.map((pool, i) => {
-    const picked = pool[randomInt(0, pool.length - 1)]
-    return {
-      goalText: `Opdracht ${i+1}: Vereenvoudig \u221A${picked.target}.`,
-      targetRoot: picked.target,
-      perfectSquare: picked.square,
-      remainder: picked.remain,
-      finalAns: picked.label,
-      rootSquare: picked.root
-    }
-  })
-}
+function randomInt(m, M) { return Math.floor(Math.random() * (M - m + 1)) + m }
 
 const levels = ref([])
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
 
-// Interactive State
-const inputSquare = ref(null)
-const inputRemainder = ref(null)
+function generateLevel() {
+  return rootPools.map((pool, i) => {
+    const p = pool[randomInt(0, pool.length - 1)]
+    return { goalText: `Opdracht ${i+1}: Vereenvoudig √${p.target}.`, targetRoot: p.target, perfectSquare: p.square, remainder: p.remain, finalAns: p.label, rootSquare: p.root }
+  })
+}
 
-const step = ref(0) // 0: input, 1: exploded (correct factors), 2: final simplified
+const hintTexts = computed(() => {
+  const d = currentLevelData.value
+  return [
+    `Tip 1: Welke kwadraten (4, 9, 16, 25...) zijn delers van ${d.targetRoot}?`,
+    `Tip 2: De kwadraten die deler zijn van ${d.targetRoot} zijn: ${[4,9,16,25,36,49].filter(s => d.targetRoot % s === 0).join(', ')}. Kies de grootste.`,
+    `Tip 3: ${d.targetRoot} = ${d.perfectSquare} × ${d.remainder}. Dus √${d.targetRoot} = √${d.perfectSquare} × √${d.remainder} = ... (vul de wortel van ${d.perfectSquare} in) × √${d.remainder}.`
+  ]
+})
 
-function resetActivityState() {
-  levels.value = generateLevel();
-  isCorrect.value = false;
-celebrationDone.value = false
-  isChecked.value = false;
-  feedback.value = { type: 'info', text: 'Typ de twee factoren in.' };
-  attemptCount.value = 0;
-  inputSquare.value = null;
-  inputRemainder.value = null;
-  step.value = 0;
+function cycleHint() {
+  if (!showHints) { showHints.value = true; hintLevel.value = 0; return }
+  if (hintLevel.value < 2) hintLevel.value++
+  else { showHints.value = false; hintLevel.value = 0 }
+}
+
+function confirmPrediction() { if (predictionChoice.value) predictionMade.value = true }
+function resetPrediction() { predictionMade.value = false; predictionChoice.value = null }
+
+function detectError(sq, rem) {
+  const d = currentLevelData.value
+  if (sq * rem !== d.targetRoot) return `Let op! ${sq} × ${rem} = ${sq * rem}, niet ${d.targetRoot}. De factoren moeten samen ${d.targetRoot} geven.`
+  if (!Number.isInteger(Math.sqrt(sq))) return `Let op! ${sq} is geen perfect kwadraat. Je kunt er niet mooi de wortel uit trekken. Probeer 4, 9, 16, 25...`
+  const squares = [4, 9, 16, 25, 36, 49].filter(s => d.targetRoot % s === 0)
+  if (sq !== d.perfectSquare && squares.length > 0) return `Let op! ${sq} is een kwadraat, maar er is een GROTER kwadraat dat een deler is van ${d.targetRoot}: ${squares[squares.length - 1]}.`
+  return null
 }
 
 function checkAnswer() {
-  isChecked.value = true;
-  const target = currentLevelData.value;
-
+  isChecked.value = true
+  const d = currentLevelData.value
   if (!inputSquare.value || !inputRemainder.value) {
-    isCorrect.value = false;
-    feedback.value = { type: 'error', text: 'Niet helemaal... Vul beide vakjes in!' };
-    return;
+    feedback.value = { type: 'error', text: 'Vul beide vakjes in!' }; return
   }
+  const specific = detectError(inputSquare.value, inputRemainder.value)
+  if (specific) { attemptCount.value++; isCorrect.value = false; feedback.value = { type: 'error', text: specific }; return }
+  if (inputSquare.value === d.perfectSquare && inputRemainder.value === d.remainder) {
+    isCorrect.value = true; attemptCount.value = 0; step.value = 1; showWhy.value = true
+    feedback.value = { type: 'success', text: `Briljant! ${d.perfectSquare} is het grootste kwadraat. √${d.targetRoot} = ${d.rootSquare}√${d.remainder}.` }
+    setTimeout(() => { if (isCorrect.value) step.value = 2 }, 1500)
+  } else if (inputRemainder.value === d.perfectSquare && inputSquare.value === d.remainder) {
+    attemptCount.value++; feedback.value = { type: 'error', text: `Let op! Je hebt de factoren omgewisseld. Het kwadraat (${d.perfectSquare}) hoort in het LINKER vakje.` }
+  } else {
+    attemptCount.value++
+    feedback.value = { type: 'error', text: `Niet juist. ${d.targetRoot} = ? × ?. Het grootste kwadraat dat een deler is, is ${d.perfectSquare}.` }
+  }
+}
 
-  // Did they multiply correctly?
-  if (inputSquare.value * inputRemainder.value !== target.targetRoot) {
-    attemptCount.value++;
-    isCorrect.value = false;
-    feedback.value = { type: 'error', text: `Foutje: ${inputSquare.value} x ${inputRemainder.value} is geen ${target.targetRoot}!` };
-    return;
-  }
-
-  // Did they pick the LARGEST perfect square?
-  if (inputSquare.value === target.perfectSquare && inputRemainder.value === target.remainder) {
-    isCorrect.value = true;
-    attemptCount.value = 0;
-    step.value = 1; // move to explosion animation
-    feedback.value = { type: 'success', text: `Briljant! ${inputSquare.value} is inderdaad een perfect kwadraat. Kijk naar de machine!` };
-
-    // Auto progress to final step after a short delay
-    setTimeout(() => {
-        if(isCorrect.value && step.value === 1) {
-            step.value = 2;
-        }
-    }, 2000);
-  }
-  // What if they swapped them?
-  else if (inputRemainder.value === target.perfectSquare && inputSquare.value === target.remainder) {
-    attemptCount.value++;
-    isCorrect.value = false;
-    feedback.value = { type: 'error', text: `Je getallen kloppen, maar vul het kwadraat (${target.perfectSquare}) in het linkervakje in (onder de blauwe wortel).` };
-  }
-  else {
-    attemptCount.value++;
-    // Math is right, but not the *largest* perfect square
-    const isSquare = Math.sqrt(inputSquare.value) % 1 === 0;
-    if (!isSquare) {
-      if (attemptCount.value === 1) {
-        feedback.value = { type: 'error', text: `${inputSquare.value} is geen perfect kwadraat! Je kunt er niet mooi de wortel uit trekken. Probeer getallen als 4, 9, 16, 25...` };
-      } else if (attemptCount.value === 2) {
-        feedback.value = { type: 'error', text: `Welke kwadraten (4, 9, 16, 25, 36, 49...) kun je delen uit ${target.targetRoot}?` };
-      } else {
-        feedback.value = { type: 'error', text: `${target.targetRoot} = ${target.perfectSquare} x ${target.remainder}. Het grootste kwadraat dat een deler is, is ${target.perfectSquare}.` };
-      }
-    } else {
-      if (attemptCount.value === 1) {
-        feedback.value = { type: 'error', text: `Je koos het kwadraat ${inputSquare.value}, maar er is een GROTER kwadraat dat een deler is van ${target.targetRoot}!` };
-      } else if (attemptCount.value === 2) {
-        const squares = [4, 9, 16, 25, 36, 49].filter(s => target.targetRoot % s === 0).join(', ');
-        feedback.value = { type: 'error', text: `De kwadraten die deler zijn van ${target.targetRoot} zijn: ${squares}. Kies de grootste!` };
-      } else {
-        feedback.value = { type: 'error', text: `Het grootste kwadraat is ${target.perfectSquare}. Dus: ${target.targetRoot} = ${target.perfectSquare} x ${target.remainder}.` };
-      }
-    }
-  }
+function resetActivityState() {
+  levels.value = generateLevel()
+  isCorrect.value = false; celebrationDone.value = false; isChecked.value = false
+  attemptCount.value = 0; hintLevel.value = 0; showHints.value = false; showWhy.value = false
+  showReflection.value = false; showLPD.value = false; lpdDone.value = false
+  resetPrediction()
+  feedback.value = { type: 'info', text: 'Typ de twee factoren in.' }
+  inputSquare.value = null; inputRemainder.value = null; step.value = 0
 }
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
-    currentInternalLevel.value++;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-  } else {
-    if (props.currentStep < props.totalSteps) {
-        emit('update:currentStep', props.currentStep + 1);
-    } else {
-        emit('complete');
-    }
+  if (isCorrect.value && !showReflection.value) { showReflection.value = true }
+  else if (showReflection.value && allReflectionsDone.value) { submitReflection() }
+}
+
+const allReflectionsDone = computed(() => reflectionAnswers.value.every(a => a.length >= 10))
+
+function submitReflection() {
+  if (allReflectionsDone.value) {
+    showReflection.value = false; reflectionAnswers.value = ['', '', '']
+    if (currentInternalLevel.value < totalInternalLevels - 1) { currentInternalLevel.value++; resetActivityState(); nextTick(() => mainArea.value?.focus()) }
+    else { showLPD.value = true }
   }
 }
+
+function submitLPD() { if (lpdAnswer.value.length >= 20) { lpdDone.value = true; emit('complete') } }
+
+const whyText = computed(() => [
+  '√(a × b) = √a × √b. Dat is de hoofdeigenschap van vierkantswortels.',
+  'Door het getal te splitsen in een perfect kwadraat × een rest, kun je de wortel van het kwadraat wél mooi schrijven.'
+])
 
 watch(() => props.isOpen, (val) => {
-  if (val) {
-    currentInternalLevel.value = 0;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) {
-      nextTick(() => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(e => {})
-        }
-      })
-    }
-    nextTick(() => {
-        shouldPulse.value = true
-        setTimeout(() => { shouldPulse.value = false }, 3000)
-    })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
-}, { immediate: true })
-
-function handleKeydown(e) {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close')
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('fullscreenchange', () => {
-    if (props.isOpen && props.fullscreen && !document.fullscreenElement) {
-      emit('close')
-    }
-  })
+  if (val) { currentInternalLevel.value = 0; resetActivityState()
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && props.isOpen) emit('close') })
+    nextTick(() => mainArea.value?.focus()); nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else { shouldPulse.value = false }
 })
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-})
-// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
-
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
-              </div>
-            </div>
-          </div>
+  <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+  <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
+          <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
         </div>
-        <button @click="emit('close')"
-                class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"
-                :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
-      </header>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+          <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+        </div>
+      </div>
+      <button @click="emit('close')" class="p-2 text-slate-500 rounded-full hover:bg-slate-100"><PhX class="w-6 h-6" /></button>
+    </header>
+    <main class="flex flex-1 overflow-hidden">
+      <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 md:flex z-10">
+        <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
+          <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+          <MathText :content="instruction" class="mb-4 prose prose-sm text-slate-600" />
 
-      <main class="flex flex-1 overflow-hidden">
-
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
-
-            <div class="text-center bg-math-blue-bg p-4 border border-surface-200 rounded-xl shadow-sm mb-6 animate-fadeIn">
-              <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
+          <details class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-4">
+            <summary class="font-bold text-amber-800 cursor-pointer text-sm">Voorbeeld — Stap voor Stap</summary>
+            <div class="mt-3 text-sm space-y-2">
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> √48: zoek delers die een kwadraat zijn.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> 48 = 16 × 3. 16 is een kwadraat (4^2).</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> √48 = √(16 × 3) = √16 × √3 = 4√3.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Klaar! 4√3 is de vereenvoudigde vorm.</p>
             </div>
+          </details>
 
-            <div class="p-6 border border-slate-200 bg-slate-50 rounded-xl space-y-4 shadow-inner">
-              <p class="font-bold text-slate-800 mb-2 uppercase tracking-wider text-xs">Jouw splitsing</p>
+          <div v-if="!predictionMade" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 mb-4">
+            <h4 class="font-bold text-indigo-800 text-sm mb-2 flex items-center gap-2"><PhQuestion weight="bold" class="w-4 h-4" /> Voorspel!</h4>
+            <p class="text-xs text-indigo-600 mb-3">Hoe ga je de wortel vereenvoudigen?</p>
+            <div class="space-y-2">
+              <label v-for="opt in predictionOptions" :key="opt.id" class="flex items-center gap-2 p-2 rounded-lg bg-white border cursor-pointer text-xs"
+                :class="predictionChoice === opt.id ? 'border-indigo-500 bg-indigo-100' : 'border-slate-200'">
+                <input type="radio" :value="opt.id" v-model="predictionChoice" class="accent-indigo-600" /> {{ opt.text }}
+              </label>
+            </div>
+            <button @click="confirmPrediction" :disabled="!predictionChoice" class="mt-3 w-full py-2 bg-indigo-600 text-white font-bold rounded-lg text-sm disabled:opacity-50">Bevestig Voorspelling</button>
+          </div>
 
+          <div v-if="predictionMade" class="space-y-4">
+            <div class="bg-amber-50 p-4 border border-amber-200 rounded-xl">
+              <p class="font-bold text-amber-800 text-sm">{{ currentLevelData.goalText }}</p>
+            </div>
+            <div class="p-4 border border-amber-200 bg-amber-50 rounded-xl">
               <div class="flex items-center justify-between gap-2">
-                 <div class="flex-1">
-                    <label class="block text-xs font-bold text-slate-500 mb-1 text-center">Het Kwadraat</label>
-                    <input type="number" v-model.number="inputSquare" :disabled="step > 0" class="w-full p-4 text-xl font-mono font-black text-center text-blue-600 bg-white border-2 border-blue-300 rounded-lg outline-none focus:border-blue-500" placeholder="?">
-                 </div>
-                 <div class="text-slate-400 font-black text-xl mt-4">x</div>
-                 <div class="flex-1">
-                    <label class="block text-xs font-bold text-slate-500 mb-1 text-center">De Rest</label>
-                    <input type="number" v-model.number="inputRemainder" :disabled="step > 0" class="w-full p-4 text-xl font-mono font-black text-center text-emerald-600 bg-white border-2 border-emerald-300 rounded-lg outline-none focus:border-emerald-500" placeholder="?">
-                 </div>
+                <div class="flex-1">
+                  <label class="block text-xs font-bold text-slate-500 mb-1 text-center">Kwadraat</label>
+                  <input type="number" v-model.number="inputSquare" :disabled="step > 0" class="w-full p-4 text-xl font-mono font-black text-center text-amber-600 bg-white border-2 border-amber-300 rounded-lg" placeholder="?">
+                </div>
+                <div class="text-slate-400 font-black text-xl mt-4">x</div>
+                <div class="flex-1">
+                  <label class="block text-xs font-bold text-slate-500 mb-1 text-center">Rest</label>
+                  <input type="number" v-model.number="inputRemainder" :disabled="step > 0" class="w-full p-4 text-xl font-mono font-black text-center text-emerald-600 bg-white border-2 border-emerald-300 rounded-lg" placeholder="?">
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text"
-                 class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn"
-                 role="status" aria-live="polite" aria-atomic="true" :class="{
-                   'bg-emerald-100 text-emerald-800': feedback.type === 'success',
-                   'bg-red-100 text-red-800': feedback.type === 'error',
-                   'bg-blue-100 text-blue-800': feedback.type === 'info',
-                 }">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-relaxed">{{ feedback.text }}</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                 <PhArrowClockwise />
-              </button>
-
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect || !inputSquare || !inputRemainder" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                Controleer
-              </button>
-
-              <button v-else @click="handleNext" :disabled="step < 2" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:active:scale-100 active:scale-[0.98] animate-fadeIn focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
-              </button>
+            <div v-if="showWhy" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 animate-fadeIn">
+              <h4 class="font-bold text-indigo-800 text-sm mb-2">Waarom werkt dit?</h4>
+              <p v-for="(l, i) in whyText" :key="i" class="text-xs text-indigo-700 mb-1">{{ l }}</p>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto">
+        <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+          <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-3 text-sm rounded-lg animate-fadeIn"
+            :class="{'bg-emerald-100': feedback.type === 'success', 'bg-red-100': feedback.type === 'error', 'bg-blue-100': feedback.type === 'info'}">
+            <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+            <span>{{ feedback.text }}</span>
+          </div>
 
-            <div class="relative flex-1 flex flex-col items-center justify-center w-full min-h-[400px] p-8 bg-slate-100 rounded-xl border-2 border-slate-200/50 pattern-grid overflow-hidden gap-12">
+          <div v-if="!predictionMade">
+            <button @click="emit('close')" class="w-full py-3 font-bold text-slate-500 bg-white border border-slate-200 rounded-lg">Sluiten</button>
+          </div>
+          <div v-else-if="!showReflection && !showLPD" class="flex items-center gap-3">
+            <button @click="resetActivityState" class="p-3 text-slate-500 bg-white border border-slate-200 rounded-lg shrink-0"><PhArrowClockwise /></button>
+            <button @click="cycleHint" class="p-3 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg shrink-0"><PhLightbulb weight="fill" /></button>
+            <div v-if="showHints" class="bg-amber-100 p-2 rounded-lg text-xs text-amber-800 animate-fadeIn flex-1">{{ hintTexts[hintLevel] }}</div>
+            <button v-if="!isCorrect" @click="checkAnswer" :disabled="!inputSquare || !inputRemainder"
+              class="flex-1 py-3 font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50">Controleer</button>
+            <button v-else @click="handleNext" :disabled="step < 2" class="flex-1 py-3 font-bold text-white rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50">Reflecteer <PhArrowRight weight="bold" class="inline" /></button>
+          </div>
 
-              <div class="w-full max-w-4xl flex items-center justify-center gap-4 transition-all duration-700" :class="step === 2 ? 'scale-110' : 'scale-100'">
-
-                 <!-- Original Root -->
-                 <div class="text-7xl font-mono font-black text-slate-700 relative z-10 transition-all duration-500" :class="step > 0 ? 'opacity-30' : 'opacity-100'">
-                    \u221A<span class="border-t-8 border-slate-700 pt-2 ml-1 inline-block">{{ currentLevelData.targetRoot }}</span>
-                 </div>
-
-                 <!-- Equals Sign -->
-                 <div class="text-6xl font-mono font-black text-slate-300 mx-4 transition-all duration-500" :class="step > 0 ? 'opacity-100' : 'opacity-0 -translate-x-4'">
-                    =
-                 </div>
-
-                 <!-- Factored Form (Exploded) -->
-                 <div class="flex items-center gap-4 transition-all duration-500" :class="step > 0 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'">
-
-                    <!-- The Square Part -->
-                    <div class="relative group">
-                       <div class="text-6xl font-mono font-black text-blue-600 relative z-10 transition-all duration-500" :class="step === 2 ? 'opacity-0 scale-150 absolute top-0 left-0' : 'opacity-100 scale-100'">
-                          \u221A<span class="border-t-[6px] border-blue-600 pt-2 ml-1 inline-block">{{ inputSquare || '?' }}</span>
-                       </div>
-
-                       <!-- The Resolved Square Part -->
-                       <div class="text-7xl font-mono font-black text-math-blue absolute top-0 left-0 z-20 transition-all duration-500 origin-center" :class="step === 2 ? 'opacity-100 scale-100 drop-shadow-md' : 'opacity-0 scale-50'">
-                          {{ currentLevelData.rootSquare }}
-                       </div>
-                    </div>
-
-                    <!-- Multiplication Sign -->
-                    <div class="text-4xl font-mono font-black text-slate-400 mt-2 transition-all duration-300" :class="step === 2 ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'">
-                       x
-                    </div>
-
-                    <!-- The Remainder Part -->
-                    <div class="text-6xl font-mono font-black text-emerald-600 relative z-10 transition-all duration-500" :class="step === 2 ? '-translate-x-8 text-7xl' : 'translate-x-0'">
-                       \u221A<span class="border-t-[6px] border-emerald-600 pt-2 ml-1 inline-block" :class="step === 2 ? 'border-t-8' : ''">{{ inputRemainder || '?' }}</span>
-                    </div>
-
-                 </div>
-
-              </div>
-
+          <div v-if="showReflection" class="space-y-3">
+            <h4 class="font-bold text-indigo-800 text-sm">Reflectie</h4>
+            <div v-for="(q, i) in reflectionQuestions" :key="i" class="space-y-1">
+              <label class="text-xs font-medium text-slate-700">{{ q }}</label>
+              <textarea v-model="reflectionAnswers[i]" rows="2" class="w-full text-sm p-2 border border-indigo-200 rounded-lg bg-white resize-none" placeholder="Min 10 tekens..."></textarea>
             </div>
+            <button @click="submitReflection" :disabled="!allReflectionsDone" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">
+              {{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Naar Bewijs van LPD' }}
+            </button>
+          </div>
 
+          <div v-if="showLPD && !lpdDone" class="space-y-3">
+            <h4 class="font-bold text-amber-800 text-sm flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-amber-600" /> Bewijs van LPD 7</h4>
+            <p class="text-xs text-amber-700">LPD 7: Rekenen met reële getallen (wortelvereenvoudiging).</p>
+            <textarea v-model="lpdAnswer" rows="3" class="w-full text-sm p-2 border border-amber-200 rounded-lg bg-white resize-none" placeholder="Schrijf een zin die bewijst dat je dit leerplandoel bereikt hebt..."></textarea>
+            <button @click="submitLPD" :disabled="lpdAnswer.length < 20" class="w-full py-2 bg-amber-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">Bevestig LPD 7</button>
           </div>
         </div>
+      </div>
 
-      </main>
-    </div>
+      <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+        <div class="flex flex-1 p-6 items-center justify-center relative pattern-grid">
+          <div class="w-full max-w-4xl flex items-center justify-center gap-4">
+            <div class="text-7xl font-mono font-black text-slate-700" :class="step > 0 ? 'opacity-30' : ''">√<span class="border-t-8 border-slate-700 pt-2 ml-1">{{ currentLevelData.targetRoot }}</span></div>
+            <div class="text-6xl font-mono font-black text-slate-300" :class="step > 0 ? 'opacity-100' : 'opacity-0'">=</div>
+            <div class="flex items-center gap-4" :class="step > 0 ? 'opacity-100' : 'opacity-0'">
+              <div class="relative">
+                <div class="text-6xl font-mono font-black text-amber-600" :class="step === 2 ? 'opacity-0' : ''">√<span class="border-t-[6px] border-amber-600 pt-2 ml-1">{{ inputSquare || '?' }}</span></div>
+                <div class="text-7xl font-mono font-black text-amber-600 absolute top-0 left-0 z-20" :class="step === 2 ? 'opacity-100 scale-100' : 'opacity-0'">{{ currentLevelData.rootSquare }}</div>
+              </div>
+              <div class="text-4xl font-mono font-black text-slate-400" :class="step === 2 ? 'opacity-0 w-0 overflow-hidden' : ''">×</div>
+              <div class="text-6xl font-mono font-black text-emerald-600" :class="step === 2 ? '-translate-x-8 text-7xl' : ''">√<span class="border-t-[6px] border-emerald-600 pt-2 ml-1">{{ inputRemainder || '?' }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
+</div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="currentInternalLevel === totalInternalLevels - 1" />
 </template>
 
 <style scoped>
-:root { font-family: 'Inter', sans-serif; }
-
-.shadow-inner-light { box-shadow: inset -5px 0 15px -10px rgba(0,0,0,0.1); }
-.pattern-grid {
-    background-image:
-        linear-gradient(to right, #e2e8f0 1px, transparent 1px),
-        linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-    background-size: 2rem 2rem;
-    background-position: center center;
-}
-
-.animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-
-
-.ring-pulse-amber { animation: ring-pulse-amber 1s cubic-bezier(0.24, 1, 0.32, 1) 3; z-index: 50; }
-@keyframes ring-pulse-amber {
-    0% { box-shadow: 0 0 0 0 #fbbf24; }
-    70% { box-shadow: 0 0 0 20px rgba(251, 191, 36, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-}
+.pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 </style>

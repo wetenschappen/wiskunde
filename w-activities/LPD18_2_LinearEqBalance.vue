@@ -123,7 +123,14 @@ function checkPrediction() {
     showPrediction.value = false
     feedback.value = { type: 'success', text: `Juist! ${lvl.hintMethod}` }
   } else {
-    feedback.value = { type: 'error', text: `Denk na: wat staat er nog bij x? Eerst dat wegwerken. Hint: ${lvl.hints[0]}` }
+    // Error analysis: detect specific wrong choices
+    if (predictedFirstStep.value === 'subX') {
+      feedback.value = { type: 'error', text: `Let op! Je probeert x weg te werken, maar x staat aan beide kanten. Eerst de constante term (-${Math.abs(lvl.targetC)}) aan beide kanten wegwerken, want die staat los van x. Volgorde: eerst constanten, dan x.` }
+    } else if (predictedFirstStep.value === 'divBoth') {
+      feedback.value = { type: 'error', text: `Let op! Je wil al delen, maar de vergelijking is nog niet vereenvoudigd. Werk eerst de constante term weg door ${lvl.hints[0]}. Daarna pas delen door de coëfficiënt van x.` }
+    } else {
+      feedback.value = { type: 'error', text: `Let op! Denk na: wat staat er nog bij x? Eerst dat wegwerken. Hint: ${lvl.hints[0]}` }
+    }
   }
 }
 

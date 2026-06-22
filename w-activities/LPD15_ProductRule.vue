@@ -130,13 +130,17 @@ function checkAnswer() {
     isCorrect.value = false
 
     if (predictionAns.value === data.exp1 * data.exp2 || userAns.value === data.exp1 * data.exp2) {
-        feedback.value = { type: 'error', text: `Je hebt de exponenten vermenigvuldigd (${data.exp1} × ${data.exp2} = ${data.exp1 * data.exp2}).<br><br>Denk nog eens na: ${data.base}^${data.exp1} betekent ${data.base} × ${data.base} × ... (${data.exp1} keer). En ${data.base}^${data.exp2} betekent ${data.base} × ... (${data.exp2} keer). Zet je ze na elkaar, moet je het totaal aantal ${data.base}'s optellen, niet vermenigvuldigen.<br><br>Klik op "Vouw Open" om het visueel te zien.` }
+        feedback.value = { type: 'error', text: `Let op! Je hebt de exponenten vermenigvuldigd (${data.exp1} × ${data.exp2} = ${data.exp1 * data.exp2}).<br><br>Denk nog eens na: ${data.base}^${data.exp1} betekent ${data.base} × ${data.base} × ... (${data.exp1} keer). En ${data.base}^${data.exp2} betekent ${data.base} × ... (${data.exp2} keer). Zet je ze na elkaar, moet je het totaal aantal ${data.base}'s optellen, niet vermenigvuldigen.<br><br>Klik op "Vouw Open" om het visueel te zien.` }
     } else if (userAns.value === Math.pow(data.exp1, data.exp2)) {
-        feedback.value = { type: 'error', text: `Je hebt ${data.exp1}^${data.exp2} berekend. Maar bij machten met hetzelfde grondtal tel je de exponenten op, niet machtsverheffen.` }
+        feedback.value = { type: 'error', text: `Let op! Je hebt ${data.exp1}^${data.exp2} berekend. Maar bij machten met hetzelfde grondtal tel je de exponenten op, niet machtsverheffen. Het is ${data.base}^{${data.exp1}+${data.exp2}} = ${data.base}^{${data.exactAns}}, niet ${data.base}^{${data.exp1}^{${data.exp2}}}.` }
+    } else if (userAns.value === data.exp1 - data.exp2 || userAns.value === data.exp2 - data.exp1) {
+        feedback.value = { type: 'error', text: `Let op! Je hebt de exponenten van elkaar afgetrokken (${data.exp1} − ${data.exp2} = ${data.exp1 - data.exp2}). Maar bij VERMENIGVULDIGING van machten met hetzelfde grondtal TEL je de exponenten op. Aftrekken doe je bij DELING: a^m / a^n = a^{m-n}.` }
+    } else if (userAns.value === data.base * (data.exp1 + data.exp2)) {
+        feedback.value = { type: 'error', text: `Let op! Je hebt het grondtal vermenigvuldigd met de som van exponenten. De exponent telt het aantal herhalingen, het is geen factor om mee te vermenigvuldigen. ${data.base}^${data.exp1} × ${data.base}^${data.exp2} = ${data.base}^{${data.exp1}+${data.exp2}} = ${data.base}^{${data.exactAns}}.` }
     } else if (attemptCount.value >= 3) {
         feedback.value = { type: 'error', text: `Tel het aantal blauwe (${data.exp1}) en oranje (${data.exp2}) blokjes zodra ze opengevouwen zijn: ${data.exp1} + ${data.exp2} = ?` }
     } else if (attemptCount.value >= 2) {
-        feedback.value = { type: 'error', text: 'Vouw de machten open met de knop en tel dan alle ' + data.base + '-blokjes bij elkaar.' }
+        feedback.value = { type: 'error', text: 'Vouw de machten open met de knop. Tel dan alle ' + data.base + '-blokjes bij elkaar. Blauwe + oranje = ?' }
     } else {
         feedback.value = { type: 'error', text: 'Niet helemaal... Tel het aantal blauwe en oranje blokjes samen zodra ze opengevouwen zijn.' }
     }

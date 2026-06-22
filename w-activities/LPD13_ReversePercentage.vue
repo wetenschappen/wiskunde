@@ -1,326 +1,316 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhPercent, PhArrowClockwise
-} from '@phosphor-icons/vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhPercent, PhArrowClockwise, PhLightbulb, PhQuestion } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: { type: String, default: 'Procenten: Terugrekenen' },
-  instruction: {
-    type: String,
-    default: 'Terugrekenen is vaak moeilijk. We gebruiken het strokenmodel (Bar Model) om het visueel op te lossen.<br/><br/><strong>Opdracht:</strong> Los de som op door eerst de waarde van 1 blokje uit te rekenen, en daarna de originele 100% te berekenen.'
-  },
+  instruction: { type: String, default: 'Gebruik het strokenmodel (Bar Model) om de originele prijs te berekenen.' },
   currentStep: { type: Number, default: 1 },
   totalSteps: { type: Number, default: 1 },
-  fullscreen: { type: Boolean, default: true },
+  fullscreen: { type: Boolean, default: false },
   icon: { type: Object, default: () => PhPercent }
 })
-
 const emit = defineEmits(['close', 'complete', 'update:currentStep'])
 
 const mainArea = ref(null)
-
 const shouldPulse = ref(false)
 const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
-const feedback = ref({ type: 'info', text: 'Kijk naar de strook. Hoeveel blokjes stellen de nieuwe prijs voor?' })
 const attemptCount = ref(0)
-
-// Level Logic
+const hintLevel = ref(0)
+const showHints = ref(false)
+const feedback = ref({ type: 'info', text: 'Kijk naar de strook.' })
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const showWhy = ref(false)
+const showReflection = ref(false)
+const reflectionAnswers = ref(['', '', ''])
+const showLPD = ref(false)
+const lpdAnswer = ref('')
+const lpdDone = ref(false)
+
+const predictionMade = ref(false)
+const predictionChoice = ref(null)
+const predictionOptions = computed(() => {
+  if (currentInternalLevel.value === 0) return [
+    { id: 'divide', text: 'Ik deel eerst om 1 blokje te vinden' },
+    { id: 'multiply', text: 'Ik vermenigvuldig de nieuwe prijs met het percentage' },
+    { id: 'guess', text: 'Ik raad de originele prijs' }
+  ]
+  return [
+    { id: 'moreblocks', text: 'Ik bereken weer per blokje, maar met meer blokjes' },
+    { id: 'formula', text: 'Ik gebruik een vaste formule' },
+    { id: 'different', text: 'Ik doe iets anders' }
+  ]
+})
+const reflectionQuestions = computed(() => [
+  'Waarom moet je eerst 1 blokje (1%) berekenen voor je de 100% kunt vinden?',
+  'Waarom is terugrekenen via het strokenmodel makkelijker dan een formule onthouden?',
+  'Waarom daalt de originele prijs niet met hetzelfde bedrag als de korting?'
+])
 
 const levels = ref([])
 
 function generateLevel() {
-  const newLevels = []
-  // Level 1: 25% discount (4 blocks of 25%, 3 remaining)
-  const blockPct1 = 25
-  const blocksTotal1 = 100 / blockPct1 // 4
-  const discountBlocks1 = 1
-  const blocksRemaining1 = blocksTotal1 - discountBlocks1
-  const pricePerBlock1 = [15, 20, 25, 30][Math.floor(Math.random() * 4)]
-  const newPrice1 = blocksRemaining1 * pricePerBlock1
-  const total1 = blocksTotal1 * pricePerBlock1
-  newLevels.push({
-    goalText: `Na ${discountBlocks1 * blockPct1}% korting kost een artikel nog €${newPrice1}. Wat was de beginprijs?`,
-    discountPercent: discountBlocks1 * blockPct1,
-    newPrice: newPrice1,
-    ansBlockExact: pricePerBlock1,
-    ansTotalExact: total1,
-    blocksRemaining: blocksRemaining1,
-    blocksTotal: blocksTotal1,
-    hintBlock: `Kijk naar de blauwe blokjes. ${blocksRemaining1} blokjes samen zijn €${newPrice1}. Hoeveel is 1 blokje dan? (${newPrice1} ÷ ${blocksRemaining1})`,
-    hintTotal: `1 blokje is €${pricePerBlock1}! De originele prijs (100%) bestaat uit ${blocksTotal1} blokjes. Wat is ${blocksTotal1} × ${pricePerBlock1}?`
+  const nl = []
+  const pp1 = [15, 20, 25, 30][Math.floor(Math.random() * 4)]
+  nl.push({
+    goalText: `Na 25% korting kost een artikel nog €${3 * pp1}. Wat was de beginprijs?`,
+    discountPercent: 25, newPrice: 3 * pp1, blocksTotal: 4, blocksRemaining: 3,
+    ansBlockExact: pp1, ansTotalExact: 4 * pp1,
+    blockPct: 25
   })
-
-  // Level 2: 20% discount (5 blocks of 20%, 4 remaining)
-  const blockPct2 = 20
-  const blocksTotal2 = 100 / blockPct2 // 5
-  const discountBlocks2 = 1
-  const blocksRemaining2 = blocksTotal2 - discountBlocks2
-  const pricePerBlock2 = [40, 50, 75, 100][Math.floor(Math.random() * 4)]
-  const newPrice2 = blocksRemaining2 * pricePerBlock2
-  const total2 = blocksTotal2 * pricePerBlock2
-  newLevels.push({
-    goalText: `Na ${discountBlocks2 * blockPct2}% korting kost een artikel nog €${newPrice2}. Wat was de beginprijs?`,
-    discountPercent: discountBlocks2 * blockPct2,
-    newPrice: newPrice2,
-    ansBlockExact: pricePerBlock2,
-    ansTotalExact: total2,
-    blocksRemaining: blocksRemaining2,
-    blocksTotal: blocksTotal2,
-    hintBlock: `${blocksRemaining2} blauwe blokjes samen (${blocksRemaining2 * blockPct2}%) zijn €${newPrice2}. Hoeveel is 1 blokje (${blockPct2}%)? (${newPrice2} ÷ ${blocksRemaining2})`,
-    hintTotal: `1 blokje is €${pricePerBlock2}. De originele prijs is ${blocksTotal2} blokjes (100%). Wat is ${blocksTotal2} × ${pricePerBlock2}?`
+  const pp2 = [40, 50, 75, 100][Math.floor(Math.random() * 4)]
+  nl.push({
+    goalText: `Na 20% korting kost een artikel nog €${4 * pp2}. Wat was de beginprijs?`,
+    discountPercent: 20, newPrice: 4 * pp2, blocksTotal: 5, blocksRemaining: 4,
+    ansBlockExact: pp2, ansTotalExact: 5 * pp2,
+    blockPct: 20
   })
-
-  // Level 3: 40% discount (5 blocks of 20%, 3 remaining)
-  const blockPct3 = 20
-  const blocksTotal3 = 100 / blockPct3 // 5
-  const discountBlocks3 = 2
-  const blocksRemaining3 = blocksTotal3 - discountBlocks3
-  const pricePerBlock3 = [8, 10, 12, 15][Math.floor(Math.random() * 4)]
-  const newPrice3 = blocksRemaining3 * pricePerBlock3
-  const total3 = blocksTotal3 * pricePerBlock3
-  newLevels.push({
-    goalText: `Na ${discountBlocks3 * blockPct3}% korting kost een artikel nog €${newPrice3}. Wat was de beginprijs?`,
-    discountPercent: discountBlocks3 * blockPct3,
-    newPrice: newPrice3,
-    ansBlockExact: pricePerBlock3,
-    ansTotalExact: total3,
-    blocksRemaining: blocksRemaining3,
-    blocksTotal: blocksTotal3,
-    hintBlock: `De overgebleven ${blocksRemaining3 * blockPct3}% stellen we voor als ${blocksRemaining3} blauwe blokjes van ${blockPct3}%. Samen zijn ze €${newPrice3}. Hoeveel is 1 blokje?`,
-    hintTotal: `1 blokje (${blockPct3}%) is €${pricePerBlock3}. De originele 100% is ${blocksTotal3} blokjes. Wat is ${blocksTotal3} × ${pricePerBlock3}?`
+  const pp3 = [8, 10, 12, 15][Math.floor(Math.random() * 4)]
+  nl.push({
+    goalText: `Na 40% korting kost een artikel nog €${3 * pp3}. Wat was de beginprijs?`,
+    discountPercent: 40, newPrice: 3 * pp3, blocksTotal: 5, blocksRemaining: 3,
+    ansBlockExact: pp3, ansTotalExact: 5 * pp3,
+    blockPct: 20
   })
-
-  levels.value = newLevels
+  return nl
 }
 
 const currentLevelData = computed(() => levels.value[currentInternalLevel.value])
-
-// Domain Logic
 const ansBlock = ref(null)
 const ansTotal = ref(null)
 
-function resetActivityState() {
-    isCorrect.value = false;
-celebrationDone.value = false
-    isChecked.value = false;
-    feedback.value = { type: 'info', text: 'Kijk naar de strook. Hoeveel blokjes stellen de nieuwe prijs voor?' };
-    ansBlock.value = null;
-    ansTotal.value = null;
-    attemptCount.value = 0;
-    generateLevel();
+const hintTexts = computed(() => {
+  const d = currentLevelData.value
+  if (!d) return ['', '', '']
+  return [
+    `Tip 1: De overgebleven prijs (€${d.newPrice}) stelt ${d.blocksRemaining * d.blockPct}% voor. Hoeveel is 1 blokje (${d.blockPct}%)?`,
+    `Tip 2: ${d.blocksRemaining} blokjes = €${d.newPrice}. Deel €${d.newPrice} door ${d.blocksRemaining}.`,
+    `Tip 3: 1 blokje = €${d.newPrice} ÷ ${d.blocksRemaining} = ... (vul in). De originele prijs = ... × ${d.blocksTotal} (vul het bedrag van 1 blokje in).`
+  ]
+})
+
+function cycleHint() {
+  if (!showHints) { showHints.value = true; hintLevel.value = 0; return }
+  if (hintLevel.value < 2) hintLevel.value++
+  else { showHints.value = false; hintLevel.value = 0 }
+}
+
+function confirmPrediction() { if (predictionChoice.value) predictionMade.value = true }
+function resetPrediction() { predictionMade.value = false; predictionChoice.value = null }
+
+function detectError(block, total) {
+  const d = currentLevelData.value
+  if (!d) return null
+  if (total === d.newPrice) return 'Let op! De nieuwe prijs is niet de originele prijs. Je moet de originele 100% vinden, niet wat er overblijft.'
+  if (block === d.newPrice) return 'Let op! 1 blokje is niet de nieuwe prijs. Deel de nieuwe prijs door het aantal blokjes.'
+  if (block && total && block * d.blocksTotal !== total && total === d.ansTotalExact) return null
+  return null
 }
 
 function checkAnswer() {
-  isChecked.value = true;
-  const data = currentLevelData.value;
-
-  if (ansBlock.value === data.ansBlockExact && ansTotal.value === data.ansTotalExact) {
-    isCorrect.value = true
-    feedback.value = {
-      type: 'success',
-      text: `Briljant! ${data.blocksRemaining} blokjes = €${data.newPrice}. Dus 1 blokje = €${data.ansBlockExact}. De totale 100% is dan ${data.blocksTotal} × ${data.ansBlockExact} = €${data.ansTotalExact}.`
-    }
+  isChecked.value = true; attemptCount.value++
+  const d = currentLevelData.value
+  const specific = detectError(ansBlock.value, ansTotal.value)
+  if (ansBlock.value === d.ansBlockExact && ansTotal.value === d.ansTotalExact) {
+    isCorrect.value = true; showWhy.value = true
+    feedback.value = { type: 'success', text: `Briljant! 1 blokje = €${d.ansBlockExact}. Origineel = ${d.blocksTotal} × €${d.ansBlockExact} = €${d.ansTotalExact}.` }
   } else {
-    attemptCount.value++
-
-    if (ansBlock.value !== data.ansBlockExact) {
-        if (attemptCount.value === 1) {
-          feedback.value = { type: 'error', text: data.hintBlock }
-        } else if (attemptCount.value === 2) {
-          feedback.value = { type: 'error', text: `${data.blocksRemaining} blokjes = €${data.newPrice}. Deel €${data.newPrice} door ${data.blocksRemaining}.` }
-        } else {
-          feedback.value = { type: 'error', text: `1 blokje = €${data.ansBlockExact}. (€${data.newPrice} ÷ ${data.blocksRemaining} = ${data.ansBlockExact})` }
-        }
-    } else if (ansTotal.value !== data.ansTotalExact) {
-        if (attemptCount.value === 1) {
-          feedback.value = { type: 'error', text: data.hintTotal }
-        } else if (attemptCount.value === 2) {
-          feedback.value = { type: 'error', text: `1 blokje is €${data.ansBlockExact}. De totale prijs (100%) is ${data.blocksTotal} blokjes. Wat is ${data.blocksTotal} × ${data.ansBlockExact}?` }
-        } else {
-          feedback.value = { type: 'error', text: `Originele prijs = ${data.blocksTotal} × ${data.ansBlockExact} = €${data.ansTotalExact}.` }
-        }
-    }
+    isCorrect.value = false
+    if (specific) feedback.value = { type: 'error', text: specific }
+    else if (ansBlock.value !== d.ansBlockExact) feedback.value = { type: 'error', text: `Fout in stap 1. ${d.blocksRemaining} blokjes = €${d.newPrice}. Deel om 1 blokje te vinden.` }
+    else feedback.value = { type: 'error', text: `Fout in stap 2. 1 blokje = €${d.ansBlockExact}. Origineel = ${d.blocksTotal} × dit bedrag.` }
   }
 }
+
+function resetActivityState() {
+  levels.value = generateLevel()
+  isCorrect.value = false; celebrationDone.value = false; isChecked.value = false
+  attemptCount.value = 0; hintLevel.value = 0; showHints.value = false; showWhy.value = false
+  showReflection.value = false; showLPD.value = false; lpdDone.value = false
+  resetPrediction()
+  feedback.value = { type: 'info', text: 'Kijk naar de strook.' }
+  ansBlock.value = null; ansTotal.value = null
+}
+
+const allReflectionsDone = computed(() => reflectionAnswers.value.every(a => a.length >= 10))
 
 function handleNext() {
-  if (currentInternalLevel.value < totalInternalLevels - 1) {
-    currentInternalLevel.value++;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-  } else {
-    if (props.currentStep < props.totalSteps) emit('update:currentStep', props.currentStep + 1);
-    else emit('complete');
+  if (isCorrect.value && !showReflection.value) { showReflection.value = true }
+  else if (showReflection.value && allReflectionsDone.value) { submitReflection() }
+}
+
+function submitReflection() {
+  if (allReflectionsDone.value) {
+    showReflection.value = false; reflectionAnswers.value = ['', '', '']
+    if (currentInternalLevel.value < totalInternalLevels - 1) { currentInternalLevel.value++; resetActivityState(); nextTick(() => mainArea.value?.focus()) }
+    else { showLPD.value = true }
   }
 }
 
-// Lifecycle
-watch(() => props.isOpen, (val) => {
-  if (val) {
-    generateLevel();
-    currentInternalLevel.value = 0;
-    resetActivityState();
-    nextTick(() => mainArea.value?.focus())
-    window.addEventListener('keydown', handleKeydown)
-    if (props.fullscreen) { nextTick(() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {}) }) }
-    nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
-    window.removeEventListener('keydown', handleKeydown)
-    shouldPulse.value = false
-  }
-}, { immediate: true })
+function submitLPD() { if (lpdAnswer.value.length >= 20) { lpdDone.value = true; emit('complete') } }
 
-function handleKeydown(e) { if (e.key === 'Escape' && props.isOpen) emit('close') }
-const handleFullscreenChange = () => { if (props.isOpen && props.fullscreen && !document.fullscreenElement) emit('close') }
-onMounted(() => document.addEventListener('fullscreenchange', handleFullscreenChange))
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  if (document.fullscreenElement) document.exitFullscreen().catch(e => {})
+const whyText = computed(() => [
+  'Het strokenmodel verdeelt 100% in gelijke blokjes. Elk blokje is evenveel waard.',
+  'Door eerst de waarde van 1 blokje te vinden (delen), kun je daarna de totale 100% berekenen (vermenigvuldigen).'
+])
+
+watch(() => props.isOpen, (val) => {
+  if (val) { currentInternalLevel.value = 0; resetActivityState()
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && props.isOpen) emit('close') })
+    nextTick(() => mainArea.value?.focus()); nextTick(() => { shouldPulse.value = true; setTimeout(() => { shouldPulse.value = false }, 3000) })
+  } else { shouldPulse.value = false }
 })
-// Success verification placeholder: Prima!
 </script>
 
 <template>
 <div v-if="isOpen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-    <div class="absolute inset-0 bg-slate-900/10 focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none min-w-[44px] min-h-[44px]" @click="emit('close')" role="button" tabindex="0" @keydown.enter.prevent="emit('close')" @keydown.space.prevent="emit('close')" aria-label="Interactief element"></div>
-    <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+  <div class="absolute inset-0 bg-slate-900/10" @click="emit('close')"></div>
+  <div class="relative flex flex-col w-screen h-screen overflow-hidden shadow-md bg-white">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center p-2 rounded-lg bg-amber-100">
+          <component :is="props.icon" weight="fill" class="w-6 h-6 text-amber-600" />
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+          <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
+        </div>
+      </div>
+      <button @click="emit('close')" class="p-2 text-slate-500 rounded-full hover:bg-slate-100"><PhX class="w-6 h-6" /></button>
+    </header>
+    <main class="flex flex-1 overflow-hidden">
+      <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 md:flex z-10">
+        <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
+          <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
+          <MathText :content="instruction" class="mb-4 prose prose-sm text-slate-600" />
 
-      <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-2 rounded-lg bg-math-blue-bg">
-            <component :is="props.icon" weight="fill" class="w-6 h-6 text-math-blue" />
+          <details class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-4">
+            <summary class="font-bold text-amber-800 cursor-pointer text-sm">Voorbeeld — Stap voor Stap</summary>
+            <div class="mt-3 text-sm space-y-2">
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Na 25% korting kost een jas €60. Wat was de oorspronkelijke prijs?</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> 100% - 25% = 75% = €60. 75% = 3 blokjes van 25%.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> 1 blokje (25%) = €60 ÷ 3 = €20.</p>
+              <p class="flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-emerald-500 shrink-0" /> Originele prijs (100%) = 4 × €20 = €80.</p>
+            </div>
+          </details>
+
+          <div v-if="!predictionMade" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 mb-4">
+            <h4 class="font-bold text-indigo-800 text-sm mb-2 flex items-center gap-2"><PhQuestion weight="bold" class="w-4 h-4" /> Voorspel!</h4>
+            <p class="text-xs text-indigo-600 mb-3">Hoe ga je de originele prijs vinden?</p>
+            <div class="space-y-2">
+              <label v-for="opt in predictionOptions" :key="opt.id" class="flex items-center gap-2 p-2 rounded-lg bg-white border cursor-pointer text-xs"
+                :class="predictionChoice === opt.id ? 'border-indigo-500 bg-indigo-100' : 'border-slate-200'">
+                <input type="radio" :value="opt.id" v-model="predictionChoice" class="accent-indigo-600" /> {{ opt.text }}
+              </label>
+            </div>
+            <button @click="confirmPrediction" :disabled="!predictionChoice" class="mt-3 w-full py-2 bg-indigo-600 text-white font-bold rounded-lg text-sm disabled:opacity-50">Bevestig Voorspelling</button>
           </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-medium text-slate-500">Level {{ currentInternalLevel + 1 }} van {{ totalInternalLevels }}</p>
-              <div class="flex gap-1">
-                <div v-for="i in totalInternalLevels" :key="i"
-                     class="w-2 h-2 rounded-full"
-                     :class="i <= currentInternalLevel + 1 ? 'bg-math-blue' : 'bg-slate-200'"></div>
+
+          <div v-if="predictionMade" class="space-y-4">
+            <div class="bg-amber-50 p-4 border border-amber-200 rounded-xl">
+              <p class="font-bold text-amber-800 text-sm">{{ currentLevelData.goalText }}</p>
+            </div>
+            <div class="p-4 border border-amber-200 bg-amber-50 rounded-xl">
+              <div class="space-y-3">
+                <div>
+                  <label class="text-sm font-bold text-amber-700">Stap 1: Waarde van 1 blokje</label>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="font-black text-lg text-slate-500">€</span>
+                    <input type="number" v-model.number="ansBlock" placeholder="?" :disabled="isCorrect"
+                      class="w-full font-bold text-xl p-2 border border-amber-300 rounded-lg text-center bg-white tabular-nums" />
+                  </div>
+                </div>
+                <div class="border-t border-amber-200 pt-3">
+                  <label class="text-sm font-bold text-amber-700">Stap 2: Originele prijs (100%)</label>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="font-black text-2xl text-slate-500">€</span>
+                    <input type="number" v-model.number="ansTotal" placeholder="..." :disabled="isCorrect"
+                      class="w-full font-bold text-2xl p-3 border-2 border-amber-400 rounded-lg text-center bg-white tabular-nums" />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        <button @click="emit('close')" class="relative p-2 text-slate-500 transition-colors rounded-full hover:bg-slate-100 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none" :class="{ 'ring-pulse-amber': shouldPulse }">
-          <PhX class="w-6 h-6" />
-        </button>
-      </header>
-
-      <main class="flex flex-1 overflow-hidden">
-        <div class="flex-col hidden w-full max-w-sm bg-white border-r border-slate-200 shadow-inner-light md:flex z-10">
-          <div ref="mainArea" tabindex="-1" class="flex-1 p-6 overflow-y-auto">
-            <h3 class="mb-2 text-sm font-bold tracking-wider text-slate-500 uppercase">Instructies</h3>
-            <MathText :content="instruction" class="mb-6 prose prose-sm text-slate-600" />
-
-            <div class="p-4 mt-6 border border-surface-200 bg-math-blue-bg rounded-xl shadow-inner flex flex-col gap-4">
-
-               <p class="font-bold text-math-blue">{{ currentLevelData.goalText }}</p>
-
-               <div class="flex flex-col gap-2">
-                   <label class="text-sm font-bold text-math-blue">Stap 1: Waarde van 1 blokje</label>
-                   <div class="flex items-center gap-2">
-                       <span class="font-black text-xl text-slate-500">€</span>
-                       <input type="number" v-model.number="ansBlock" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-xl p-2 border border-surface-200 rounded-lg focus:border-math-blue focus:ring-math-blue bg-white" />
-                   </div>
-               </div>
-
-               <div class="flex flex-col gap-2 border-t border-surface-200 pt-4">
-                   <label class="text-sm font-bold text-math-blue">Stap 2: Originele prijs (100%)</label>
-                   <div class="flex items-center gap-2">
-                       <span class="font-black text-2xl text-slate-500">€</span>
-                       <input type="number" v-model.number="ansTotal" placeholder="?" :disabled="isCorrect"
-                              class="w-full font-bold text-2xl p-4 border-2 border-math-blue rounded-lg focus:border-math-blue focus:ring-math-blue bg-white" />
-                   </div>
-               </div>
-
-            </div>
-          </div>
-
-          <div class="p-6 bg-slate-50 border-t border-slate-200 shrink-0">
-            <div v-if="feedback.text" class="flex items-start gap-4 p-4 mb-4 text-sm font-medium rounded-lg animate-fadeIn" role='status' aria-live='polite' aria-atomic='true' :class="{'bg-emerald-100 text-emerald-800': feedback.type === 'success', 'bg-red-100 text-red-800': feedback.type === 'error', 'bg-blue-100 text-blue-800': feedback.type === 'info'}">
-               <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
-               <span class="leading-snug">{{ feedback.text }}</span>
-            </div>
-            <div class="flex items-center gap-4">
-              <button @click="resetActivityState" class="p-4 text-lg font-medium transition-colors rounded-lg text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none"><PhArrowClockwise /></button>
-              <button v-if="!isCorrect" @click="checkAnswer" :disabled="isChecked && !isCorrect && (ansBlock === null || ansTotal === null)" class="flex-1 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-slate-800 hover:bg-slate-900 disabled:opacity-50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">Controleer</button>
-              <button v-else @click="handleNext" class="flex items-center justify-center flex-1 gap-2 py-4 font-bold text-white transition-all rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-math-blue focus-visible:outline-none">
-                <span>{{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Afronden' }}</span>
-                <PhArrowRight weight="bold" />
-              </button>
+            <div v-if="showWhy" class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 animate-fadeIn">
+              <h4 class="font-bold text-indigo-800 text-sm mb-2">Waarom werkt dit?</h4>
+              <p v-for="(l, i) in whyText" :key="i" class="text-xs text-indigo-700 mb-1">{{ l }}</p>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
-          <div class="flex flex-col flex-1 p-6 overflow-y-auto items-center justify-center relative pattern-grid">
+        <div class="p-4 bg-slate-50 border-t border-slate-200 shrink-0">
+          <div v-if="feedback.text" class="flex items-start gap-3 p-3 mb-3 text-sm rounded-lg animate-fadeIn"
+            :class="{'bg-emerald-100': feedback.type === 'success', 'bg-red-100': feedback.type === 'error', 'bg-blue-100': feedback.type === 'info'}">
+            <component :is="feedback.type === 'success' ? PhCheckCircle : PhWarningCircle" class="w-5 h-5 shrink-0 mt-0.5" weight="fill" />
+            <span>{{ feedback.text }}</span>
+          </div>
 
-              <!-- The Bar Model -->
-              <div class="w-full max-w-4xl relative">
+          <div v-if="!predictionMade">
+            <button @click="emit('close')" class="w-full py-3 font-bold text-slate-500 bg-white border border-slate-200 rounded-lg">Sluiten</button>
+          </div>
+          <div v-else-if="!showReflection && !showLPD" class="flex items-center gap-3">
+            <button @click="resetActivityState" class="p-3 text-slate-500 bg-white border border-slate-200 rounded-lg shrink-0"><PhArrowClockwise /></button>
+            <button @click="cycleHint" class="p-3 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg shrink-0"><PhLightbulb weight="fill" /></button>
+            <div v-if="showHints" class="bg-amber-100 p-2 rounded-lg text-xs text-amber-800 animate-fadeIn flex-1">{{ hintTexts[hintLevel] }}</div>
+            <button v-if="!isCorrect" @click="checkAnswer" :disabled="ansBlock === null || ansTotal === null"
+              class="flex-1 py-3 font-bold text-white rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50">Controleer</button>
+            <button v-else @click="handleNext" class="flex-1 py-3 font-bold text-white rounded-lg bg-emerald-600 hover:bg-emerald-500">Reflecteer <PhArrowRight weight="bold" class="inline" /></button>
+          </div>
 
-                  <!-- Total Label -->
-                  <div class="absolute -top-10 left-0 w-full flex flex-col items-center">
-                      <div class="w-full h-4 border-t-2 border-x-2 border-slate-400 rounded-t-lg mb-1 relative">
-                          <span class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-50 px-2 font-black text-xl text-slate-700 whitespace-nowrap">
-                              100% = Originele Prijs (?)
-                          </span>
-                      </div>
-                  </div>
+          <div v-if="showReflection" class="space-y-3">
+            <h4 class="font-bold text-indigo-800 text-sm">Reflectie</h4>
+            <div v-for="(q, i) in reflectionQuestions" :key="i" class="space-y-1">
+              <label class="text-xs font-medium text-slate-700">{{ q }}</label>
+              <textarea v-model="reflectionAnswers[i]" rows="2" class="w-full text-sm p-2 border border-indigo-200 rounded-lg bg-white resize-none" placeholder="Min 10 tekens..."></textarea>
+            </div>
+            <button @click="submitReflection" :disabled="!allReflectionsDone" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">
+              {{ currentInternalLevel < totalInternalLevels - 1 ? 'Volgend Level' : 'Naar Bewijs van LPD' }}
+            </button>
+          </div>
 
-                  <!-- The Bar Blocks -->
-                  <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-md bg-white relative overflow-hidden">
+          <div v-if="showLPD && !lpdDone" class="space-y-3">
+            <h4 class="font-bold text-amber-800 text-sm flex items-center gap-2"><PhCheckCircle weight="bold" class="w-4 h-4 text-amber-600" /> Bewijs van LPD 13</h4>
+            <p class="text-xs text-amber-700">LPD 13: Rekenen met procenten — terugrekenen naar 100%.</p>
+            <textarea v-model="lpdAnswer" rows="3" class="w-full text-sm p-2 border border-amber-200 rounded-lg bg-white resize-none" placeholder="Schrijf een zin die bewijst dat je dit leerplandoel bereikt hebt..."></textarea>
+            <button @click="submitLPD" :disabled="lpdAnswer.length < 20" class="w-full py-2 bg-amber-600 text-white font-bold rounded-lg disabled:opacity-50 text-sm">Bevestig LPD 13</button>
+          </div>
+        </div>
+      </div>
 
-                      <!-- Remaining Blocks (e.g. 3 blocks = 75%) -->
-                      <div v-for="i in currentLevelData.blocksRemaining" :key="'b'+i" class="border-r-2 border-slate-700 bg-blue-500 relative flex items-center justify-center"
-                           :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">
-                          <span class="font-bold text-white/80 text-lg">{{ 100 / currentLevelData.blocksTotal }}%</span>
-                          <span v-if="ansBlock" class="absolute bottom-2 font-black text-white bg-slate-800/30 px-2 rounded-full animate-fadeIn">€{{ ansBlock }}</span>
-                      </div>
-
-                      <!-- Discount Blocks (e.g. 1 block = 25%) -->
-                      <div v-for="i in (currentLevelData.blocksTotal - currentLevelData.blocksRemaining)" :key="'d'+i" class="border-r-2 border-slate-700 bg-red-100 relative flex items-center justify-center pattern-diagonal"
-                           :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">
-                          <span class="font-bold text-red-500 text-lg bg-white/80 px-2 rounded-lg">{{ 100 / currentLevelData.blocksTotal }}% (Korting)</span>
-                          <span v-if="ansBlock" class="absolute bottom-2 font-black text-red-500 bg-white/80 px-2 rounded-full animate-fadeIn">€{{ ansBlock }}</span>
-                      </div>
-
-                  </div>
-
-                  <!-- Price helper labels below -->
-                  <div class="absolute -bottom-16 left-0 flex flex-col items-center" :style="{ width: `${(currentLevelData.blocksRemaining / currentLevelData.blocksTotal) * 100}%` }">
-                      <div class="w-full h-4 border-b-4 border-x-4 border-math-blue rounded-b-xl mt-1 relative">
-                          <span class="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-slate-50 px-4 py-1 rounded-full font-black text-2xl text-math-blue shadow-sm border border-surface-200 whitespace-nowrap">
-                              Nieuw = €{{ currentLevelData.newPrice }}
-                          </span>
-                      </div>
-                  </div>
-
+      <div class="flex flex-col flex-1 overflow-hidden bg-slate-50">
+        <div class="flex flex-1 p-6 items-center justify-center relative pattern-grid">
+          <div class="w-full max-w-4xl relative" v-if="currentLevelData">
+            <div class="flex h-24 border-4 border-slate-700 rounded-xl shadow-md bg-white relative overflow-hidden">
+              <div v-for="i in currentLevelData.blocksRemaining" :key="'b'+i" class="border-r-2 border-slate-700 bg-amber-400 relative flex items-center justify-center"
+                :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">
+                <span class="font-bold text-white/80 text-sm">{{ currentLevelData.blockPct }}%</span>
               </div>
-
+              <div v-for="i in (currentLevelData.blocksTotal - currentLevelData.blocksRemaining)" :key="'d'+i" class="border-r-2 border-slate-700 bg-red-100 relative flex items-center justify-center"
+                :style="{ width: `${100 / currentLevelData.blocksTotal}%` }">
+                <span class="font-bold text-red-500 text-sm bg-white/80 px-2 rounded-lg">{{ currentLevelData.blockPct }}% (Korting)</span>
+              </div>
+            </div>
+            <div class="mt-6 text-center">
+              <span class="bg-amber-100 px-6 py-3 rounded-full font-black text-xl text-amber-700 shadow-sm border border-amber-200">
+                Nieuw = €{{ currentLevelData.newPrice }}
+              </span>
+            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
-<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="typeof currentInternalLevel !== 'undefined' ? currentInternalLevel === totalInternalLevels - 1 : true" />
+</div>
+<SuccessCelebration :show="isCorrect && !celebrationDone" @done="celebrationDone = true" :is-level-complete="currentInternalLevel === totalInternalLevels - 1" />
 </template>
 
 <style scoped>
-:root { font-family: 'Inter', sans-serif; }
 .pattern-grid { background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px); background-size: 2rem 2rem; }
-.pattern-diagonal { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.2) 10px, rgba(239, 68, 68, 0.2) 20px); }
-.animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 </style>

@@ -89,9 +89,28 @@ function checkAnswer() {
     feedback.value = { type: 'success', text: `Perfect! Oplossing: ${lvl.solution}` }
   } else {
     if (!rootsOk) {
-      feedback.value = { type: 'error', text: `Nulwaarden kloppen niet. Los ${lvl.a}x²${lvl.b >= 0 ? '+' : ''}${lvl.b}x${lvl.c >= 0 ? '+' : ''}${lvl.c} = 0 op via discriminant.` }
+      // Error analysis: detect common quadratic root mistakes
+      const expectedSum = -lvl.b / lvl.a
+      const expectedProduct = lvl.c / lvl.a
+      if (userRoot1.value === 0 || userRoot2.value === 0) {
+        feedback.value = { type: 'error', text: `Let op! x = 0 is geen nulwaarde tenzij de constante term (c) nul is, maar c = ${lvl.c}. Los op via discriminant: D = ${lvl.b}² − 4·${lvl.a}·${lvl.c} = ${lvl.b*lvl.b - 4*lvl.a*lvl.c}.` }
+      } else if (userRoot1.value === lvl.c / lvl.a || userRoot2.value === lvl.c / lvl.a) {
+        feedback.value = { type: 'error', text: `Let op! Je hebt c/a = ${lvl.c / lvl.a} gebruikt als nulwaarde. Onthoud: c is het PRODUCT van de nulwaarden (x₁·x₂ = c/a), niet een nulwaarde zelf. Los ${lvl.a}x²${lvl.b >= 0 ? '+' : ''}${lvl.b}x${lvl.c >= 0 ? '+' : ''}${lvl.c} = 0 op.` }
+      } else if (userRoot1.value + userRoot2.value === Math.round(expectedSum)) {
+        feedback.value = { type: 'error', text: `Let op! De som van je nulwaarden is correct (-b/a = ${expectedSum}), maar het product (x₁·x₂ = ${(userRoot1.value * userRoot2.value).toFixed(1)}) klopt niet. Het moet ${expectedProduct} zijn (c/a).` }
+      } else {
+        feedback.value = { type: 'error', text: `Let op! Nulwaarden kloppen niet. Los ${lvl.a}x²${lvl.b >= 0 ? '+' : ''}${lvl.b}x${lvl.c >= 0 ? '+' : ''}${lvl.c} = 0 op via discriminant of ontbinding in factoren. D = b² − 4ac = ${lvl.b*lvl.b - 4*lvl.a*lvl.c}.` }
+      }
     } else {
-      feedback.value = { type: 'error', text: 'Tekens kloppen niet. Denk aan de grafiek: a>0 = dalparabool (begin +, einde +). a<0 = bergparabool (begin -, einde -).' }
+      // Signs wrong - provide specific error analysis
+      const aPos = lvl.a > 0
+      if (userSignLeft.value === userSignRight.value && userSignLeft.value !== '') {
+        feedback.value = { type: 'error', text: `Let op! De tekens aan de uiteinden kunnen niet hetzelfde zijn. De kwadratische functie ${aPos ? 'stijgt naar +∞ aan beide kanten (a>0)' : 'daalt naar -∞ aan beide kanten (a<0)'}. Bij een dalparabool (a>0) is het teken + buiten de nulwaarden en − ertussen. Bij een bergparabool (a<0) is het omgekeerd.` }
+      } else if (userSignMiddle.value === '') {
+        feedback.value = { type: 'error', text: 'Let op! Tussen de twee nulwaarden heeft de parabool een teken. Bij een dalparabool is dat negatief (−), bij een bergparabool positief (+). Vul het middendeel in.' }
+      } else {
+        feedback.value = { type: 'error', text: `Let op! Tekens kloppen niet. Denk aan de grafiek: ${aPos ? 'a=' + lvl.a + '>0 = dalparabool (begin +, midden −, einde +)' : 'a=' + lvl.a + '<0 = bergparabool (begin −, midden +, einde −)'}.` }
+      }
     }
   }
 }

@@ -206,19 +206,26 @@ function getErrorAnalysis(chosen) {
     const ratio1 = sc.a1 !== 0 && sc.a2 !== 0 ? sc.a2 / sc.a1 : null
     const ratio2 = sc.b1 !== 0 && sc.b2 !== 0 ? sc.b2 / sc.b1 : null
     if (ratio1 !== null && ratio2 !== null && Math.abs(ratio1 - ratio2) < 0.01) {
-      return 'Let op: de coëfficiënten zijn evenredig, dus de rechten hebben dezelfde richting. Ze zijn niet snijdend, maar evenwijdig of samenvallend. Controleer of ook de constante term evenredig is.'
+      return 'Let op! De coëfficiënten zijn evenredig, dus de rechten hebben dezelfde richting. Ze zijn niet snijdend, maar evenwijdig of samenvallend. Controleer of ook de constante term evenredig is. Normaalvector (a,b) is gelijk aan, dus de richting is gelijk.'
     }
   }
   // Confusing evenwijdig vs samenvallend
   if (chosen === 'evenwijdig' && sc.correct === 'samenvallend') {
-    return 'Deze rechten zijn niet alleen evenwijdig, ze vallen ook samen! De constanten zijn ook evenredig. Als (a1, b1, c1) een veelvoud is van (a2, b2, c2), vallen ze samen.'
+    return 'Let op! Deze rechten zijn niet alleen evenwijdig, ze vallen ook samen! De constanten zijn ook evenredig. Als (a1, b1, c1) een veelvoud is van (a2, b2, c2), vallen ze samen. "Evenwijdig" betekent parallel maar apart; "samenvallend" betekent dat het exact dezelfde rechte is.'
   }
   if (chosen === 'samenvallend' && sc.correct === 'evenwijdig') {
-    return 'Deze rechten hebben dezelfde richting (evenredige a en b), maar de constante c is niet evenredig. Ze zijn dus evenwijdig maar niet samenvallend.'
+    return 'Let op! Deze rechten hebben dezelfde richting (evenredige a en b), maar de constante c is niet evenredig. Ze zijn dus evenwijdig maar niet samenvallend. Bij samenvallend moet ALLES evenredig zijn: (a1, b1, c1) = k·(a2, b2, c2). Hier is c1/c2 niet gelijk aan a1/a2.'
   }
   // Snijdend confused
   if (chosen !== 'snijdend' && sc.correct === 'snijdend') {
-    return 'Deze rechten hebben verschillende richtingen (a en b zijn niet evenredig), dus ze snijden elkaar. Ze zijn niet evenwijdig.'
+    return 'Let op! Deze rechten hebben verschillende richtingen (a en b zijn niet evenredig), dus ze snijden elkaar. Ze zijn niet evenwijdig. Controleer de normaalvectoren (a,b): als de verhouding a1:a2 niet gelijk is aan b1:b2, dan snijden ze.'
+  }
+  // Confusing snijdend with loodrecht (special case of snijdend)
+  if (chosen === 'evenwijdig' && sc.correct === 'snijdend') {
+    const dot = sc.a1 * sc.a2 + sc.b1 * sc.b2
+    if (dot === 0) {
+      return 'Let op! Deze rechten staan loodrecht op elkaar (a1·a2 + b1·b2 = 0). Loodrecht is een speciaal geval van snijdend, niet van evenwijdig. Ze snijden elkaar onder een rechte hoek.'
+    }
   }
   return ''
 }

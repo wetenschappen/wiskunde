@@ -308,6 +308,37 @@ function skipWorkedExample() {
 
 function checkPrediction() {
   const d = currentLevelData.value
+  // --- Error detection ---
+  // Confusing strijdig (parallel) vs onbepaald (same line)
+  if (predictedType.value === 'strijdig' && d.type === 'onbepaald') {
+    attemptCount.value++
+    feedback.value = {
+      type: 'error',
+      text: 'Let op! Je verwart "strijdig" (evenwijdig, geen oplossing) met "onbepaald" (samenvallend, oneindig veel oplossingen). Bij evenwijdige lijnen hebben de vergelijkingen een verschillende constante term. Bij samenvallende lijnen is de tweede vergelijking een veelvoud van de eerste.'
+    }
+    return
+  }
+  if (predictedType.value === 'onbepaald' && d.type === 'strijdig') {
+    attemptCount.value++
+    feedback.value = {
+      type: 'error',
+      text: 'Let op! Je verwart "onbepaald" (samenvallend, oneindig veel oplossingen) met "strijdig" (evenwijdig, geen oplossing). Bij samenvallend is de tweede vergelijking een veelvoud van de eerste. Hier zijn de constanten niet evenredig, dus strijdig.'
+    }
+    return
+  }
+  // Confusing strijdig with bepaald — thinking parallel lines still intersect
+  if (predictedType.value === 'bepaald' && (d.type === 'strijdig' || d.type === 'onbepaald')) {
+    const rico1 = d.f_str.match(/(-?\d*\.?\d*)x/)
+    const rico2 = d.g_str.match(/(-?\d*\.?\d*)x/)
+    if (rico1 && rico2 && rico1[1] === rico2[1]) {
+      attemptCount.value++
+      feedback.value = {
+        type: 'error',
+        text: `Let op! Beide lijnen hebben dezelfde richtingscoëfficiënt (${rico1[1]}). Ze zijn dus evenwijdig of samenvallend — ze hebben geen uniek snijpunt. Een stelsel met dezelfde rico kan nooit "bepaald" (1 oplossing) zijn.`
+      }
+      return
+    }
+  }
   const correct = (d.type === 'bepaald' && predictedType.value === 'bepaald') ||
                   (d.type === 'strijdig' && predictedType.value === 'strijdig') ||
                   (d.type === 'onbepaald' && predictedType.value === 'onbepaald')

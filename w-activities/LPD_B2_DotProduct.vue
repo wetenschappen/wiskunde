@@ -160,15 +160,36 @@ function getErrorAnalysis(userProduct) {
   const data = currentLevelData.value
   const expected = 0
 
-  // Check common error: wrong formula (e.g. x1·y1 + x2·y2)
-  const wrongFormula1 = data.vecA.x * data.vecA.y + data.vecB_x * data.vecB_y.value
-  if (userProduct === wrongFormula1) {
-    return 'Je hebt x1·y1 + x2·y2 gebruikt. Denk aan de juiste formule: het inproduct is x1·x2 + y1·y2. Je moet de x-coördinaten met elkaar combineren en de y-coördinaten met elkaar.'
+  // Common error: thinking dot product = 0 means "vectors are zero" instead of "perpendicular"
+  if (userProduct !== 0 && data.vecA.y !== 0 && data.vecB_x !== 0) {
+    const ax = data.vecA.x, ay = data.vecA.y, bx = data.vecB_x
+    const by = data.vecB_y.value
+    // Check if x1·y1 + x2·y2 was used (wrong formula)
+    const wrongFormula1 = ax * ay + bx * by
+    if (userProduct === wrongFormula1) {
+      return 'Let op! Je hebt x1·y1 + x2·y2 gebruikt. Het inproduct is x1·x2 + y1·y2: je moet x met x combineren en y met y, niet x met y.'
+    }
+    // Check if they did x1·x2 - y1·y2 (thinking difference instead of sum)
+    const wrongFormula2 = ax * bx - ay * by
+    if (userProduct === wrongFormula2) {
+      return 'Let op! Het inproduct is een SOM, geen verschil. Formule: a·b = (x1·x2) + (y1·y2). Jij hebt (x1·x2) - (y1·y2) berekend.'
+    }
   }
 
   // Check sign errors
   if (userProduct === -(data.vecA.x * data.vecB_x + data.vecA.y * data.vecB_y.value)) {
-    return 'Je hebt het juiste getal maar met het verkeerde teken. Controleer of je de tekens van beide coördinaten correct hebt meegenomen.'
+    return 'Let op! Je hebt het juiste getal maar met het verkeerde teken. Controleer of je de tekens van beide coördinaten correct hebt meegenomen.'
+  }
+
+  // Common error: vector magnitude (norm) instead of dot product
+  const norm = Math.sqrt(data.vecA.x ** 2 + data.vecA.y ** 2) * Math.sqrt(data.vecB_x ** 2 + data.vecB_y.value ** 2)
+  if (Math.abs(Math.abs(userProduct) - Math.round(norm)) < 1) {
+    return 'Let op! Je hebt niet het inproduct berekend, maar het product van de lengtes (normen) van de vectoren. Het inproduct gebruikt de coördinaten: a·b = x1·x2 + y1·y2.'
+  }
+
+  if (userProduct !== 0) {
+    // Suggest what the dot product result means
+    return `Let op! Het inproduct is ${userProduct} maar moet 0 zijn voor loodrechte vectoren. Denk eraan: als a·b = 0 staan de vectoren loodrecht (orthogonaal), niet "zijn ze nul". Het inproduct 0 betekent dat de vectoren geen component in elkaars richting hebben.`
   }
 
   return ''
