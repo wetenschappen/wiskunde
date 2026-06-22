@@ -45,6 +45,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 const hintLevels = [
   'De lijn in de box is de mediaan. De boxranden zijn Q1 en Q3. De uiteinden zijn min en max. Sorteer de data eerst.',

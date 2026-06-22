@@ -26,6 +26,7 @@ const predictedAnswer = ref('')
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 function generateLevel() {
   const pairs = [

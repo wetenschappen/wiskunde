@@ -37,6 +37,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 const hintLevels = [
   'Vergelijk elke dag met de vorige. Is de trend overal hetzelfde? Zoek naar een uitzondering.',

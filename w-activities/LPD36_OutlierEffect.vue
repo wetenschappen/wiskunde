@@ -36,6 +36,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 // Hint Level 1 — Observe effect
 const hintLevels1 = [

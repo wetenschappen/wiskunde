@@ -29,6 +29,7 @@ const predictedFirstStep = ref('')
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 const levels = ref([])
 const leftExpr = ref({ x: 0, c: 0 })
 const rightExpr = ref({ x: 0, c: 0 })

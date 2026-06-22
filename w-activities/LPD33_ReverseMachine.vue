@@ -25,6 +25,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
 

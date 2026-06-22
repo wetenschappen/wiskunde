@@ -39,6 +39,7 @@ const showWorkedExample = ref(true)
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 const colorPairs = [
   { color: 'bg-amber-500', dotColor: 'bg-amber-600', label: 'ORANJE' },

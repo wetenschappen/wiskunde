@@ -40,6 +40,7 @@ const sliderUnlocked = ref(false)
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 // Worked example info
 const showWorkedExample = ref(true)

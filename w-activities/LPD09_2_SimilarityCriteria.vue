@@ -53,6 +53,7 @@ const droppedStamp = ref(null)
 // Levels
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 // --- Level generation ---
 function randInt(min, max) {

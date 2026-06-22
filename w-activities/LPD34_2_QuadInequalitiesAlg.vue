@@ -24,6 +24,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 const levels = ref([])
 
 function generateLevels() {

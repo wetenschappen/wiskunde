@@ -28,6 +28,7 @@ const showWorkedExample = ref(true)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 const levels = ref([])
 
 // === Level generation (algebra-driven: student picks each step) ===

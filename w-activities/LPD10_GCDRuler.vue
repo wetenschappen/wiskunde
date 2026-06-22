@@ -35,6 +35,7 @@ const hintCount = ref(0)
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 const levels = ref([])
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }

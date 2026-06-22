@@ -31,6 +31,7 @@ const feedback = ref({ type: 'info', text: 'Klik op "Vouw Open" om het bewijs te
 // Level Logic
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
+const levelLabels = ['Toepassen', 'Analyseren', 'Evalueren']
 
 const attemptCount = ref(0)
 const levels = ref([])
