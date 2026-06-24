@@ -29,6 +29,9 @@ const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Sleep een antwoordblokje naar de vergelijking.' })
 const attemptCount = ref(0)
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
 
 // Phases: 'predict' → 'answer' → 'why' (why explanation)
 const phase = ref('predict')
@@ -169,6 +172,9 @@ function removeDrop() {
 function resetActivityState() {
     levels.value = generateLevel();
     isCorrect.value = false;
+    showWhy.value = false
+    whyText.value = ""
+    errorDetected.value = ""
     celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Sleep een antwoordblokje naar de vergelijking.' };

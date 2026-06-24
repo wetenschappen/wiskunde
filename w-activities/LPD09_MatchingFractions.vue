@@ -29,6 +29,9 @@ const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op de pijltjes boven en onder de kolommen om ze te draaien.' })
 const attemptCount = ref(0)
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
 
 // Phases: 'predict' → 'match'
 const phase = ref('predict')
@@ -133,6 +136,9 @@ function submitPrediction() {
 
 function resetActivityState() {
     isCorrect.value = false;
+    showWhy.value = false
+    whyText.value = ""
+    errorDetected.value = ""
     celebrationDone.value = false
     isChecked.value = false;
     feedback.value = { type: 'info', text: 'Klik op de pijltjes boven en onder de kolommen om ze te draaien.' };

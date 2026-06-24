@@ -27,6 +27,10 @@ const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionChecked = ref(false)
@@ -189,6 +193,9 @@ function addOutlier() {
 function resetActivityState() {
   levels.value = generateLevel()
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   feedback.value = { type: 'info', text: '' }
   hasOutlier.value = false

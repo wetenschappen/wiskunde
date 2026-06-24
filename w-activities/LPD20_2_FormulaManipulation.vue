@@ -18,6 +18,10 @@ const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const showWorkedExample = ref(true)
@@ -100,6 +104,9 @@ const currentLevelData = computed(() => levels.value[currentInternalLevel.value]
 function resetActivityState() {
   levels.value = generateLevel()
   isCorrect.value = false; celebrationDone.value = false; showReflection.value = false; reflectionAnswer.value = ''
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   attemptCount.value = 0
   showWorkedExample.value = currentInternalLevel.value === 0
   showPrediction.value = currentInternalLevel.value !== 0

@@ -24,6 +24,10 @@ const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const showWorkedExample = ref(true)
@@ -264,6 +268,9 @@ function resetActivityState() {
     levels.value = [0, 1, 2].map(i => generateLevel(i))
   }
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   showReflection.value = false
   reflectionAnswer.value = ''

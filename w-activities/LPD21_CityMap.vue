@@ -30,6 +30,9 @@ const attemptCount = ref(0)
 const hintCount = ref(0)
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 
 // Prediction gate state
 const predictionPhase = ref(false)
@@ -185,6 +188,7 @@ function submitPrediction() {
   if (predictionChoice.value === rel.correctSym) {
     predictionPhase.value = false
     // Set the symbol
+    errorDetected.value = ''
     currentLevelData.value.relations[predictionRelation.value].userSym = rel.correctSym
     feedback.value = {
       type: 'success',
@@ -195,9 +199,16 @@ function submitPrediction() {
   } else {
     attemptCount.value++
     let specific = ''
-    if (predictionChoice.value === '∥') specific = rel.errPar || 'Evenwijdig is niet juist. Ze hebben een verschillende richting.'
-    else if (predictionChoice.value === '⊥') specific = rel.errPerp || rel.errNotPerp || 'Loodrecht is niet juist.'
-    else specific = rel.errNotCross || 'Snijdend-niet-loodrecht is niet juist.'
+    if (predictionChoice.value === '∥') {
+      specific = rel.errPar || 'Evenwijdig is niet juist. Ze hebben een verschillende richting.'
+      errorDetected.value = 'Twee straten zijn alleen evenwijdig als ze dezelfde richting hebben. Kijk naar de richting van beide straten op de kaart — hebben ze dezelfde oriëntatie?'
+    } else if (predictionChoice.value === '⊥') {
+      specific = rel.errPerp || rel.errNotPerp || 'Loodrecht is niet juist.'
+      errorDetected.value = 'Loodrecht betekent dat de straten elkaar onder een rechte hoek (90°) snijden. Maakt jouw paar een rechte hoek?'
+    } else {
+      specific = rel.errNotCross || 'Snijdend-niet-loodrecht is niet juist.'
+      errorDetected.value = '∦ gebruik je als straten elkaar snijden maar geen rechte hoek vormen. Kijk of dit van toepassing is.'
+    }
     feedback.value = { type: 'error', text: specific + ' ' + getHint(rel) }
   }
 }
@@ -242,6 +253,9 @@ function resetActivityState() {
   predictionChoice.value = ''
   predictionRelation.value = null
   showWorkedExample.value = true
+  showWhy.value = false
+  whyText.value = ''
+  errorDetected.value = ''
   showReflection.value = false
   reflectionAnswer.value = ''
 }
@@ -385,6 +399,24 @@ const workedExample = {
                  <span class="px-2 py-1 bg-amber-100 rounded">⊥ = loodrecht</span>
                  <span class="px-2 py-1 bg-slate-100 rounded">∦ = snijdend (niet 90°)</span>
                </div>
+            </div>
+
+            <!-- Error Analysis -->
+            <div v-if="errorDetected && !isCorrect" class="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+                <PhWarningCircle weight="fill" class="w-4 h-4" />
+                Let op!
+              </h4>
+              <p class="text-sm text-red-700">{{ errorDetected }}</p>
+            </div>
+
+            <!-- Why Explanation -->
+            <div v-if="showWhy && isCorrect" class="mt-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 animate-fadeIn">
+              <p class="font-bold text-indigo-800 text-sm mb-1">
+                <PhLightbulb weight="fill" class="w-4 h-4 inline" />
+                Waarom werkt dit?
+              </p>
+              <p class="text-xs text-indigo-700 leading-relaxed">{{ whyText }}</p>
             </div>
           </div>
 

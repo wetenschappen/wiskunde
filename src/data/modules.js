@@ -11,6 +11,15 @@ export const modules = [
     color: 'text-brand-blue-500',
     bg: 'bg-blue-50'
   },
+  {
+    id: 'lpd-functies-intro',
+    title: 'Introductie: Het Functiebegrip',
+    year: 1,
+    grade: '1ste Jaar Wiskunde',
+    icon: PhGraph,
+    color: 'text-brand-blue-500',
+    bg: 'bg-blue-50'
+  },
   
   // Nando 3 (Year 3)
   {

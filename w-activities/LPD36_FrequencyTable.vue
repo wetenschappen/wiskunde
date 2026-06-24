@@ -24,6 +24,10 @@ const celebrationDone = ref(false)
 const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionChecked = ref(false)
@@ -144,6 +148,9 @@ const userMedian = ref('')
 function resetActivityState() {
   levels.value = [generateLevel(0), generateLevel(1), generateLevel(2)]
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   feedback.value = { type: 'info', text: 'Tel de data en vul de tabel in.' }
   attemptCount.value = 0

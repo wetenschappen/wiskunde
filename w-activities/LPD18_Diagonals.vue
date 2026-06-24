@@ -23,6 +23,9 @@ const reflectionAnswer = ref('')
 const showWorkedExample = ref(true)
 const showPrediction = ref(true)
 const predictedAnswer = ref('')
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 
 const currentInternalLevel = ref(0)
 const totalInternalLevels = 3
@@ -93,8 +96,10 @@ function checkPrediction() {
   const correct = lvl.targetShape
   if (predictedAnswer.value === correct) {
     showPrediction.value = false
+    errorDetected.value = ''
     feedback.value = { type: 'success', text: `Juist! Stel nu de schakelaars in.` }
   } else {
+    errorDetected.value = 'Je voorspelling klopt niet. Denk na over de diagonaal-eigenschappen van deze vorm: welke combinatie van loodrecht, middendoor en even lang hoort erbij?'
     feedback.value = { type: 'error', text: `Niet correct. Denk aan de drie eigenschappen: loodrecht, middendoor, even lang.` }
   }
 }
@@ -104,9 +109,25 @@ watch([isPerp, isBisect, isEqual], () => {
   const lvl = currentLevelData.value
   if (isPerp.value === lvl.rules.perp && isBisect.value === lvl.rules.bisect && isEqual.value === lvl.rules.equal) {
     isCorrect.value = true
+    errorDetected.value = ''
+    showWhy.value = true
+    whyText.value = 'Elke combinatie van diagonaal-eigenschappen definieert een specifieke vierhoek. Een vierkant heeft ze alle drie. Een rechthoek heeft "even lang" + "middendoor". Een ruit heeft "loodrecht" + "middendoor". Een parallellogram heeft enkel "middendoor". Door de eigenschappen te combineren, bouw je de exacte vierhoek.'
     showReflection.value = true
     reflectionAnswer.value = ''
     feedback.value = { type: 'success', text: `Correct! Dit is een ${lvl.targetShape}.` }
+  } else {
+    // Error analysis: detect wrong switch combinations
+    const correctCombine = `${lvl.rules.perp ? '⊥' : 'niet ⊥'} + ${lvl.rules.bisect ? 'middendoor' : 'niet middendoor'} + ${lvl.rules.equal ? 'even lang' : 'niet even lang'}`
+    const currentCombine = `${isPerp.value ? '⊥' : 'niet ⊥'} + ${isBisect.value ? 'middendoor' : 'niet middendoor'} + ${isEqual.value ? 'even lang' : 'niet even lang'}`
+    if (isPerp.value === lvl.rules.perp && isBisect.value !== lvl.rules.bisect) {
+      errorDetected.value = `De schakelaar "middendoor delen" staat verkeerd. Voor ${lvl.targetShape} moeten de diagonalen elkaar ${lvl.rules.bisect ? 'WEL' : 'NIET'} middendoor delen.`
+    } else if (isPerp.value !== lvl.rules.perp && isBisect.value === lvl.rules.bisect && isEqual.value === lvl.rules.equal) {
+      errorDetected.value = `Enkel de "loodrecht"-schakelaar staat verkeerd. Voor ${lvl.targetShape} staan de diagonalen ${lvl.rules.perp ? 'WEL' : 'NIET'} loodrecht.`
+    } else if (isEqual.value !== lvl.rules.equal && isPerp.value === lvl.rules.perp && isBisect.value === lvl.rules.bisect) {
+      errorDetected.value = `Enkel de "even lang"-schakelaar staat verkeerd. Voor ${lvl.targetShape} zijn de diagonalen ${lvl.rules.equal ? 'WEL' : 'NIET'} even lang.`
+    } else {
+      errorDetected.value = `De combinatie ${currentCombine} hoort bij een andere vierhoek. Voor ${lvl.targetShape} is de juiste combinatie: ${correctCombine}.`
+    }
   }
 })
 
@@ -208,9 +229,22 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown) })
             <p class="text-xs text-slate-400">Tip: <span class="font-bold text-amber-600">{{ currentLevelData.hint }}</span></p>
           </div>
 
-          <div v-if="isCorrect && !showReflection" class="mt-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 animate-fadeIn">
-            <p class="font-bold text-indigo-800 text-sm mb-1">Waarom bepalen diagonalen de vierhoek?</p>
-            <p class="text-xs text-indigo-700 leading-relaxed">Elke combinatie van diagonaal-eigenschappen definieert een specifieke vierhoek. Een vierkant heeft ze alle drie. Een rechthoek heeft "even lang" + "middendoor". Een ruit heeft "loodrecht" + "middendoor". Een parallellogram heeft enkel "middendoor". Geen van deze = een andere vierhoek.</p>
+          <!-- Error Analysis -->
+          <div v-if="errorDetected && !isCorrect" class="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+            <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+              <PhWarningCircle weight="fill" class="w-4 h-4" />
+              Let op!
+            </h4>
+            <p class="text-sm text-red-700">{{ errorDetected }}</p>
+          </div>
+
+          <!-- Why Explanation -->
+          <div v-if="showWhy && isCorrect" class="mt-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 animate-fadeIn">
+            <p class="font-bold text-indigo-800 text-sm mb-1">
+              <PhLightbulb weight="fill" class="w-4 h-4 inline" />
+              Waarom bepaalt dit de vierhoek?
+            </p>
+            <p class="text-xs text-indigo-700 leading-relaxed">{{ whyText }}</p>
           </div>
 
           <div v-if="showReflection" class="mt-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 animate-fadeIn">

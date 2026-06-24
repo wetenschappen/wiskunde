@@ -277,6 +277,9 @@ function submitReflection() {
 
 function resetActivityState() {
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   isChecked.value = false
   attemptCount.value = 0

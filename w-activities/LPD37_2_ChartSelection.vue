@@ -6,7 +6,8 @@ import {
   PhWarningCircle,
   PhArrowRight,
   PhChartBar,
-  PhArrowClockwise
+  PhArrowClockwise,
+  PhLightbulb
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
@@ -41,6 +42,9 @@ const hintCount = ref(0)
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionChecked = ref(false)
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 const showPrediction = ref(true)
 const predictedType = ref('')
 const showData = ref(false)
@@ -169,6 +173,9 @@ function selectAnswer(answer) {
 
   if (answer === currentLevel.value.correctAnswer) {
     isCorrect.value = true
+    errorDetected.value = ''
+    showWhy.value = true
+    whyText.value = currentLevel.value.whyExplanation
     const matched = attemptCount.value === 1 ? 'direct' : 'na enkele pogingen'
     feedback.value = {
       type: 'success',
@@ -178,10 +185,13 @@ function selectAnswer(answer) {
   } else {
     const errorFeedback = currentLevel.value.errorAnalysis[answer]
     if (errorFeedback) {
+      errorDetected.value = errorFeedback
       feedback.value = { type: 'error', text: errorFeedback }
     } else if (attemptCount.value < 3) {
+      errorDetected.value = 'Denk na: is de data categorisch, continu, discreet, of gaat het over tijd of een verband?'
       feedback.value = { type: 'error', text: 'Dat is niet het beste diagram voor deze data. Denk aan wat voor soort variabele je hebt (categorisch, continu, discreet, tijd, verband).' }
     } else {
+      errorDetected.value = `Het juiste diagram is ${currentLevel.value.correctAnswer}. Kijk naar het datatype.`
       feedback.value = { type: 'error', text: `Het juiste diagram is: ${currentLevel.value.correctAnswer}. Bekijk de uitleg waarom.` }
     }
     hintCount.value++
@@ -216,6 +226,9 @@ function handleNext() {
     showPrediction.value = true
     predictedType.value = ''
     showData.value = false
+    showWhy.value = false
+    whyText.value = ''
+    errorDetected.value = ''
     showWorkedExample.value = currentInternalLevel.value > 0
     nextTick(() => mainArea.value?.focus())
   } else {
@@ -248,6 +261,9 @@ function resetLevel() {
   showPrediction.value = true
   predictedType.value = ''
   showData.value = false
+  showWhy.value = false
+  whyText.value = ''
+  errorDetected.value = ''
   nextTick(() => mainArea.value?.focus())
 }
 
@@ -359,10 +375,19 @@ onUnmounted(() => {
               </div>
             </div>
 
+            <!-- Error Analysis -->
+            <div v-if="errorDetected && !isCorrect" class="p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+                <PhWarningCircle weight="fill" class="w-4 h-4" />
+                Let op!
+              </h4>
+              <p class="text-sm text-red-700">{{ errorDetected }}</p>
+            </div>
+
             <!-- Why Explanation -->
-            <div v-if="isCorrect" class="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fadeIn">
-              <p class="font-bold text-amber-800 text-sm mb-1">Waarom is dit juist?</p>
-              <p class="text-sm text-amber-700">{{ currentLevel.whyExplanation }}</p>
+            <div v-if="showWhy && isCorrect" class="p-4 bg-indigo-50 border border-indigo-200 rounded-xl animate-fadeIn">
+              <p class="font-bold text-indigo-800 text-sm mb-1">Waarom werkt dit?</p>
+              <p class="text-sm text-indigo-700">{{ whyText }}</p>
             </div>
 
             <!-- Reflection -->

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import {
-  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhEquals, PhArrowClockwise
+  PhX, PhCheckCircle, PhWarningCircle, PhArrowRight, PhEquals, PhArrowClockwise, PhLightbulb
 } from '@phosphor-icons/vue'
 import MathText from './MathText.vue'
 import SuccessCelebration from './SuccessCelebration.vue'
@@ -28,6 +28,9 @@ const isCorrect = ref(false)
 const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Klik op een van de gelijkheidstekens (=) in het notitieblok.' })
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 
 // Level Logic
 const currentInternalLevel = ref(0)
@@ -152,6 +155,9 @@ function resetActivityState() {
     attemptCount.value = 0;
     feedback.value = { type: 'info', text: 'Voorspel EERST welk = teken fout is.' };
     eqStates.value = {};
+    showWhy.value = false
+    whyText.value = ''
+    errorDetected.value = ''
     generateLevel();
     currentLevelData.value.parts.forEach(p => { if (p.isEq) eqStates.value[p.id] = 'normal' });
 }
@@ -172,12 +178,26 @@ function selectEq(eqId) {
     if (eqId === currentLevelData.value.badEqId) {
     isCorrect.value = true;
         eqStates.value[eqId] = 'correct';
+        errorDetected.value = ''
+        showWhy.value = true
+        whyText.value = 'Een gelijkheidsteken betekent dat de linkerkant exact evenveel waard is als de rechterkant. Je mag het niet gebruiken om stappen aan elkaar te plakken. 3+5=8, maar 8≠8-2. Het = teken is geen pijltje naar de volgende stap — het is een uitspraak over twee gelijke waarden.'
         const predBonus = (prediction.value && prediction.value === eqId) ? ' 🎯 En je voorspelling klopte!' : '';
         feedback.value = { type: 'success', text: '👍 Juist! Dit = teken is wiskundig fout.' + predBonus + '<br/><br/><strong>Waarom?</strong> Links en rechts van dit = hebben niet dezelfde waarde. Leerlingen schrijven vaak een "treintje":<br/><code>3+5=8-2=6</code><br/>Maar 3+5=8, niet 8-2. Het = teken verbindt GEEN stappen — het zegt dat L- en R-kant PRECIES DEZELFDE WAARDE hebben.<br/><br/>✏️ <strong>LPD-doel:</strong> Je herkent foutief gebruik van = en kunt het correct gebruiken als wiskundige bewering.' }
     } else {
         isCorrect.value = false;
         attemptCount.value++;
         eqStates.value[eqId] = 'wrong';
+
+        // Error analysis
+        const wrongId = eqId
+        const correctId = currentLevelData.value.badEqId
+        if (wrongId === correctId + 1 || (correctId === 2 && wrongId === 3)) {
+          errorDetected.value = 'Je hebt een correct = teken geselecteerd. Kijk naar de waarden: het foute teken heeft links en rechts verschillende uitkomsten.'
+        } else if (wrongId < correctId) {
+          errorDetected.value = 'Je hebt een = teken te vroeg in de ketting gekozen. Het foute teken staat later, waar de notatie een nieuwe bewerking bevat zonder dat de waarde klopt.'
+        } else {
+          errorDetected.value = 'Niet het juiste = teken. Vergelijk de waarden links en rechts van elk = teken. Waar spreken ze elkaar tegen?'
+        }
 
         const hints = currentLevelData.value.hints
         const hintIdx = Math.min(attemptCount.value - 1, hints.length - 1)
@@ -260,7 +280,7 @@ onUnmounted(() => {
 
             <!-- Prediction gate -->
             <div v-if="showPrediction" class="p-4 mb-4 border-2 border-amber-200 bg-amber-50 rounded-xl shadow-sm">
-              <p class="font-bold text-amber-800 mb-3 text-sm">🔮 Voorspelling &mdash; welk = teken is fout?</p>
+              <p class="font-bold text-amber-800 mb-3 text-sm">Voorspelling &mdash; welk = teken is fout?</p>
               <p class="text-xs text-amber-700 mb-3">Voordat je klikt: welk = teken is WISKUNDIG FOUT?</p>
               <div class="flex gap-2">
                 <button v-for="part in currentLevelData.parts" :key="'p-'+part.id" v-if="part.isEq" @click="submitPrediction(part.id)"
@@ -269,6 +289,24 @@ onUnmounted(() => {
                   = #{{ currentLevelData.parts.filter(p => p.isEq).indexOf(part) + 1 }}
                 </button>
               </div>
+            </div>
+
+            <!-- Error Analysis -->
+            <div v-if="errorDetected && !isCorrect" class="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+                <PhWarningCircle weight="fill" class="w-4 h-4" />
+                Let op!
+              </h4>
+              <p class="text-sm text-red-700">{{ errorDetected }}</p>
+            </div>
+
+            <!-- Why Explanation (after success) -->
+            <div v-if="showWhy && isCorrect" class="mt-4 p-4 border border-indigo-200 bg-indigo-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-indigo-800 mb-1">
+                <PhLightbulb weight="fill" class="w-4 h-4" />
+                Waarom werkt dit?
+              </h4>
+              <p class="text-sm text-indigo-700">{{ whyText }}</p>
             </div>
           </div>
 

@@ -27,6 +27,10 @@ const celebrationDone = ref(false)
 const isChecked = ref(false)
 const feedback = ref({ type: 'info', text: 'Bekijk de muur. Wat is de GGD?' })
 const attemptCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionPassed = ref(false)
@@ -215,6 +219,9 @@ function resetActivityState() {
   levels.value = newLevels
 
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   isChecked.value = false
   feedback.value = { type: 'info', text: 'Bekijk de muur. Wat is de GGD?' }

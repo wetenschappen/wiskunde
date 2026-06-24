@@ -41,6 +41,9 @@ const hintCount = ref(0)
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionPassed = ref(false)
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b) }
@@ -218,6 +221,9 @@ function resetActivityState() {
   showReflection.value = false
   reflectionAnswer.value = ''
   reflectionPassed.value = false
+  showWhy.value = false
+  whyText.value = ''
+  errorDetected.value = ''
   showWorkedExample.value = currentInternalLevel.value === 0
 }
 
@@ -312,12 +318,22 @@ function checkAnswer() {
       showReflection.value = true
       reflectionAnswer.value = ''
       reflectionPassed.value = false
+      errorDetected.value = ''
+      showWhy.value = true
+      whyText.value = 'De noemer is het totale aantal gelijke delen (${d.totalCells}). De teller is het aantal gekleurde delen (${d.coloredCount}). Het rooster splitst het geheel in gelijke delen; de verhouding gekleurd/totaal is de breuk.'
       feedback.value = {
         type: 'success',
         text: `Juist! ${d.coloredCount} van de ${d.totalCells} vakjes zijn gekleurd = ${d.answerNum}/${d.answerDen}.`
       }
     } else {
       attemptCount.value++
+      if (slider1.value > d.totalCells) {
+        errorDetected.value = 'Het aantal gekleurde vakjes kan niet groter zijn dan het totale aantal vakjes (${d.totalCells}). Je hebt de teller en noemer misschien omgewisseld?'
+      } else if (slider1.value < d.coloredCount) {
+        errorDetected.value = 'Je hebt niet alle gekleurde vakjes geteld. Tel opnieuw: hoeveel oranje vakjes zie je?'
+      } else {
+        errorDetected.value = 'Er zijn ${d.coloredCount} oranje vakjes — niet ${slider1.value}. Tel ze één voor één.'
+      }
       feedback.value = {
         type: 'error',
         text: `De schuif staat op ${slider1.value}, maar er zijn ${d.coloredCount} vakjes gekleurd.`
@@ -329,6 +345,9 @@ function checkAnswer() {
       showReflection.value = true
       reflectionAnswer.value = ''
       reflectionPassed.value = false
+      errorDetected.value = ''
+      showWhy.value = true
+      whyText.value = 'Eerst maak je breuken gelijknamig met KGV(${d.frac1Den}, ${d.frac2Den}) = ${d.commonDen}. Dan tel je alleen de tellers op: ${d.scaled1Num} + ${d.scaled2Num} = ${d.rawNum}. De noemer blijft ${d.commonDen} omdat de grootte van elk deel niet verandert.'
       let extra = ''
       if (d.needsSimplify) {
         extra = ` Vereenvoudigd: ${d.answerNum}/${d.answerDen}.`
@@ -340,6 +359,13 @@ function checkAnswer() {
     } else {
       attemptCount.value++
       const totalShown = slider1.value + slider2.value
+      if (slider1.value !== d.scaled1Num) {
+        errorDetected.value = 'De eerste schuif moet op ${d.frac1Num}/${d.frac1Den} = ${d.scaled1Num}/${d.commonDen} staan. Je hebt ${slider1.value} geselecteerd.'
+      } else if (slider2.value !== d.scaled2Num) {
+        errorDetected.value = 'De tweede schuif moet op ${d.frac2Num}/${d.frac2Den} = ${d.scaled2Num}/${d.commonDen} staan. Je hebt ${slider2.value} geselecteerd.'
+      } else {
+        errorDetected.value = 'De som klopt niet. ${slider1.value}/${d.commonDen} + ${slider2.value}/${d.commonDen} = ${totalShown}/${d.commonDen}, maar het juiste antwoord is ${d.scaled1Num + d.scaled2Num}/${d.commonDen}.'
+      }
       const g2 = gcd(totalShown, d.commonDen)
       feedback.value = {
         type: 'error',
@@ -352,6 +378,9 @@ function checkAnswer() {
       showReflection.value = true
       reflectionAnswer.value = ''
       reflectionPassed.value = false
+      errorDetected.value = ''
+      showWhy.value = true
+      whyText.value = 'Net als bij optellen: eerst gelijknamig maken met KGV(${d.frac1Den}, ${d.frac2Den}) = ${d.commonDen}. Dan alleen de tellers aftrekken: ${d.scaled1Num} - ${d.scaled2Num} = ${d.rawNum}. De noemer blijft hetzelfde omdat de grootte van de delen niet verandert.'
       let extra = ''
       if (d.needsSimplify) {
         extra = ` Vereenvoudigd: ${d.answerNum}/${d.answerDen}.`
@@ -363,6 +392,13 @@ function checkAnswer() {
     } else {
       attemptCount.value++
       const remaining = slider1.value - slider2.value
+      if (slider1.value !== d.scaled1Num) {
+        errorDetected.value = 'De minuend (eerste schuif) moet op ${d.scaled1Num}/${d.commonDen} staan, niet ${slider1.value}.'
+      } else if (slider2.value !== d.scaled2Num) {
+        errorDetected.value = 'De subtrahend (tweede schuif) moet op ${d.scaled2Num}/${d.commonDen} staan, niet ${slider2.value}.'
+      } else {
+        errorDetected.value = 'Het verschil ${remaining}/${d.commonDen} klopt niet. Het juiste verschil is ${d.rawNum}/${d.rawDen}.'
+      }
       const g2 = gcd(Math.abs(remaining), d.commonDen)
       feedback.value = {
         type: 'error',
@@ -611,33 +647,25 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- Error Analysis -->
+          <div v-if="errorDetected && !isCorrect" class="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+            <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+              <PhWarningCircle weight="fill" class="w-4 h-4" />
+              Let op!
+            </h4>
+            <p class="text-sm text-red-700">{{ errorDetected }}</p>
+          </div>
+
           <!-- Why explanation -->
           <div
-            v-if="isCorrect && !showReflection"
-            class="mt-4 p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400 animate-fadeIn"
+            v-if="showWhy && isCorrect"
+            class="mt-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 animate-fadeIn"
           >
-            <p class="font-bold text-amber-800 text-sm mb-1">
-              <template v-if="currentLevelData?.mode === 'add'">Waarom tel je tellers op en niet noemers?</template>
-              <template v-else-if="currentLevelData?.mode === 'subtract'">Waarom trek je tellers af en niet noemers?</template>
-              <template v-else>Waarom is de noemer het totaal aantal vakjes?</template>
+            <p class="font-bold text-indigo-800 text-sm mb-1">
+              <PhLightbulb weight="fill" class="w-4 h-4 inline" />
+              Waarom werkt dit?
             </p>
-            <p class="text-xs text-amber-700 leading-relaxed">
-              <template v-if="currentLevelData?.mode === 'add'">
-                Eerst maak je breuken gelijknamig: je zoekt de KGV van de noemers en past beide breuken aan.
-                De noemer blijft hetzelfde omdat het vakje/deel even groot blijft. Alleen het aantal
-                vakjes (tellers) wordt opgeteld. De noemer verandert niet &mdash; die stelt de grootte van
-                het deel voor, niet het aantal.
-              </template>
-              <template v-else-if="currentLevelData?.mode === 'subtract'">
-                Net als bij optellen: eerst gelijknamig maken met KGV, dan alleen de tellers aftrekken.
-                De noemer verandert niet omdat de grootte van de delen hetzelfde blijft.
-              </template>
-              <template v-else>
-                De noemer is het totale aantal gelijke delen waar het geheel in verdeeld is.
-                De teller is het aantal delen dat gekleurd is. Het rooster maakt dit zichtbaar:
-                tel de oranje vakjes en het totaal.
-              </template>
-            </p>
+            <p class="text-xs text-indigo-700 leading-relaxed">{{ whyText }}</p>
           </div>
 
           <!-- Reflection -->

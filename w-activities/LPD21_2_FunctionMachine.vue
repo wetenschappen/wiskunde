@@ -39,6 +39,10 @@ const feedback = ref({ type: 'info', text: '' })
 const attemptCount = ref(0)
 const hintCount = ref(0)
 const showWorkedExample = ref(true)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 

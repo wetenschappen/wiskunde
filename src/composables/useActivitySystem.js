@@ -30,6 +30,7 @@ const RationalFunctionsActivity = defineAsyncComponent(() => import('../componen
 const PolynomialDivisionActivity = defineAsyncComponent(() => import('../components/activities/PolynomialDivisionActivity.vue'))
 const SpatialGeometryActivity = defineAsyncComponent(() => import('../components/activities/SpatialGeometryActivity.vue'))
 const MathFillBlanksActivity  = defineAsyncComponent(() => import('../components/activities/MathFillBlanksActivity.vue'))
+const FunctionMachineActivity = defineAsyncComponent(() => import('../../w-activities/LPD_FunctionMachine.vue'))
 
 // Registry
 const COMPONENT_MAP = {
@@ -61,7 +62,8 @@ const COMPONENT_MAP = {
     rationalFunctions: RationalFunctionsActivity,
     polynomialDivision: PolynomialDivisionActivity,
     spatialGeometry:  SpatialGeometryActivity,
-    mathFillBlanks:   MathFillBlanksActivity
+    mathFillBlanks:   MathFillBlanksActivity,
+    functionMachine:  FunctionMachineActivity
 }
 
 export function useActivitySystem(lessonData, markAsDoneCallback) {

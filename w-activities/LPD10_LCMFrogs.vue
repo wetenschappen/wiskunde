@@ -37,6 +37,10 @@ const showPrediction = ref(true)
 const predictedKGV = ref(null)
 const showWorkedExample = ref(true)
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectionAnswer = ref('')
 const reflectionPassed = ref(false)
@@ -127,6 +131,9 @@ function resetActivityState() {
   levels.value = newLevels
 
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   isChecked.value = false
   feedback.value = { type: 'info', text: 'Voorspel eerst waar de kikkers elkaar ontmoeten.' }

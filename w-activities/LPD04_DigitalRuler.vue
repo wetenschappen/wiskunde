@@ -29,6 +29,9 @@ const isChecked = ref(false)
 const attemptCount = ref(0)
 const feedback = ref({ type: 'info', text: 'Tip: Je kan de meetlat slepen met je muis.' })
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref('')
+const errorDetected = ref('')
 
 // Phases: 'predict' → 'measure' → 'reflect'
 const phase = ref('predict')
@@ -158,6 +161,9 @@ function resetActivityState() {
     showWorkedExample.value = true
     rulerX.value = 100
     rulerY.value = 350
+    showWhy.value = false
+    whyText.value = ''
+    errorDetected.value = ''
     levels.value = [
       generateLevel(0),
       generateLevel(1),
@@ -173,6 +179,9 @@ function checkAnswer() {
   if (userLength.value === target) {
     isCorrect.value = true
     attemptCount.value = 0
+    errorDetected.value = ''
+    showWhy.value = true
+    whyText.value = 'Het nulpunt (0) van de meetlat moet exact samenvallen met het begin van het lijnstuk. Als je vanaf de rand van de meetlat begint, meet je steeds een paar mm te veel. Dit geldt voor alle meetinstrumenten: de nulmarkering is altijd het echte beginpunt, niet de fysieke rand van het toestel.'
     feedback.value = {
       type: 'success',
       text: `Prima! Gemeten! De lijn is exact ${target} mm lang.`
@@ -182,11 +191,13 @@ function checkAnswer() {
 
     // Error analysis: common misconception checks
     if (userLength.value !== null && userLength.value >= target + 3 && userLength.value <= target + 8) {
+      errorDetected.value = 'Je meet vanaf de fysieke rand van de meetlat, niet vanaf de 0-markering. De rand van het plastic is niet het begin van de schaalverdeling!'
       feedback.value = {
         type: 'error',
         text: 'Let goed op! Je bent beginnen meten vanaf de fysieke RAND van de meetlat. Je moet beginnen bij het lange streepje van de 0 — niet aan de uiterste rand van het plastic.'
       }
-    } else if (userLength.value !== null && userLength.value * 10 === target || (userLength.value !== null && userLength.value * 10 >= target - 1 && userLength.value * 10 <= target + 1)) {
+    } else if (userLength.value !== null && (userLength.value * 10 === target || (userLength.value * 10 >= target - 1 && userLength.value * 10 <= target + 1))) {
+      errorDetected.value = 'Je hebt het getal in cm genoteerd in plaats van mm. 1 cm = 10 mm, dus je antwoord moet 10× groter zijn.'
       feedback.value = {
         type: 'error',
         text: `Je hebt ${userLength.value} mm ingevuld. Dat getal lijkt in centimeter (cm) te staan. We vragen het specifiek in millimeter (mm). 1 cm = 10 mm.`
@@ -318,15 +329,22 @@ onUnmounted(() => {
                </div>
             </div>
 
-            <!-- Why Explanation (after success) -->
-            <div v-if="isCorrect && phase === 'measure'" class="mt-4 p-4 border border-amber-200 bg-amber-50 rounded-xl animate-fadeIn">
-              <h4 class="flex items-center gap-2 text-sm font-bold text-amber-800 mb-1">
-                <PhChatCircleText weight="fill" class="w-4 h-4" />
-                Waarom is dit belangrijk?
+            <!-- Error Analysis -->
+            <div v-if="errorDetected && !isCorrect" class="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-red-800 mb-1">
+                <PhWarningCircle weight="fill" class="w-4 h-4" />
+                Let op!
               </h4>
-              <p class="text-sm text-slate-700">
-                Het nulpunt (0) van de meetlat moet exact samenvallen met het begin van het lijnstuk. Als je vanaf de rand van de meetlat begint, meet je steeds een paar mm te veel. Dit geldt voor alle meetinstrumenten: de nulmarkering is altijd het echte beginpunt, niet de fysieke rand van het toestel.
-              </p>
+              <p class="text-sm text-red-700">{{ errorDetected }}</p>
+            </div>
+
+            <!-- Why Explanation (after success) -->
+            <div v-if="showWhy && isCorrect && phase === 'measure'" class="mt-4 p-4 border border-indigo-200 bg-indigo-50 rounded-xl animate-fadeIn">
+              <h4 class="flex items-center gap-2 text-sm font-bold text-indigo-800 mb-1">
+                <PhLightbulb weight="fill" class="w-4 h-4" />
+                Waarom werkt dit?
+              </h4>
+              <p class="text-sm text-indigo-700">{{ whyText }}</p>
             </div>
 
             <!-- Reflection Phase -->

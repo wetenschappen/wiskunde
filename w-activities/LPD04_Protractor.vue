@@ -29,6 +29,9 @@ const isChecked = ref(false)
 const attemptCount = ref(0)
 const feedback = ref({ type: 'info', text: 'Beweeg de slider om de hoek te tekenen.' })
 const hintCount = ref(0)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
 
 // Phases: 'predict' → 'measure' → 'reflect'
 const phase = ref('predict')
@@ -168,6 +171,9 @@ function submitReflection() {
 function resetActivityState() {
     levels.value = generateLevel();
     isCorrect.value = false;
+    showWhy.value = false
+    whyText.value = ""
+    errorDetected.value = ""
     celebrationDone.value = false
     isChecked.value = false;
     attemptCount.value = 0;

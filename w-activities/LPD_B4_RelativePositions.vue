@@ -177,6 +177,10 @@ const options = ['snijdend', 'evenwijdig', 'samenvallend']
 // --- 8-element additions ---
 const showPrediction = ref(true)
 const predictionDone = ref(false)
+const showWhy = ref(false)
+const whyText = ref("")
+const errorDetected = ref("")
+
 const showReflection = ref(false)
 const reflectAns = ref('')
 const reflectDone = ref(false)
@@ -259,6 +263,9 @@ function resetActivityState() {
   generateLevels()
   attemptCount.value = 0
   isCorrect.value = false
+  showWhy.value = false
+  whyText.value = ""
+  errorDetected.value = ""
   celebrationDone.value = false
   isChecked.value = false
   feedback.value = { type: 'info', text: '' }
